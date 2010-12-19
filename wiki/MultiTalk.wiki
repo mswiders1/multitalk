@@ -1,0 +1,10 @@
+#summary Strona główna projektu
+
+= Wstęp =
+
+Treść zadania...
+
+
+= Menu =
+
+  * Projekt rozwiązania
