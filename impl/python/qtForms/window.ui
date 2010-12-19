@@ -14,8 +14,8 @@
    <string>Messager</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>Android-Messages-256.png</normaloff>Android-Messages-256.png</iconset>
+   <iconset resource="res.qrc">
+    <normaloff>:/images/window.png</normaloff>:/images/window.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -165,8 +165,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
-              <normaloff>Gnome-Document-Send-64.png</normaloff>Gnome-Document-Send-64.png</iconset>
+             <iconset resource="res.qrc">
+              <normaloff>:/images/send.png</normaloff>:/images/send.png</iconset>
             </property>
            </widget>
           </item>
@@ -213,6 +213,8 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

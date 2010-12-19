@@ -2,7 +2,7 @@
 import os,sys
 
 from PyQt4 import QtCore,QtGui, Qt
-from Ui_settings import Ui_Settings
+from qtForms.Ui_settings import Ui_Settings
 
 ADDR = "address"
 PORT = "port"

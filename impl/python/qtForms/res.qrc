@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/qss">
+        <file alias="default.qss">resources/style.qss</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file alias="1down.png">resources/1downarrow1-32.png</file>
+        <file alias="1up.png">resources/1uparrow-32.png</file>
+        <file alias="1downG.png">resources/1downarrow1-32g.png</file>
+        <file alias="1upG.png">resources/1uparrow-32g.png</file>
+        <file alias="send.png">resources/Gnome-Document-Send-64.png</file>
+        <file alias="window.png">resources/Android-Messages-256.png</file>
+    </qresource>
+</RCC>
