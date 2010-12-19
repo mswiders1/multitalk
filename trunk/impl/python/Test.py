@@ -2,7 +2,7 @@
 import os,sys
 
 from PyQt4 import QtCore,QtGui, Qt
-from Ui_test import Ui_Test
+from qtForms.Ui_test import Ui_Test
 
 
 class Test(QtGui.QWidget):

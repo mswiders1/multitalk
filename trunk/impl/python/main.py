@@ -5,13 +5,13 @@
 import os,sys
 
 from PyQt4 import QtCore,QtGui, Qt
-from Ui_window import Ui_MainWindow
-from ConversationModel import ConversationModel
-from PeersModel import PeersModel
+from qtForms.Ui_window import Ui_MainWindow
+from qtModels.ConversationModel import ConversationModel
+from qtModels.PeersModel import PeersModel
 from Settings import Settings
 from Test import Test
 from Core import Core
-from res_rc import *
+from qtForms.res_rc import *
 import socket
 
 appName = "SRAppp"
