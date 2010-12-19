@@ -1,0 +1,29 @@
+#summary Projekt rozwiązania
+
+= Projekt rozwiązania =
+
+Na tej stronie znajdują się ustalenia co do implementacji zadania.
+
+== Notatki ze spotkania 2010-12-19 ==
+
+=== Proces podłączenia do systemu ===
+
+Założenie: unikalność *H(MAC + IP + username)* - traktowane jako UID
+
+  # Wysłanie po broadcast-cie (UDP) zapytania o osiągalne hosty
+  # Jeżeli nikt nie odpowiedział, to połączenie z 1 węzłem po TCP/IP podanym explicite przez użytkownika
+  # Otrzymanie listy użytkowników od każdego węzła, z którym mam połączenie
+  # Próba połączenia do każdego użytkownika
+  # Wysłanie do wszystkich informacji o podłączeniu z UID i oczekiwanie na ACK od każdego
+
+=== Proces wysyłania wiadomości ===
+
+  # Jeżeli istnieje bezpośrednie połączenie między użytkownikami, to wiadomość jest wysyłana i oczekiwanie na ACK
+  # Jeżeli jest ACK - wiadomość została dostarczona i można banglać dalej
+  # Jeżeli wystąpił timeout na ACK, to wiadomość jest wysyłana do wszystkich węzłów z którym mam połączenie i oczekuję na ACK
+
+=== Szczegóły implementacyjne ===
+
+  * Defaultowy port: 3554 z możliwością zmiany przez użytkownika
+  * Wykorzystanie JSON-a jako formatu przesyłu danych
+  * UID użytkownika: wartość funkcji skrótu z adresu MAC, adresu IP oraz tekstowej nazwy użytkownika
