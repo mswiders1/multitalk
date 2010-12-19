@@ -1,0 +1,132 @@
+#Settings {
+    background: #bbbbbb;
+}
+
+#frame {
+    border: 3px solid #666666;
+    border-radius: 10px;
+    background: QLinearGradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #eef, stop: 1 #ccf);
+}
+
+QTableView {
+    border: 3px solid #666666;
+    border-radius: 10px;
+    padding: 3px;
+    background: white;
+}
+
+QTableView::item {
+    background-color: #eef;
+    color: Black;
+}
+
+QTableView::item:selected {
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, 
+        stop: 0 #7c3, 
+        stop: 0.1 #8d3, 
+        stop: 0.49 #9e3, 
+        stop: 0.5 #7c3, 
+        stop: 1 #7c3);
+    color: black;
+}
+
+QTableView::item:hover {
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, 
+        stop: 0 #af6, 
+        stop: 0.1 #bf6, 
+        stop: 0.49 #cf6, 
+        stop: 0.5 #af6, 
+        stop: 1 #af6);
+    color: black;
+}
+
+QTextEdit {
+    border: 3px solid #666666;
+    border-radius: 10px;
+    padding: 3px;
+    background: QLinearGradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #eef, stop: 1 #ccf);
+}
+
+QLineEdit {
+    padding: 1px;
+    border-style: solid;
+    border: 2px solid gray;
+    border-radius: 8px;
+}
+
+QSpinBox {
+    padding: 1px;
+    border-style: solid;
+    border: 2px solid gray;
+    border-radius: 8px;
+}
+
+QSpinBox::up-button {
+     subcontrol-origin: border;
+     subcontrol-position: top right; /* position at the top right corner */
+
+     width: 10px; 
+     top:1px;
+     right:5px;
+     border-image: url(:/images/1up.png) ;
+     border-width: 0px;
+ }
+QSpinBox::up-button:pressed {
+    border-image: url(:/images/1upG.png) ;
+ }
+ 
+QSpinBox::down-button {
+     subcontrol-origin: border;
+     subcontrol-position: bottom right; /* position at the top right corner */
+
+     width: 10px; 
+     bottom:1px;
+     right:5px;
+     border-image: url(:/images/1down.png);
+     border-width: 0px;
+ }
+
+QSpinBox::down-button:pressed {
+     border-image: url(:/images/1downG.png);
+ }
+
+QPushButton {
+    color: white;
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #88d, stop: 0.1 #99e, stop: 0.49 #77c, stop: 0.5 #66b, stop: 1 #77c);
+    border-width: 1px;
+    border-color: #339;
+    border-style: solid;
+    border-radius: 7;
+    padding: 3px;
+    font-size: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    min-width: 70px;
+    max-width: 70px;
+    min-height: 13px;
+    max-height: 13px;
+}
+
+QPushButton:hover {
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, 
+        stop: 0 #aaf, 
+        stop: 0.1 #bbf, 
+        stop: 0.49 #99e, 
+        stop: 0.5 #88d, 
+        stop: 1 #99e);
+}
+
+QPushButton:pressed {
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, 
+        stop: 0 #7c3, 
+        stop: 0.1 #8d3, 
+        stop: 0.49 #9e3, 
+        stop: 0.5 #7c3, 
+        stop: 1 #7c3);
+    border-color: #393;
+}
+
+QLabel {
+    font-weight: bold;
+    font-size: 15px;
+}
