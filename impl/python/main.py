@@ -2,7 +2,7 @@
 
 """The user interface for our app"""
 
-import os,sys
+import os,sys, traceback
 
 from PyQt4 import QtCore,QtGui, Qt
 from qtForms.Ui_window import Ui_MainWindow
@@ -10,9 +10,10 @@ from qtModels.ConversationModel import ConversationModel
 from qtModels.PeersModel import PeersModel
 from Settings import Settings
 from Test import Test
-from Core import Core
+from core.Core import Core
 from qtForms.res_rc import *
-import socket
+import Queue
+import queues
 
 appName = "SRAppp"
 aboutMe = "MarcinKamionowski"
@@ -22,6 +23,7 @@ splitterLeftRight = "splitterConvPeers"
 splitterUpDown = "splitterUpDown"
 
 core = None
+GUI_TIMER_INTERVAL_IN_MS = 100
 
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
@@ -36,6 +38,7 @@ class Main(QtGui.QMainWindow):
         self.restoreWindowState()
         Main.logger = self.showMsgInLogView
         self.ui.newMessage.setFocus()
+        self.startTimer(GUI_TIMER_INTERVAL_IN_MS)
         print("Window showed")
         
     def on_sendButton_released(self):
@@ -86,6 +89,31 @@ class Main(QtGui.QMainWindow):
     def closeEvent(self,  closeEvent):
         self.saveWindowState()
         QtGui.QMainWindow.closeEvent(self, closeEvent);
+        
+    def parseQueue(self):
+        try:
+            queueElement = queues.guiQueue.get_nowait()
+            print("GUI: Parsing queue element %s" % queueElement)
+            
+            if queueElement['GUI_MSG_TYPE'] == queues.GUI_MSG_TYPE.BROADCAST_WIN_SHOW:
+                self.pd = QtGui.QProgressDialog("Broadcast in progress.", QtCore.QString(), 0, 100,  self)
+                self.setWindowTitle("Progress...")
+                self.pd.open()
+            
+            if queueElement['GUI_MSG_TYPE'] == queues.GUI_MSG_TYPE.BROADCAST_PROGRESS:
+                self.pd.setValue(queueElement['PROGRESS'])
+                
+            if queueElement['GUI_MSG_TYPE'] == queues.GUI_MSG_TYPE.BROADCAST_WIN_CLOSE:
+                self.pd.cancel()
+
+        except Queue.Empty:
+            pass
+        except:
+            traceback.print_exc(file=sys.stdout)
+            raise
+        
+    def timerEvent(self,  timerEvent):
+        self.parseQueue()
    
 def loadStyle():
     file = QtCore.QFile(":/qss/default.qss")
@@ -97,30 +125,13 @@ def main():
     app = QtGui.QApplication(sys.argv)
     stylesheet = loadStyle()
     app.setStyleSheet(stylesheet)
-    settings = QtCore.QSettings(aboutMe, appName);
-    settingsWin = Settings(settings)
     core = Core()
-    while True:
-        settingsWin.exec_()
-        values = settingsWin.getSettings()
-        if values:
-            try:
-                core.connect(values)
-            except socket.error as err:
-                print err
-                continue
-            except Exception as err:
-                print err
-                continue
-            else:
-                window=Main(settings)
-                window.show()
-                #test= Test(stylesheet)
-                #test.show()
-                sys.exit(app.exec_())
-        print ("Exit")
-        sys.exit(0)
-    
+    core.start()
+    qtWinSettings = QtCore.QSettings(aboutMe, appName);
+    window=Main(qtWinSettings)
+    window.show()
+    sys.exit(app.exec_())
+     
 if __name__ == "__main__":
     print("Call main()")
     main()
