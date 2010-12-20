@@ -1,0 +1,50 @@
+#summary Komunikaty przesyłane przez sieć
+
+= Podłączenie (broadcast) =
+
+Protokół: *UDP*, broadcast
+
+Zawartość: _MULTITALK_5387132_
+
+
+
+= Podłączenie (p2p) =
+
+Protokół: *TCP/IP*
+
+Odbiorca: węzeł podany przez użytkownika
+
+Zawartość: _MULTITALK_5387132_
+
+
+= Podłączenie - odpowiedź =
+
+Protokół: *TCP/IP*
+
+Odbiorca: węzeł podłączający się
+
+Zawartość: tablica informacji o wszystkich użytkownikach (*JSON*)
+
+Postać jednego rekordu tablicy:
+
+|| *nazwa pola* || *typ* ||
+|| IP_ADDRESS || VARCHAR(15) ||
+|| PORT || INTEGER ||
+|| UID || CHAR(32) ||
+|| USERNAME || VARCHAR(32) ||
+
+
+
+= Logowanie =
+
+Protokół: *TCP/IP*
+
+Odbiorca: wszyscy użytkownicy, z którymi logujący się węzeł ma połączenie
+
+Zawartość: zestaw informacji o użytkowniku (*JSON*)
+
+|| *nazwa pola* || *typ* || *wartość* ||
+|| TYPE || CHAR(3) || _LOG_ ||
+|| UID || CHAR(32) || _H(MAC + IP + username_) ||
+|| USERNAME || VARCHAR(32) ||  ||
+
