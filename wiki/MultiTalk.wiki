@@ -22,3 +22,4 @@ Oprogramowanie powinno posiadać opcję opóźniania komunikatów możliwą do w
 = Menu =
 
   * [projekt Projekt rozwiązania]
+  * [komunikaty Struktura komunikatów]
