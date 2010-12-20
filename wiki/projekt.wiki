@@ -27,3 +27,4 @@ Założenie: unikalność *H(MAC + IP + username)* - traktowane jako UID
   * Defaultowy port: 3554 z możliwością zmiany przez użytkownika
   * Wykorzystanie JSON-a jako formatu przesyłu danych
   * UID użytkownika: wartość funkcji skrótu z adresu MAC, adresu IP oraz tekstowej nazwy użytkownika
+  * [komunikaty Struktura komunikatów]
