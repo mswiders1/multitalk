@@ -1,3 +1,5 @@
+import javax.swing.JFrame;
+
 
 public class Test1 {
 
@@ -8,11 +10,15 @@ public class Test1 {
 		//
 		// TODO Auto-generated method stub
 		MyId myid = new MyId();
+		ContactsFrame contactsFrame = new ContactsFrame();
+		contactsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		contactsFrame.show();
+		
 		//myid.findNIC();
 		//System.out.println(myid.findIp(myid.inaddr));
 		//System.out.println(myid.findMac(myid.nic));
 		System.out.println(myid.findId());
-		//System.out.println(myid.getIp());
+		//System.out.println(myid.getIp());		
 
 	}
 
