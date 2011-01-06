@@ -5,18 +5,61 @@
 
     <!-- Header -->
     <LinearLayout
+        android:id="@+id/start_section_header"
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true">
+        android:layout_alignParentTop="true"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
         
         <TextView
             android:id="@+id/start_header"
-            android:text="@string/header"
+            android:text="@string/start_header"
+            android:gravity="center"
+            android:textSize="17sp"
+            android:textStyle="bold"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
     </LinearLayout>
 
+
+    <!-- Body -->
+    <RelativeLayout
+        android:id="@+id/start_section_body"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/start_section_header"
+        android:paddingTop="20dp"
+        android:paddingBottom="5dp">
+        
+        <TextView 
+            android:id="@+id/start_loginInfo"
+            android:text="@string/start_loginInfo"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true" />
+    
+        <EditText 
+            android:id="@+id/start_loginInput"
+            android:gravity="left"
+            android:maxLines="1"
+            android:width="200dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/start_loginInfo"
+            android:layout_marginTop="5dp"
+            android:layout_centerHorizontal="true"/>
+            
+        <Button 
+            android:id="@+id/start_loginButton"
+            android:text="@string/start_loginButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/start_loginInput"
+            android:layout_marginTop="5dp"
+            android:layout_centerHorizontal="true" />
+    </RelativeLayout>
 
 
 </RelativeLayout>
