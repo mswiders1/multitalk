@@ -2,5 +2,8 @@
 <resources>
     <string name="hello">Hello World, StartActivity!</string>
     <string name="app_name">Multitalk</string>
-<string name="header">Multitalk</string>
+<string name="start_header">Logowanie</string>
+<string name="start_loginInfo">Aby się zalogować, podaj nazwę użytkownika:</string>
+<string name="start_loginButton">Zaloguj</string>
+
 </resources>
