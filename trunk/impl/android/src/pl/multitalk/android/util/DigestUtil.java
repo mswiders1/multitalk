@@ -24,7 +24,7 @@ public class DigestUtil {
             return digestBytes;
             
         } catch (NoSuchAlgorithmException e) {
-            Log.d("Multitalk-DEBUG", "No algorithm SHA-1 found");
+            Log.d("Multitalk-DEBUG", "No SHA-1 algorithm found");
             return null;
         }
     }
@@ -36,7 +36,6 @@ public class DigestUtil {
      * @return zakodowany ciąg bajtów
      */
     public static String getBase64(byte[] bytes){
-        
-        return "";
+        return Base64.encodeBytes(bytes);
     }
 }
