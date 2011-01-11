@@ -1,6 +1,7 @@
 package pl.multitalk.android;
 
 import pl.multitalk.android.managers.MultitalkNetworkManager;
+import pl.multitalk.android.model.MultitalkApplication;
 import pl.multitalk.android.util.NetworkUtil;
 import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
 import android.app.Activity;
@@ -19,12 +20,16 @@ import android.widget.EditText;
  */
 public class StartActivity extends Activity {
     
-    ProgressDialog loggingInProgressDialog = null;
-    EditText loginEditText;
+    private MultitalkApplication app;
+    private ProgressDialog loggingInProgressDialog = null;
+    private EditText loginEditText;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        app = (MultitalkApplication) getApplication();
+        
         setContentView(R.layout.start_activity);
         
         loginEditText = (EditText) findViewById(R.id.start_loginInput);
@@ -51,12 +56,21 @@ public class StartActivity extends Activity {
                         "Logging in. Please wait...", true, true);
                 
                 // TODO logowanie
-                MultitalkNetworkManager multitalkNetworkManager = new MultitalkNetworkManager(getApplicationContext());
+                MultitalkNetworkManager multitalkNetworkManager = app.getMultitalkNetworkManager();
                 multitalkNetworkManager.logIn(login);
             }
         });
     }
     
+    
+    /**
+     * Zamyka dialog oczekiwania na zalogowanie
+     */
+    public void hideLoginProgressDialog(){
+        if(loggingInProgressDialog != null && loggingInProgressDialog.isShowing()){
+            loggingInProgressDialog.dismiss();
+        }
+    }
     
     
     /**
