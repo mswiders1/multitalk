@@ -6,9 +6,9 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 public class GUI {
-	public GUI(Collection<Contact> contacts_list, Contact me)
+	public GUI(Collection<Contact> contacts_list, Contact me, Contact connect_to)
 	{
-		ContactsFrame contactsFrame = new ContactsFrame(contacts_list,me);
+		ContactsFrame contactsFrame = new ContactsFrame(contacts_list,me, connect_to);
 		contactsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		contactsFrame.show();
 	}	
@@ -17,11 +17,12 @@ public class GUI {
 
 class ContactsFrame extends JFrame implements ActionListener
 {
-	public ContactsFrame(Collection<Contact> contacts_list, Contact me)
+	public ContactsFrame(Collection<Contact> contacts_list, Contact me, Contact connect_to)
 	{
 		setTitle("Mutitalk-Kontakty");
 		setSize(WIDTH,HEIGHT);
 		this.me = me;
+		this.connect_to = connect_to;
 		this.contacts_list = contacts_list;
 		
 		JMenu  menuSettings = new JMenu("Settings");
@@ -62,7 +63,7 @@ class ContactsFrame extends JFrame implements ActionListener
 			System.out.println("Wcisnieto menu user settings");
 			//System.out.println("Na liscie:" + this.contacts_list);
 			//this.refresh();
-			new SettingsFrame (me);
+			new SettingsFrame (me, connect_to);
 		}
 		else if (e.getSource() == talkMessagesMenu )
 		{
@@ -106,14 +107,7 @@ class ContactsFrame extends JFrame implements ActionListener
 					}
 				}
 			 }
-			 this.contacts_panel.getJ_contacts_list().clearSelection();
-			 this.contacts_panel.getJ_contacts_list().removeAll();
-			 this.contacts_panel.setJ_contacts_list(new JList((Vector<Contact>)this.contacts_panel.getContacts_list()));
-			 this.contacts_panel.validate();
-			 this.contacts_panel.getJ_contacts_list().validate();
-			 this.contacts_panel.getJ_contacts_list().repaint();
-			 this.contacts_panel.repaint();			 
-			 //System.out.print(this.contacts_panel.getContacts_list().size()+"^&*&)(&(");			 
+			 this.refresh();			 			  
 		}
 		else if (e.getSource() == findContactMenu )
 		{
@@ -132,7 +126,7 @@ class ContactsFrame extends JFrame implements ActionListener
 	
 	private  JMenuItem userSettMenu, talkMessagesMenu ,deleteMessagesMenu, findContactMenu;
 	private ContactsPanel contacts_panel;
-	private Contact me;
+	private Contact me, connect_to;
 	private Collection<Contact> contacts_list;
 	private static final int WIDTH = 300;
 	private static final int HEIGHT = 600;	
@@ -284,9 +278,9 @@ class TalkPanel extends JPanel implements ActionListener
 
 class SettingsFrame extends JFrame
 {
-	public SettingsFrame(Contact c)
+	public SettingsFrame(Contact c, Contact connect_to)
 	{
-		settings_panel = new SettingsPanel(c);
+		settings_panel = new SettingsPanel(c,this, connect_to);
 		setTitle("Settings");
 		setSize(WIDTH,HEIGHT);
 		
@@ -303,9 +297,11 @@ class SettingsFrame extends JFrame
 
 class SettingsPanel extends JPanel implements ActionListener
 {
-	public SettingsPanel(Contact c)
+	public SettingsPanel(Contact c, SettingsFrame f, Contact connect_to)
 	{
 		me_contact = c;
+		this.connect_to = connect_to; 
+		this.f = f;
 		this.setBackground(Color.LIGHT_GRAY);
 		
 		JLabel id_label = new JLabel("       id: ");
@@ -330,35 +326,53 @@ class SettingsPanel extends JPanel implements ActionListener
 		layout_lev2.add(Box.createHorizontalStrut(10));
 		layout_lev2.add(name_txt_field);
 		
+		JLabel ip_label = new JLabel("Ip of host to which connect (Optional): ");
+
+		ip_txt_field = new JTextField(15);
+		ip_txt_field.setText(this.connect_to.getIp());
+		ip_txt_field.setMaximumSize(ip_txt_field.getPreferredSize());
+		
+		Box layout_lev3 = Box.createHorizontalBox();
+		layout_lev3.add(ip_label);
+		//layout_lev4.add(Box.createHorizontalStrut(10));
+		
+		Box layout_lev4 = Box.createHorizontalBox();
+		layout_lev4.add(ip_txt_field);
+		
 		JButton btn_change = new JButton("Accept");
 		btn_change.addActionListener(this);
 		
-		Box layout_lev3 = Box.createHorizontalBox();
-		layout_lev3.add(btn_change);
+		Box layout_lev5 = Box.createHorizontalBox();
+		layout_lev5.add(btn_change);
 		
 		Box layout_vertical = Box.createVerticalBox();
 		layout_vertical.add(layout_lev1);
 		layout_vertical.add(layout_lev2);
 		layout_vertical.add(Box.createGlue());
 		layout_vertical.add(layout_lev3);
+		layout_vertical.add(layout_lev4);
+		layout_vertical.add(layout_lev5);
 		
 		add(layout_vertical,BorderLayout.CENTER);
 	}
 	
 	public void actionPerformed(ActionEvent e)
 	{
-		me_contact.setName(name_txt_field.getText());		
+		me_contact.setName(name_txt_field.getText());
+		connect_to.setIp(ip_txt_field.getText());
+		f.setVisible(false);
 	}
 	
-	private Contact me_contact;
-	private JTextField name_txt_field;
+	private Contact me_contact, connect_to;
+	private JTextField name_txt_field, ip_txt_field;
+	private SettingsFrame f;
 }
 
 class FindParamFrame extends JFrame
 {
 	public FindParamFrame(Collection<Contact> contacts_list,ContactsFrame f)
 	{
-		find_contact_param_panel = new ContactParamPanel(contacts_list,f);
+		find_contact_param_panel = new ContactParamPanel(contacts_list,f,this);
 		setTitle("Find Contact");
 		setSize(WIDTH,HEIGHT);
 		
@@ -375,13 +389,14 @@ class FindParamFrame extends JFrame
 
 class ContactParamPanel extends JPanel implements ActionListener
 {
-	public ContactParamPanel(Collection<Contact> contacts_list, ContactsFrame f)
+	public ContactParamPanel(Collection<Contact> contacts_list, ContactsFrame f, FindParamFrame f2)
 	{
 		
 	this.setBackground(Color.LIGHT_GRAY);
 	this.contact = new Contact();
 	this.contacts_list = contacts_list;
 	this.f = f;
+	this.f2 = f2;
 	
 	JLabel id_label = new JLabel("       id: ");
 	id_txt_field = new JTextField(15);	
@@ -430,7 +445,8 @@ class ContactParamPanel extends JPanel implements ActionListener
 	    	 contact.setId(Long.parseLong(id_txt_field.getText().toString()));
 	     }
 	     
-	     new FindListFrame(contact, contacts_list,f);
+	     new FindListFrame(contact, contacts_list,f,f2);
+	     f2.setVisible(false);
 	     
     	 System.out.println(contact);
 	}
@@ -439,17 +455,19 @@ class ContactParamPanel extends JPanel implements ActionListener
 	private Collection<Contact> contacts_list;
 	private JTextField name_txt_field, id_txt_field;
 	private ContactsFrame f;
+	private FindParamFrame f2;
 }
 
 class FindListFrame extends JFrame implements ActionListener
 {
-	public FindListFrame(Contact c, Collection<Contact> contacts_list, ContactsFrame f)
+	public FindListFrame(Contact c, Collection<Contact> contacts_list, ContactsFrame f, FindParamFrame f2)
 	{
 	
 		setTitle("Results of contacts search");
 		setSize(WIDTH,HEIGHT);
 		this.contacts_list = contacts_list;
 		this.f = f;
+		this.f2 = f2;
 		///////////////
 		JMenu  menuAdd = new JMenu("Add");		
 		addMenu = menuAdd.add(new MenuAction ("Add Contact"));		
@@ -508,7 +526,9 @@ class FindListFrame extends JFrame implements ActionListener
 			 this.contacts_list.addAll(marked);
 			 f.refresh();
 			 System.out.println("Obecna lista kontaktow:"+ contacts_list);
-			 
+			 this.setVisible(false);
+			 this.dispose();
+			 f2.dispose();			 
 		}
 		
 	}
@@ -519,6 +539,7 @@ class FindListFrame extends JFrame implements ActionListener
 	private JMenuItem addMenu;
 	private Collection<Contact> contacts_list;
 	private ContactsFrame f;
+	private FindParamFrame f2;
 }
 
 class FindListPanel extends JPanel
@@ -545,8 +566,5 @@ class FindListPanel extends JPanel
 	public void setFound_list(Collection<Contact> foundList) {
 		found_list = foundList;
 	}
-	
-	
-	
 	
 }

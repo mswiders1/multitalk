@@ -13,9 +13,11 @@ public class Test1 {
 		Vector <Contact> v = new Vector<Contact>();
 		v.add(new Contact(1,"krzysiek",true));
 		v.add(new Contact(2,"krzysiek2",true));
+		Contact sasiad = new Contact(1,"k",true);
+		sasiad.setIp("192.168.1.100");
 		Contact c =new Contact(3,"ja",true);
 		MyId myid = new MyId();
-		GUI Gui = new GUI(v,c);
+		GUI Gui = new GUI(v,c,sasiad);
 		
 		//myid.findNIC();
 		//System.out.println(myid.findIp(myid.inaddr));
