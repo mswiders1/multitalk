@@ -141,7 +141,7 @@ public class NetworkUtil {
         ipBytes[2] = (byte) ((broadcast >> 16) & 0x000000ff);
         ipBytes[3] = (byte) ((broadcast >> 24) & 0x000000ff);
         
-        Log.d("Multitalk-DEBUG","Broadcast IP: "+(int)(broadcast & 0x000000ff)
+        Log.d(Constants.DEBUG_TAG,"Broadcast IP: "+(int)(broadcast & 0x000000ff)
                                             +"."+(int)((broadcast >> 8) & 0x000000ff)
                                             +"."+(int)((broadcast >> 16) & 0x000000ff)
                                             +"."+(int)((broadcast >> 24) & 0x000000ff));

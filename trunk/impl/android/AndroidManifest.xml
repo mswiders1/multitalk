@@ -9,12 +9,34 @@
         android:label="@string/app_name"
         android:name=".model.MultitalkApplication" >
         
-        
+        <!-- głowny ekran - logowanie -->
         <activity android:name=".StartActivity"
-                  android:label="@string/app_name">
+                  android:label="@string/app_name"
+                  android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        
+        <!-- ekran listy kontaktów -->
+        <activity android:name=".ContactListActivity"
+                  android:label="@string/contactListAcivity_title"
+                  android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="pl.multitalk.android.ContactList" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        
+        
+        <!-- ekran rozmowy -->
+        <activity android:name=".ConversationActivity"
+                  android:label="@string/conversationActivity_title">
+            <intent-filter>
+                <action android:name="pl.multitalk.android.Conversation" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 

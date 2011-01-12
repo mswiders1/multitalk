@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.Context;
 import android.util.Log;
 import pl.multitalk.android.datatypes.UserInfo;
+import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.DigestUtil;
 import pl.multitalk.android.util.NetworkUtil;
 import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
@@ -86,7 +87,7 @@ public class MultitalkNetworkManager {
         
         userInfo = newUserInfo;
         
-        Log.d("Multitalk-DEBUG", "logIn| mac: "+userInfo.getMacAddress()
+        Log.d(Constants.DEBUG_TAG, "logIn| mac: "+userInfo.getMacAddress()
                 +", ip: "+userInfo.getIpAddress()
                 +", username: "+userInfo.getUsername()
                 +" | UID (before encoding): "+sb.toString()
