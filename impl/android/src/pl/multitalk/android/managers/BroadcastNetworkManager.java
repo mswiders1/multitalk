@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.NetworkUtil;
 import pl.multitalk.android.util.NetworkUtil.NotConnectedToNetworkException;
 import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
@@ -40,15 +41,15 @@ public class BroadcastNetworkManager {
             broadcastAddress = NetworkUtil.getBroadcastInetAddress(context);
             
         } catch (UnknownHostException e) {
-            Log.e("Multitalk-ERROR", "UnknownHostException at BroadcastNetworkManager#discoverOtherHosts()");
+            Log.e(Constants.ERROR_TAG, "UnknownHostException at BroadcastNetworkManager#discoverOtherHosts()");
             return;
             
         } catch (NotConnectedToNetworkException e) {
-            Log.e("Multitalk-ERROR", "NotConnectedToNetworkException at BroadcastNetworkManager#discoverOtherHosts()");
+            Log.e(Constants.ERROR_TAG, "NotConnectedToNetworkException at BroadcastNetworkManager#discoverOtherHosts()");
             return;
             
         } catch (WifiNotEnabledException e) {
-            Log.e("Multitalk-ERROR", "WifiNotEnabledException at BroadcastNetworkManager#discoverOtherHosts()");
+            Log.e(Constants.ERROR_TAG, "WifiNotEnabledException at BroadcastNetworkManager#discoverOtherHosts()");
             return;
             
         }
@@ -70,18 +71,18 @@ public class BroadcastNetworkManager {
             socket.close();
             
         } catch (SocketException e){
-            Log.e("Multitalk-ERROR", "SocketException at BroadcastNetworkManager#discoverOtherHosts()"
+            Log.e(Constants.ERROR_TAG, "SocketException at BroadcastNetworkManager#discoverOtherHosts()"
                     +"\nCause msg: "+e.getMessage());
             return;
             
         } catch (IOException e){
-            Log.e("Multitalk-ERROR", "IOException at BroadcastNetworkManager#discoverOtherHosts()"
+            Log.e(Constants.ERROR_TAG, "IOException at BroadcastNetworkManager#discoverOtherHosts()"
                     +"\nCause msg: "+e.getMessage());
             return;
             
         }
         
-        Log.d("Multitalk-DEBUG", "Broadcast packet sent!");
+        Log.d(Constants.DEBUG_TAG, "Broadcast packet sent!");
     }
     
     
@@ -104,17 +105,17 @@ public class BroadcastNetworkManager {
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             
             try {
-                Log.d("Multitalk-DEBUG", "Waiting for broadcast packet...");
+                Log.d(Constants.DEBUG_TAG, "Waiting for broadcast packet...");
                 socket.receive(packet);
                 
             } catch (IOException e) {
-                Log.e("Multitalk-ERROR", "IOException at BroadcastReceiver#run()"
+                Log.e(Constants.ERROR_TAG, "IOException at BroadcastReceiver#run()"
                         +"\nCause msg: "+e.getMessage());
                 return;
             }
             
             String data = new String(packet.getData(), 0, packet.getLength());
-            Log.d("Multitalk-DEBUG", "Received broadcast packet:"
+            Log.d(Constants.DEBUG_TAG, "Received broadcast packet:"
                     +" from: "+packet.getAddress().getHostAddress()
                     +" data: "+data);
         }

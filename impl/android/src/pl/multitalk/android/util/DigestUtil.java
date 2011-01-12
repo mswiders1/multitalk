@@ -24,7 +24,7 @@ public class DigestUtil {
             return digestBytes;
             
         } catch (NoSuchAlgorithmException e) {
-            Log.d("Multitalk-DEBUG", "No SHA-1 algorithm found");
+            Log.d(Constants.DEBUG_TAG, "No SHA-1 algorithm found");
             return null;
         }
     }

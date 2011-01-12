@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.NetworkUtil;
 import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
 
@@ -44,13 +45,13 @@ public class TCPIPNetworkManager {
             concectionsListenerTh.start();
             
         } catch (UnknownHostException e) {
-            Log.e("Multitalk-ERROR", "UnknownHostException occured at TCPIPNetworkManager#startListeningForConnections()"
+            Log.e(Constants.ERROR_TAG, "UnknownHostException occured at TCPIPNetworkManager#startListeningForConnections()"
                     +"\nCause msg: "+e.getMessage());
             // FIXME poinformowanie "kogoś" wyżej...
             return;
             
         } catch (WifiNotEnabledException e) {
-            Log.e("Multitalk-ERROR", "WifiNotEnabledException occured at TCPIPNetworkManager#startListeningForConnections()"
+            Log.e(Constants.ERROR_TAG, "WifiNotEnabledException occured at TCPIPNetworkManager#startListeningForConnections()"
                     +"\nCause msg: "+e.getMessage());
             // FIXME poinformowanie "kogoś" wyżej...
             return;
@@ -88,24 +89,24 @@ public class TCPIPNetworkManager {
             try {
                 stopListeningFlag = false;
                 serverSocket = new ServerSocket(port, 1, inetAddress);
-                Log.d("Multitalk-DEBUG", "starting to listen for connections from clients"
+                Log.d(Constants.DEBUG_TAG, "starting to listen for connections from clients"
                         +" at IP: "+inetAddress.getHostAddress()
                         +" and port: "+port);
                 
                 while(true){
                     Socket clientSocket = serverSocket.accept();
-                    Log.d("Multitalk-DEBUG", "Accepted connection from client with "
+                    Log.d(Constants.DEBUG_TAG, "Accepted connection from client with "
                             +"IP: "+clientSocket.getInetAddress().getHostAddress());
                     // TODO nowy wątek do obsługi klienta
                 }
                 
             } catch (IOException e) {
                 if(stopListeningFlag == true){
-                    Log.d("Multitalk-DEBUG", "client connections listener stopped (by exception)");
+                    Log.d(Constants.DEBUG_TAG, "client connections listener stopped (by exception)");
                     return;
                 }
                 
-                Log.e("Multitalk-ERROR", "IOException occured at ClientConnectionsListener"
+                Log.e(Constants.ERROR_TAG, "IOException occured at ClientConnectionsListener"
                         +"\nCause msg: "+e.getMessage());
                 // FIXME poinformowanie "kogoś" wyżej...
                 return;
@@ -123,7 +124,7 @@ public class TCPIPNetworkManager {
                     serverSocket.close();
                     
                 } catch (IOException e) {
-                    Log.e("Multitalk-ERROR", "IOException occured at ClientConnectionsListener#stopListening()"
+                    Log.e(Constants.ERROR_TAG, "IOException occured at ClientConnectionsListener#stopListening()"
                             +"\nCause msg: "+e.getMessage());
                 }
             }
