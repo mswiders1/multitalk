@@ -69,7 +69,12 @@ def serve_thread():
     while 1:
         try:
             print "Waiting for broadcast msg"
-            message, address = s.recvfrom(1024)
+            message = {}
+            message['CORE_MSG_TYPE'] = queues.CORE_MSG_TYPE.BROADCAST_REQUEST_RECEIVED
+            message['HOST'] = "192.168.0.1"
+            message['PORT'] = 3445
+            queues.coreQueue.put(message)
+            data, address = s.recvfrom(1024)
             print "Got data from", address
             #TODO: przeslac dane do Core
         except (KeyboardInterrupt, SystemExit):

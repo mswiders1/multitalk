@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Tasks SYSTEM "Tasks-4.2.dtd">
+<!-- eric4 tasks file for project SR -->
+<!-- Saved: 2010-12-22, 16:04:52 -->
+<Tasks version="4.2">
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: przeslac dane do Core</Summary>
+    <Description></Description>
+    <Created>2010-12-21, 21:54:41</Created>
+    <Resource>
+      <Filename>network/Broadcast.py</Filename>
+      <Linenumber>79</Linenumber>
+    </Resource>
+  </Task>
+</Tasks>

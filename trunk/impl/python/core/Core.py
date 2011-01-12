@@ -4,11 +4,11 @@
 
 import os,sys
 import multicast
-import network.Broadcast
 import Queue
-from PyQt4 import QtCore
 import threading
 import queues
+from network import Broadcast,  TCP
+from PyQt4 import QtCore
 
 class Core(threading.Thread):
     
@@ -17,8 +17,9 @@ class Core(threading.Thread):
         return 
         
     def run(self):
-        network.Broadcast.startServer()
-        network.Broadcast.doDiscovery()
+        TCP.startTcpServer()
+        Broadcast.startServer()
+        Broadcast.doDiscovery()
         while 1:
             queueElem = queues.coreQueue.get()
             insertElem = {}
@@ -36,6 +37,11 @@ class Core(threading.Thread):
             if queueElem['CORE_MSG_TYPE'] == queues.CORE_MSG_TYPE.BROADCAST_END:
                 insertElem['GUI_MSG_TYPE'] = queues.GUI_MSG_TYPE.BROADCAST_WIN_CLOSE
                 queues.guiQueue.put(insertElem)
+                
+            if queueElem['CORE_MSG_TYPE'] == queues.CORE_MSG_TYPE.BROADCAST_REQUEST_RECEIVED:
+                TCP.connectToTcpServer(queueElem['HOST'],  queueElem['PORT'])
+                
+                
         
     def __connect(self,  config):
         self.addr = config["address"]
