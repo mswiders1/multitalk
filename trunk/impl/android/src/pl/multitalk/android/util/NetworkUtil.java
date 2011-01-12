@@ -1,8 +1,13 @@
 package pl.multitalk.android.util;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import android.content.Context;
+import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.util.Log;
 
 /**
  * Klasa użytkowa do operacji sieciowych
@@ -77,6 +82,28 @@ public class NetworkUtil {
     
     
     /**
+     * Zwraca adres IP połączenia po Wifi jako InetAddress
+     * @param context kontekst wywołania
+     * @return adres IP jako InetAddress
+     * @throws WifiNotEnabledException wifi nie zostało włączone
+     * @throws UnknownHostException 
+     */
+    public static InetAddress getIPaddressAsInetAddress(Context context) throws WifiNotEnabledException, UnknownHostException{
+        int ipAddress = getIPaddressAsInt(context);
+
+        byte[] ipBytes = new byte[4];
+        ipBytes[0] = (byte) (ipAddress & 0x000000ff);
+        ipBytes[1] = (byte) ((ipAddress >> 8) & 0x000000ff);
+        ipBytes[2] = (byte) ((ipAddress >> 16) & 0x000000ff);
+        ipBytes[3] = (byte) ((ipAddress >> 24) & 0x000000ff);
+        
+        InetAddress inetAddress = InetAddress.getByAddress(ipBytes);
+        
+        return inetAddress;
+    }
+    
+    
+    /**
      * Sprawdza stan Wifi
      * @param context kontekst wywołania
      * @return true jeżeli Wifi jest włączone, false w przeciwnym przypadku
@@ -87,6 +114,43 @@ public class NetworkUtil {
     }
     
     
+    /**
+     * Zwraca adres broadcastu
+     * @param context kontekst wywołania
+     * @return adres broadcastu
+     * @throws WifiNotEnabledException 
+     * @throws NotConnectedToNetworkException 
+     * @throws UnknownHostException
+     */
+    public static InetAddress getBroadcastInetAddress(Context context) throws UnknownHostException, NotConnectedToNetworkException, WifiNotEnabledException{
+        if(!isWifiEnabled(context)){
+            throw new WifiNotEnabledException();
+        }
+        
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        DhcpInfo dhcp = wifiManager.getDhcpInfo();
+        
+        if(dhcp == null || dhcp.ipAddress == 0){
+            throw new NotConnectedToNetworkException();
+        }
+        
+        int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
+        byte[] ipBytes = new byte[4];
+        ipBytes[0] = (byte) (broadcast & 0x000000ff);
+        ipBytes[1] = (byte) ((broadcast >> 8) & 0x000000ff);
+        ipBytes[2] = (byte) ((broadcast >> 16) & 0x000000ff);
+        ipBytes[3] = (byte) ((broadcast >> 24) & 0x000000ff);
+        
+        Log.d("Multitalk-DEBUG","Broadcast IP: "+(int)(broadcast & 0x000000ff)
+                                            +"."+(int)((broadcast >> 8) & 0x000000ff)
+                                            +"."+(int)((broadcast >> 16) & 0x000000ff)
+                                            +"."+(int)((broadcast >> 24) & 0x000000ff));
+        
+        return InetAddress.getByAddress(ipBytes);
+
+    }
+
+    
     
     /**
      * Wyjątek oznaczający, że Wifi nie zostało włączone
@@ -96,6 +160,18 @@ public class NetworkUtil {
          * serial
          */
         private static final long serialVersionUID = 6761874627585793970L;
+        
+    }
+    
+    
+    /**
+     * Wyjątek oznaczający, że Wifi nie zostało podłączone do żadnej z sieci
+     */
+    public static class NotConnectedToNetworkException extends Exception {
+        /**
+         * serial
+         */
+        private static final long serialVersionUID = 3364172649613944758L;
         
     }
 }
