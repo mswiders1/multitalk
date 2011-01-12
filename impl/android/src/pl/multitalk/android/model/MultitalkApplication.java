@@ -30,4 +30,5 @@ public class MultitalkApplication extends Application {
     public MultitalkNetworkManager getMultitalkNetworkManager(){
         return multitalkNetworkManager;
     }
+    
 }
