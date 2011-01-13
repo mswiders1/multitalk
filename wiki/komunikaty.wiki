@@ -79,3 +79,26 @@ kolumnami wiedza uzytkownikow
 pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
 
 || id usera, ktory ma wiedze na i-tej kolumnie tabeli||
+
+= przesylanie zwyklych wiadomosci=
+
+Protokół *TCP/IP*
+Odbiorca: uzytkownik do ktorego jest skierowana wiadomosc
+
+Zawartość: Macierze wiedzy i zwykła treść wiadomości
+
+|| *nazwa pola* || *typ* || *wartość* ||
+|| TYPE || CHAR(3) || _MSG_ ||
+|| SENDER ||H(MAC + IP + username_) SHA-1 base 64 || 
+|| RECIVER ||H(MAC + IP + username_) SHA-1 base 64 - moze byc puste|| 
+|| MSG_ID|| LONG|| zegar logiczny||
+|| MAC || MATRIX || macierz ||
+|| VEC || VECTOR || wektor kolejnosci ||
+|| CONTENT || STRING || dupa||
+
+macierz:
+
+wektor kolejności:
+
+kolumnami wiedza uzytkownikow
+pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
