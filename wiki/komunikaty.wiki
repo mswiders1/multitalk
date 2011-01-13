@@ -27,7 +27,7 @@ Odbiorca: węzeł podłączający się
 
 || *nazwa pola* || *typ* || *wartość* ||
 || TYPE || CHAR(3) || _HII_ ||
-|| UID || CHAR(32) ||H(MAC + IP + username_) || 
+|| UID || CHAR(32) ||H(MAC + IP + username_) SHA-1 base 64 || 
 || USERNAME || VARCHAR(32) ||  wujo008 ||
 || VECTOR || VEC || _tablica_ ||
 
