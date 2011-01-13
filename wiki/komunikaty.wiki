@@ -75,4 +75,7 @@ macierz:
 
 wektor kolejności:
 
+kolumnami wiedza uzytkownikow
+pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
+
 || id usera, ktory ma wiedze na i-tej kolumnie tabeli||
