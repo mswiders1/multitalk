@@ -1,5 +1,21 @@
 #summary Komunikaty przesyłane przez sieć
 
+= UWAGA!=
+
+*Wszystkie* komunikaty po TCP/IP rozpoczynają się ciągiem znaków:
+
+{{{
+BEGIN_MESSAGE:<długość_wiadomości>\n
+<wiadomość_JSON>
+}}}
+
+gdzie:
+  * `<długość_wiadomości>` - długość wiadomości *po* znaku nowej linii
+  * `<wiadomośi_JSON>` - wiadomość w postacji JSON zgodnie z opisem poniżej
+
+Powyższe jest niezbędne do rozpoznania początku i końca pojedynczego komunikatu
+
+
 = Podłączenie (broadcast) =
 
 Protokół: *UDP*, broadcast
