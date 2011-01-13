@@ -8,4 +8,5 @@
 
 <string name="contactListAcivity_title">Lista kontaktów</string>
 <string name="conversationActivity_title">Rozmowa</string>
+<string name="conversation_bottomBar_sendButton">Wyślij</string>
 </resources>

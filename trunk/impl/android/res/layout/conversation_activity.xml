@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#FFFFFF">
+
+    <ListView
+        android:id="@+id/conversation_listView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@+id/conversation_bottomBar"
+        android:clickable="false"
+        android:focusable="false"
+        android:transcriptMode="alwaysScroll"
+        android:stackFromBottom="true" />
+
+
+    <RelativeLayout
+        android:id="@+id/conversation_bottomBar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:padding="5dp"
+        android:background="#555555">
+        
+        <Button
+            android:id="@+id/conversation_bottomBar_sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:text="@string/conversation_bottomBar_sendButton" />
+    
+        <EditText
+            android:id="@+id/conversation_bottomBar_messageInput"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/conversation_bottomBar_sendButton"
+            android:minLines="2"
+            android:maxLines="3"
+            android:scrollbars="vertical"
+            android:inputType="textMultiLine|textCapSentences" />
+            
+    </RelativeLayout>
+    
+</RelativeLayout>
