@@ -25,11 +25,12 @@ Odbiorca: węzeł podłączający się
 
 Zawartość: tablica informacji o wszystkich użytkownikach (*JSON*)
 
+oraz typ wiadomości i informację o przesysłającym
+
 Postać jednego rekordu tablicy:
 
 || *nazwa pola* || *typ* ||
 || IP_ADDRESS || VARCHAR(15) ||
-|| PORT || INTEGER ||
 || UID || CHAR(32) ||
 || USERNAME || VARCHAR(32) ||
 
@@ -47,4 +48,3 @@ Zawartość: zestaw informacji o użytkowniku (*JSON*)
 || TYPE || CHAR(3) || _LOG_ ||
 || UID || CHAR(32) || _H(MAC + IP + username_) ||
 || USERNAME || VARCHAR(32) ||  ||
-
