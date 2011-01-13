@@ -89,12 +89,12 @@ Zawartość: Macierze wiedzy i zwykła treść wiadomości
 
 || *nazwa pola* || *typ* || *wartość* ||
 || TYPE || CHAR(3) || _MSG_ ||
-|| SENDER ||H(MAC + IP + username_) SHA-1 base 64 || 
-|| RECIVER ||H(MAC + IP + username_) SHA-1 base 64 - moze byc puste|| 
+|| SENDER || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64 || 
+|| RECIVER || CHAR(32)|| H(MAC + IP + username_) SHA-1 base 64 - moze byc puste || 
 || MSG_ID|| LONG|| zegar logiczny||
 || MAC || MATRIX || macierz ||
 || VEC || VECTOR || wektor kolejnosci ||
-|| CONTENT || STRING || dupa||
+|| CONTENT || STRING || Hello world!||
 
 macierz:
 
