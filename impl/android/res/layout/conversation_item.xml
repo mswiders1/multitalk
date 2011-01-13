@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/conversationItem_item"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/conversation_item" >
+
+    <TextView
+        android:id="@+id/conversationItem_username"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:textSize="17sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:text="Firstname Lastname" />
+
+    <TextView
+        android:id="@+id/conversationItem_message"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="5dp"
+        android:layout_below="@id/conversationItem_username"
+        android:textSize="17sp"
+        android:textColor="#000000"
+        android:textStyle="normal"
+        android:text="Testowa wiadomosc" />
+
+    <TextView
+        android:id="@+id/conversationItem_date"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="5dp"
+        android:layout_below="@id/conversationItem_message"
+        android:textSize="11sp"
+        android:textColor="#000000"
+        android:textStyle="normal"
+        android:text="Wysłano: 13-01-2011 13:05" />
+
+</RelativeLayout>
