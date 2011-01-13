@@ -57,3 +57,20 @@ Zawartość: zestaw informacji o użytkowniku (*JSON*)
 || TYPE || CHAR(3) || _LOG_ ||
 || UID || CHAR(32) || _H(MAC + IP + username_) ||
 || USERNAME || VARCHAR(32) ||  ||
+
+= Przeslanie macierzy wiedzy do nowozalogowanego usera =
+
+Protokół: *TCP/IP*
+
+Odbiorca: Uzytkownik ktory sie dopiero zalogowal
+
+Zawartosc: Informacje o wiedzy
+
+|| *nazwa pola* || *typ* || *wartość* ||
+|| TYPE || CHAR(3) || _MTX_ ||
+|| MAC || MATRIX || macierz ||
+|| VEC || VECTOR || wektor kolejnosci ||
+
+macierz:
+
+wektor kolejności:
