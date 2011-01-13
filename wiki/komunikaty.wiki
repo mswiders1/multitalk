@@ -73,11 +73,10 @@ Zawartosc: Informacje o wiedzy
 
 macierz:
 
-wektor kolejności:
-
 kolumnami wiedza uzytkownikow
 pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
 
+wektor kolejności:
 || id usera, ktory ma wiedze na i-tej kolumnie tabeli||
 
 = przesylanie zwyklych wiadomosci=
@@ -98,7 +97,8 @@ Zawartość: Macierze wiedzy i zwykła treść wiadomości
 
 macierz:
 
-wektor kolejności:
-
 kolumnami wiedza uzytkownikow
 pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
+
+wektor kolejności:
+|| id usera, ktory ma wiedze na i-tej kolumnie tabeli||
