@@ -74,3 +74,4 @@ Zawartosc: Informacje o wiedzy
 macierz:
 
 wektor kolejności:
+[id usera, ktory ma wiedze na i-tej kolumnie tabeli]
