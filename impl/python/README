@@ -1,4 +1,8 @@
 Zainstaluj Qt (chyba żartujesz że nie masz!)
 Zainstaluj PyQt
 
-Odpal ./run.sh
+A potem:
+chmod +x ./build.sh
+chmod +x ./run.sh
+./build.sh
+./run.sh
