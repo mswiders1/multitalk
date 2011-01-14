@@ -18,8 +18,6 @@ import android.util.Log;
  * @author Michał Kołodziejski
  */
 public class TCPIPNetworkManager {
-
-    private static final int TCPIP_PORT = 3554;
     
     private Context context;
     private ClientConnectionsListener connectionsListener;
@@ -40,7 +38,7 @@ public class TCPIPNetworkManager {
     public void startListeningForConnections(){
         try {
             connectionsListener = new ClientConnectionsListener(NetworkUtil.getIPaddressAsInetAddress(context),
-                    TCPIP_PORT);
+                    Constants.TCP_PORT);
             Thread concectionsListenerTh = new Thread(connectionsListener);
             concectionsListenerTh.start();
             

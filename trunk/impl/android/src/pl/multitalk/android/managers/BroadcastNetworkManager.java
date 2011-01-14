@@ -20,8 +20,6 @@ import android.util.Log;
  * @author Michał Kołodziejski
  */
 public class BroadcastNetworkManager {
-
-    private static final int BROADCAST_PORT = 3554;
     
     private Context context;
     
@@ -55,7 +53,7 @@ public class BroadcastNetworkManager {
         }
         
         try {
-            DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
+            DatagramSocket socket = new DatagramSocket(Constants.UDP_PORT);
             socket.setBroadcast(true);
             
             // FIXME tymczasowo
@@ -65,7 +63,7 @@ public class BroadcastNetworkManager {
             
             String data = "MULTITALK_5387132";
             DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
-                broadcastAddress, BROADCAST_PORT);
+                broadcastAddress, Constants.UDP_PORT);
             socket.send(packet);
             
             socket.close();

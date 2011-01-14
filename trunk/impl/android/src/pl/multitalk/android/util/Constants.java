@@ -18,5 +18,10 @@ public class Constants {
     public static final String ACTION_CONTACT_LIST_ACTIVITY = "pl.multitalk.android.ContactList";
     public static final String ACTION_CONVERSATION_ACTIVITY = "pl.multitalk.android.Conversation";
 
-
+    /*
+     * Networking
+     */
+    public static final int UDP_PORT = 3554;
+    public static final int TCP_PORT = 3554;
+    
 }
