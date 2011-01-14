@@ -3,7 +3,6 @@
 """The user interface for our app"""
 
 import os,sys
-import multicast
 import Queue
 import threading
 import queues
