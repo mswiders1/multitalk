@@ -105,6 +105,7 @@ public class MultitalkNetworkManager {
      * Wylogowuje z sieci Multitalk
      */
     public void logout(){
+        tcpipNetworkManager.disconnectAllClients();
         tcpipNetworkManager.stopListeningForConnections();
         isLoggedIn = false;
         userInfo = null;
