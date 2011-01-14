@@ -5,7 +5,11 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 
+import pl.multitalk.android.datatypes.UserInfo;
+import pl.multitalk.android.managers.misc.ClientConnection;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.NetworkUtil;
 import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
@@ -20,15 +24,34 @@ import android.util.Log;
 public class TCPIPNetworkManager {
     
     private Context context;
+    private MultitalkNetworkManager multitalkNetworkManager;
     private ClientConnectionsListener connectionsListener;
+    
+    /**
+     * Mapa połączeń z klientami
+     */
+    private Map<UserInfo, ClientConnection> clientConnections;
+    
     
     /**
      * Tworzy managera połączeń TCP/IP
      * @param context kontekst wykonania
      */
-    public TCPIPNetworkManager(Context context){
+    public TCPIPNetworkManager(Context context, MultitalkNetworkManager multitalkNetworkManager){
         this.context = context;
+        this.multitalkNetworkManager = multitalkNetworkManager;
         this.connectionsListener = null;
+        
+        clientConnections = new HashMap<UserInfo, ClientConnection>();
+    }
+    
+    
+    /**
+     * Zwraca MultitalkNetworkManager
+     * @return MultitalkNetworkManager
+     */
+    public MultitalkNetworkManager getMultitalkNetworkManager(){
+        return this.multitalkNetworkManager;
     }
     
     
@@ -38,7 +61,7 @@ public class TCPIPNetworkManager {
     public void startListeningForConnections(){
         try {
             connectionsListener = new ClientConnectionsListener(NetworkUtil.getIPaddressAsInetAddress(context),
-                    Constants.TCP_PORT);
+                    Constants.TCP_PORT, this);
             Thread concectionsListenerTh = new Thread(connectionsListener);
             concectionsListenerTh.start();
             
@@ -68,19 +91,40 @@ public class TCPIPNetworkManager {
     
     
     /**
+     * Tworzy połączenie z nowym klientem
+     * @param socket socket
+     */
+    public void newClientConnected(Socket socket){
+        UserInfo userInfo = new UserInfo();
+        userInfo.setIpAddress(socket.getInetAddress().getHostAddress());
+        
+        ClientConnection clientConnection = new ClientConnection(userInfo, socket, this);
+        clientConnections.put(userInfo, clientConnection);
+    }
+    
+    
+    
+    
+    /**
      * Nasłuchiwacz połączeń od innych klientów
      */
     class ClientConnectionsListener implements Runnable {
         
+        private TCPIPNetworkManager networkManager;
         private InetAddress inetAddress;
         private int port;
         private ServerSocket serverSocket;
         private boolean stopListeningFlag;
         
-        public ClientConnectionsListener(InetAddress inetAddress, int port){
+        
+        public ClientConnectionsListener(InetAddress inetAddress, int port, 
+                TCPIPNetworkManager networkManager){
+            
             this.inetAddress = inetAddress;
             this.port = port;
+            this.networkManager = networkManager;
         }
+        
         
         @Override
         public void run() {
@@ -95,7 +139,9 @@ public class TCPIPNetworkManager {
                     Socket clientSocket = serverSocket.accept();
                     Log.d(Constants.DEBUG_TAG, "Accepted connection from client with "
                             +"IP: "+clientSocket.getInetAddress().getHostAddress());
-                    // TODO nowy wątek do obsługi klienta
+                    
+                    // poinformowanie o nowym kliencie
+                    networkManager.newClientConnected(clientSocket);
                 }
                 
             } catch (IOException e) {

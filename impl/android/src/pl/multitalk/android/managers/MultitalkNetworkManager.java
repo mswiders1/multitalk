@@ -38,7 +38,7 @@ public class MultitalkNetworkManager {
     public MultitalkNetworkManager(Context context){
         this.context = context;
         this.broadcastNetworkManager = new BroadcastNetworkManager(context);
-        this.tcpipNetworkManager = new TCPIPNetworkManager(context);
+        this.tcpipNetworkManager = new TCPIPNetworkManager(context, this);
         
         isLoggedIn = false;
         userInfo = null;

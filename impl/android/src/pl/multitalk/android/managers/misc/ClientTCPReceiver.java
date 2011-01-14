@@ -1,23 +1,29 @@
 package pl.multitalk.android.managers.misc;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
 import android.util.Log;
 
-import pl.multitalk.android.managers.MultitalkNetworkManager;
+import pl.multitalk.android.datatypes.UserInfo;
+import pl.multitalk.android.managers.TCPIPNetworkManager;
+import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.managers.messages.MessageFactory;
 import pl.multitalk.android.util.Constants;
 
 /**
  * Odbiorca komunikatów od klienta
  * @author Michał Kołodziejski
  */
-public class ClientTCPReceiver implements Runnable {
+public class ClientTCPReceiver extends Thread {
 
+    private static final String BEGIN_MESSAGE_FLAG = "BEGIN_MESSAGE";
+    
+    
+    private UserInfo clientInfo;
     private Socket socket;
-    private MultitalkNetworkManager networkManager;
+    private TCPIPNetworkManager networkManager;
     private InputStreamReader socketReader;
     
     
@@ -26,8 +32,9 @@ public class ClientTCPReceiver implements Runnable {
      * @param clientSocket
      * @param networkManager
      */
-    public ClientTCPReceiver(Socket clientSocket, MultitalkNetworkManager networkManager) {
+    public ClientTCPReceiver(Socket clientSocket, UserInfo clientInfo, TCPIPNetworkManager networkManager) {
         this.socket = clientSocket;
+        this.clientInfo = clientInfo;
         this.networkManager = networkManager;
     }
     
@@ -71,11 +78,19 @@ public class ClientTCPReceiver implements Runnable {
                         // nie mamy jeszcze długości wiadomości
                         String msgBuf = sb.toString();
 
+                        int beginMessageFlagIdx = msgBuf.indexOf(BEGIN_MESSAGE_FLAG);
+                        if(beginMessageFlagIdx == -1){
+                            // za mało odczytał...
+                            // dodaj do bufora i jazda dalej
+                            continue;
+                            
+                        }
+                        sb.delete(0, beginMessageFlagIdx);
+                        
                         int newLineIdx = msgBuf.indexOf("\n");
                         if(newLineIdx == -1){
                             // za mało odczytał...
                             // dodaj do bufora i jazda dalej
-                            sb.append(packet);
                             continue;
                             
                             
@@ -87,6 +102,10 @@ public class ClientTCPReceiver implements Runnable {
                         // 14 == header.indexOf(":")
                         messageLength = Integer.valueOf(header.substring(14)).intValue();
                         messageReadBytes = msgBuf.length() - newLineIdx;
+                        
+                    } else {
+                        messageReadBytes += packet.length();
+                        
                     }
                     
                     if(messageReadBytes < messageLength){
@@ -94,16 +113,21 @@ public class ClientTCPReceiver implements Runnable {
                     }
                     
                     // odczytaliśmy całą wiadomość - przetwarzamy
-                    
+                    String bufContent = sb.toString();
+
                     // wycięcie nagłówka
-                    // TODO
+                    int newLineIdx = bufContent.indexOf("\n");
+                    bufContent = bufContent.substring(newLineIdx + 1);
                     
                     // wycięcie i utworzenie wiadomości
-                    // TODO
+                    String messageString = bufContent.substring(0, messageLength);
+                    Log.d(Constants.DEBUG_TAG, "Odczytano wiadomość:\n" + messageString);
+                    Message message = MessageFactory.fromJSON(messageString);
+                    passMessage(message);
                     
-                    // zainicjowanie sb
-                    // trzeba sprawdzić czy nie zaczęła się już nowa wiadomość
-                    // TODO
+                    // wyczyszczenie sb
+                    sb.delete(0, newLineIdx + 1);
+                    atNewMessage = false;
                 }
                 
                 // brak danych od klienta - poczekaj...
@@ -119,4 +143,16 @@ public class ClientTCPReceiver implements Runnable {
         }
     }
 
+    
+    
+    /**
+     * Podaje dalej odczytaną wiadomość
+     * @param message odczytana wiadomość
+     */
+    private void passMessage(Message message){
+        message.setSenderInfo(clientInfo);
+        
+        //networkManager.getMultitalkNetworkManager().newMessage(message)...
+        // TODO
+    }
 }
