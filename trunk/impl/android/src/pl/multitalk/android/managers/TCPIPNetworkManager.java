@@ -91,6 +91,18 @@ public class TCPIPNetworkManager {
     
     
     /**
+     * Rozłącza się ze wszystkimi klientami
+     */
+    public void disconnectAllClients(){
+        for(ClientConnection clientConnection : clientConnections.values()){
+            clientConnection.disconnect();
+        }
+        
+        clientConnections.clear();
+    }
+    
+    
+    /**
      * Tworzy połączenie z nowym klientem
      * @param socket socket
      */
@@ -170,6 +182,7 @@ public class TCPIPNetworkManager {
                 } catch (IOException e) {
                     Log.e(Constants.ERROR_TAG, "IOException occured at ClientConnectionsListener#stopListening()"
                             +"\nCause msg: "+e.getMessage());
+                    return;
                 }
             }
         }

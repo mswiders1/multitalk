@@ -8,6 +8,7 @@ import java.util.concurrent.BlockingQueue;
 
 import android.util.Log;
 
+import pl.multitalk.android.managers.messages.FinishSenderMessage;
 import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.util.Constants;
 
@@ -19,6 +20,7 @@ public class ClientTCPSender extends Thread {
 
     private Socket socket;
     private BlockingQueue<Message> messagesQueue;
+    private boolean finish;
     private PrintWriter socketOutput;
     
     
@@ -43,11 +45,19 @@ public class ClientTCPSender extends Thread {
             return;
         }
         
+        finish = false;
         Message message;
                 
         try{
-            while(true){
+            while(!finish){
                 message = messagesQueue.take();
+                
+                // czy koniec?
+                if(message instanceof FinishSenderMessage){
+                    finish = true;
+                    continue;
+                }
+                
                 socketOutput.append(message.serialize());
                 socketOutput.flush();
             }

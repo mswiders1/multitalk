@@ -1,10 +1,15 @@
 package pl.multitalk.android.managers.misc;
 
+import java.io.IOException;
 import java.net.Socket;
+
+import android.util.Log;
 
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.TCPIPNetworkManager;
+import pl.multitalk.android.managers.messages.FinishSenderMessage;
 import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.util.Constants;
 
 /**
  * Reprezentacja połączenia z klientem.
@@ -54,5 +59,20 @@ public class ClientConnection {
      */
     public void sendMessage(Message message){
        tcpSender.putMessage(message); 
+    }
+    
+    
+    /**
+     * Rozłącza się z klientem
+     */
+    public void disconnect(){
+        tcpSender.putMessage(new FinishSenderMessage());
+        
+        try {
+            clientSocket.close(); // zakończy receiver-a
+        } catch (IOException e) {
+            Log.e(Constants.ERROR_TAG, "IOException at ClientConnection#disconnect()"
+                    +"\nCause msg: "+e.getMessage());
+        }
     }
 }

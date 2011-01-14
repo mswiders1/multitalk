@@ -86,6 +86,7 @@ public class ClientTCPReceiver extends Thread {
                             
                         }
                         sb.delete(0, beginMessageFlagIdx);
+                        msgBuf = sb.toString();
                         
                         int newLineIdx = msgBuf.indexOf("\n");
                         if(newLineIdx == -1){
@@ -96,7 +97,7 @@ public class ClientTCPReceiver extends Thread {
                             
                         }
                         
-                        String header = packet.substring(0, newLineIdx);
+                        String header = msgBuf.substring(0, newLineIdx);
                         Log.d(Constants.DEBUG_TAG, "   - header: "+header);
                         
                         // 14 == header.indexOf(":")
@@ -150,7 +151,7 @@ public class ClientTCPReceiver extends Thread {
      * @param message odczytana wiadomość
      */
     private void passMessage(Message message){
-        message.setSenderInfo(clientInfo);
+        // message.setSenderInfo(clientInfo);
         
         //networkManager.getMultitalkNetworkManager().newMessage(message)...
         // TODO
