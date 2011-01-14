@@ -55,16 +55,25 @@ public class ClientTCPReceiver extends Thread {
         
         boolean atNewMessage = false;
         StringBuffer sb = new StringBuffer();
+        String packet;
         int messageLength = -1;
         int messageReadBytes = 0;
         
+        boolean continueRead = false;
         try {
             while(true){
             
-                while((readChars = socketReader.read(buf)) != -1){
-                    String packet = new String(buf, 0, readChars);
-                    Log.d(Constants.DEBUG_TAG, "Read first packet: "+packet);
-                    sb.append(packet);
+                while(continueRead == true || ((readChars = socketReader.read(buf)) != -1)){
+                    if(continueRead){
+                        Log.d(Constants.DEBUG_TAG, "Kontynuuję odczytywanie poprzedniego pakietu");
+                        continueRead = false;
+                        packet = "";
+                    }
+                    else { // (readChars != -1)
+                        packet = new String(buf, 0, readChars);
+                        Log.d(Constants.DEBUG_TAG, "Read packet: "+packet);
+                        sb.append(packet);
+                    }
                     
                     if(!atNewMessage){
                         // pierwszy pakiet nowego komunikatu
@@ -80,8 +89,8 @@ public class ClientTCPReceiver extends Thread {
 
                         int beginMessageFlagIdx = msgBuf.indexOf(BEGIN_MESSAGE_FLAG);
                         if(beginMessageFlagIdx == -1){
-                            // za mało odczytał...
-                            // dodaj do bufora i jazda dalej
+                            // za mało odczytał... jazda dalej
+                            Log.d(Constants.DEBUG_TAG, "przed 'BEGIN_MESSAGE' w nagłówku");
                             continue;
                             
                         }
@@ -90,15 +99,14 @@ public class ClientTCPReceiver extends Thread {
                         
                         int newLineIdx = msgBuf.indexOf("\n");
                         if(newLineIdx == -1){
-                            // za mało odczytał...
-                            // dodaj do bufora i jazda dalej
+                            // za mało odczytał... jazda dalej
+                            Log.d(Constants.DEBUG_TAG, "przed znakiem nowej linii w nagłówku");
                             continue;
-                            
                             
                         }
                         
                         String header = msgBuf.substring(0, newLineIdx);
-                        Log.d(Constants.DEBUG_TAG, "   - header: "+header);
+                        Log.d(Constants.DEBUG_TAG, "Nagłówek "+header);
                         
                         // 14 == header.indexOf(":")
                         messageLength = Integer.valueOf(header.substring(14)).intValue();
@@ -127,8 +135,14 @@ public class ClientTCPReceiver extends Thread {
                     passMessage(message);
                     
                     // wyczyszczenie sb
-                    sb.delete(0, newLineIdx + 1);
+                    sb.delete(0, newLineIdx + messageLength + 1);
                     atNewMessage = false;
+                    if(sb.toString().length() > 0){
+                        // odczytaliśmy całą wiadomość, ale coś zostało i trzeba przetworzyć
+                        // resztę
+                        Log.d(Constants.DEBUG_TAG, "W buforze pozostało:\n" + sb.toString());
+                        continueRead = true;
+                    }
                 }
                 
                 // brak danych od klienta - poczekaj...
