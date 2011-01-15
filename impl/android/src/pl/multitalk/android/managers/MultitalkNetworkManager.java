@@ -13,6 +13,7 @@ import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.messages.HiMessage;
 import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.managers.messages.internal.DiscoveryPacketReceivedMessage;
 import pl.multitalk.android.managers.messages.internal.FinishMessage;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.DigestUtil;
@@ -50,7 +51,7 @@ public class MultitalkNetworkManager {
      */
     public MultitalkNetworkManager(Context context){
         this.context = context;
-        this.broadcastNetworkManager = new BroadcastNetworkManager(context);
+        this.broadcastNetworkManager = new BroadcastNetworkManager(context, this);
         this.tcpipNetworkManager = new TCPIPNetworkManager(context, this);
         this.messageDispatcher = new MessageDispatcher(messageQueue);
         
@@ -92,6 +93,10 @@ public class MultitalkNetworkManager {
         } catch (WifiNotEnabledException e) {
             return;
         }
+
+        // oczekiwanie na klientów
+        tcpipNetworkManager.startListeningForConnections();
+        
         newUserInfo.setUsername(login);
 
         StringBuffer sb = new StringBuffer();
@@ -108,9 +113,6 @@ public class MultitalkNetworkManager {
                 +", username: "+userInfo.getUsername()
                 +" | UID (before encoding): "+sb.toString()
                 +" | UID: "+userInfo.getUid());
-
-        // oczekiwanie na klientów
-        tcpipNetworkManager.startListeningForConnections();
         
         // wysłanie UDP discovery
         broadcastNetworkManager.sendUDPHostsDiscoveryPacket();
@@ -127,6 +129,7 @@ public class MultitalkNetworkManager {
     public void logout(){
         tcpipNetworkManager.disconnectAllClients();
         tcpipNetworkManager.stopListeningForConnections();
+        broadcastNetworkManager.stopBroadcastListening();
         isLoggedIn = false;
         userInfo = null;
         users = new ArrayList<UserInfo>();
@@ -190,6 +193,15 @@ public class MultitalkNetworkManager {
     
     
     /**
+     * Zwraca listę użytkowników
+     * @return lista użytkowników
+     */
+    public List<UserInfo> getUsers(){
+        return users;
+    }
+    
+    
+    /**
      * Dodaje nowy komunikat do przetworzenia
      * @param message komunikat
      */
@@ -217,6 +229,25 @@ public class MultitalkNetworkManager {
         }
     }
     
+    
+    public void handleDiscoveryPacketReceived(DiscoveryPacketReceivedMessage message){
+        // dodajemy usera
+        MultitalkNetworkManager.this.addUserInfo(message.getSenderInfo());
+        tcpipNetworkManager.connectToClient(message.getSenderInfo());
+        
+        // w odpowiedzi wysyłamy HiMessage
+        HiMessage hiMessage = new HiMessage();
+        hiMessage.setSenderInfo(userInfo);
+        hiMessage.setRecipientInfo(message.getSenderInfo());
+        // kopia
+        List<UserInfo> loggedUsers = new ArrayList<UserInfo>();
+        for(UserInfo user : users){
+            loggedUsers.add(new UserInfo(user));
+        }
+        hiMessage.setLoggedUsers(loggedUsers);
+        
+        tcpipNetworkManager.sendMessage(hiMessage);
+    }
     
     
     
@@ -260,13 +291,19 @@ public class MultitalkNetworkManager {
                 while(true){
                     message = messageQueue.take();
                     
-                    if(message instanceof HiMessage){
+                    if(message instanceof DiscoveryPacketReceivedMessage){
+                        MultitalkNetworkManager.this.handleDiscoveryPacketReceived(
+                                (DiscoveryPacketReceivedMessage) message);
+                        continue;
+                    
+                    }else if(message instanceof HiMessage){
                         MultitalkNetworkManager.this.handleHiMessage((HiMessage) message);                        
                         continue;
                         
                     } else if(message instanceof LogMessage){
                         
                         // TODO
+                        continue;
                         
                     } else if(message instanceof FinishMessage){
                         // koniec

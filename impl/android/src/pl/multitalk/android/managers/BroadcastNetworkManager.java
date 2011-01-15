@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import pl.multitalk.android.managers.misc.BroadcastReceiver;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.NetworkUtil;
 import pl.multitalk.android.util.NetworkUtil.NotConnectedToNetworkException;
@@ -22,17 +23,35 @@ import android.util.Log;
 public class BroadcastNetworkManager {
     
     private Context context;
+    private MultitalkNetworkManager multitalkNetworkManager;
+    private BroadcastReceiver broadcastReceiver;
+    private DatagramSocket socket;
     
     /**
      * Tworzy managera połączeń broadcast-owych
      * @param context kontekst wykonania
      */
-    public BroadcastNetworkManager(Context context) {
+    public BroadcastNetworkManager(Context context, MultitalkNetworkManager multitalkNetworkManager) {
         this.context = context;
-        
+        this.multitalkNetworkManager = multitalkNetworkManager;
     }
     
     
+    /**
+     * Tworzy socket UDP
+     * @throws SocketException
+     */
+    private void createUDPsocket() throws SocketException{
+        if(socket == null || socket.isClosed()){
+            socket = new DatagramSocket(Constants.UDP_PORT);
+            socket.setBroadcast(true);
+        }
+    }
+    
+    
+    /**
+     * Wysyła pakiet UDP w celu wykrycia inych podłączonych hostów
+     */
     public void sendUDPHostsDiscoveryPacket(){
         InetAddress broadcastAddress;
         try {
@@ -53,17 +72,10 @@ public class BroadcastNetworkManager {
         }
         
         try {
-            DatagramSocket socket = new DatagramSocket(Constants.UDP_PORT);
-            socket.setBroadcast(true);
+            createUDPsocket();
             
-            // FIXME tymczasowo
-//            BroadcastReceiver receiver = new BroadcastReceiver(socket);
-//            Thread receiverTh = new Thread(receiver);
-//            receiverTh.start();
-            
-            String data = "MULTITALK_5387132";
-            DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
-                broadcastAddress, Constants.UDP_PORT);
+            DatagramPacket packet = new DatagramPacket(Constants.DISCOVERY_PACKET_DATA.getBytes(),
+                    Constants.DISCOVERY_PACKET_DATA.length(), broadcastAddress, Constants.UDP_PORT);
             socket.send(packet);
             
             socket.close();
@@ -84,38 +96,38 @@ public class BroadcastNetworkManager {
     }
     
     
+    /**
+     * Rozpoczyna nasłuchiwać na broadcast-cie
+     */
+    public void startBroadcastListening(){
+        try {
+            createUDPsocket();
+        } catch (SocketException e) {
+            Log.e(Constants.ERROR_TAG, "SocketException at BroadcastNetworkManager#startBroadcastListening()"
+                +"\nCause msg: "+e.getMessage());
+            return;
+        }
+        
+        broadcastReceiver = new BroadcastReceiver(socket, this);
+        broadcastReceiver.start();
+    }
     
     
     /**
-     * Nasłuchiwacz
+     * Kończy nasłuchiwać po broadcast-cie
      */
-    class BroadcastReceiver implements Runnable {
-        
-        private DatagramSocket socket;
-        
-        public BroadcastReceiver(DatagramSocket socket) {
-            this.socket = socket;
+    public void stopBroadcastListening(){
+        if(socket != null && socket.isBound()){
+            socket.close();
         }
-        
-        @Override
-        public void run() {
-            byte[] buf = new byte[1024];
-            DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            
-            try {
-                Log.d(Constants.DEBUG_TAG, "Waiting for broadcast packet...");
-                socket.receive(packet);
-                
-            } catch (IOException e) {
-                Log.e(Constants.ERROR_TAG, "IOException at BroadcastReceiver#run()"
-                        +"\nCause msg: "+e.getMessage());
-                return;
-            }
-            
-            String data = new String(packet.getData(), 0, packet.getLength());
-            Log.d(Constants.DEBUG_TAG, "Received broadcast packet:"
-                    +" from: "+packet.getAddress().getHostAddress()
-                    +" data: "+data);
-        }
+    }
+    
+    
+    /**
+     * Zwraca MultitalkNetworkManager
+     * @return MultitalkNetworkManager
+     */
+    public MultitalkNetworkManager getMultitalkNetworkManager(){
+        return multitalkNetworkManager;
     }
 }

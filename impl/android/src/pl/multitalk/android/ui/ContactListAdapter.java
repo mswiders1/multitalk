@@ -3,6 +3,7 @@ package pl.multitalk.android.ui;
 import java.util.List;
 
 import pl.multitalk.android.R;
+import pl.multitalk.android.datatypes.UserInfo;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -16,7 +17,7 @@ import android.widget.TextView;
  * Adapter listy kontaktów
  * @author Michał Kołodziejski
  */
-public class ContactListAdapter extends ArrayAdapter<ContactListItem> {
+public class ContactListAdapter extends ArrayAdapter<UserInfo> {
 
     private int itemResId;
     
@@ -28,7 +29,7 @@ public class ContactListAdapter extends ArrayAdapter<ContactListItem> {
      * @param objects lista kontaktów
      */
     public ContactListAdapter(Context context, int itemResId,
-            List<ContactListItem> objects) {
+            List<UserInfo> objects) {
         
         super(context, itemResId, objects);
         this.itemResId = itemResId;
@@ -39,7 +40,7 @@ public class ContactListAdapter extends ArrayAdapter<ContactListItem> {
     public View getView(int position, View convertView, ViewGroup parent) {
         LinearLayout contactListLayout;
         
-        ContactListItem item = getItem(position);
+        UserInfo item = getItem(position);
         
         if(convertView == null){
             contactListLayout = new LinearLayout(getContext());
