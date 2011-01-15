@@ -59,7 +59,24 @@ Postać jednego rekordu tablicy:
 || UID || CHAR(32) ||
 || USERNAME || VARCHAR(32) ||
 
+Przykład:
 
+{{{
+{
+    "TYPE": "HII",
+    "UID": "8IsXHf84O63uktYcIto2wk+h4sw=",
+    "USERNAME": "kouodziey",
+    "VECTOR": 
+        [
+            {
+                "IP_ADDRESS": "192.168.0.5",
+                "UID": "3uktYcIto2saFasD=",
+                "USERNAME": "wujo"
+            }         
+        ]
+}
+
+}}}
 
 = Logowanie =
 
