@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 TARGET = multitalk
 TEMPLATE = app
@@ -12,10 +12,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         multitalkwindow.cpp \
-    connectdialog.cpp
+    connectdialog.cpp \
+    broadcast.cpp
 
 HEADERS  += multitalkwindow.h \
-    connectdialog.h
+    connectdialog.h \
+    broadcast.h
 
 FORMS    += multitalkwindow.ui \
     connectdialog.ui
