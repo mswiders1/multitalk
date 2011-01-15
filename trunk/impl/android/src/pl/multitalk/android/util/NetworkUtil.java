@@ -149,6 +149,26 @@ public class NetworkUtil {
         return InetAddress.getByAddress(ipBytes);
 
     }
+    
+    
+    /**
+     * Zwraca adres IP w postaci InetAddress na podstawie Stringa
+     * @param addr String
+     * @return adres IP w postaci InetAddress
+     * @throws UnknownHostException 
+     */
+    public static InetAddress getInetAddressFromString(String addr) throws UnknownHostException{
+        byte[] ipBytes = new byte[4];
+        ipBytes[0] = (byte) Integer.valueOf(addr.substring(0, addr.indexOf("."))).intValue();
+        addr = addr.substring(addr.indexOf(".") + 1);
+        ipBytes[1] = (byte) Integer.valueOf(addr.substring(0, addr.indexOf("."))).intValue();
+        addr = addr.substring(addr.indexOf(".") + 1);
+        ipBytes[2] = (byte) Integer.valueOf(addr.substring(0, addr.indexOf("."))).intValue();
+        addr = addr.substring(addr.indexOf(".") + 1);
+        ipBytes[3] = (byte) Integer.valueOf(addr).intValue();
+        
+        return InetAddress.getByAddress(ipBytes);
+    }
 
     
     

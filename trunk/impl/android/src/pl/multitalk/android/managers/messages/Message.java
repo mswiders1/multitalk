@@ -6,7 +6,7 @@ import pl.multitalk.android.datatypes.UserInfo;
  * Wiadomość wysyłana/przesyłana do/od klienta
  * @author Michał Kołodziejski
  */
-public interface Message {
+public interface Message{
 
     /**
      * Ustawia dane nadawcy wiadomości
@@ -44,4 +44,10 @@ public interface Message {
      */
     void deserialize(String jsonString);
     
+    
+    /**
+     * Zwraca głęboką kopię wiadomości
+     * @return głęboka kopia wiadomości
+     */
+    Message getClone();
 }

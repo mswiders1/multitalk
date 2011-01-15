@@ -2,10 +2,18 @@ package pl.multitalk.android.managers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import android.content.Context;
 import android.util.Log;
 import pl.multitalk.android.datatypes.UserInfo;
+import pl.multitalk.android.managers.messages.HiMessage;
+import pl.multitalk.android.managers.messages.LogMessage;
+import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.managers.messages.internal.FinishMessage;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.DigestUtil;
 import pl.multitalk.android.util.NetworkUtil;
@@ -17,9 +25,14 @@ import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
  */
 public class MultitalkNetworkManager {
 
+    private final long LOG_SEND_DELAY = 5000;
+    
     private Context context;
     private BroadcastNetworkManager broadcastNetworkManager;
     private TCPIPNetworkManager tcpipNetworkManager;
+    private Timer sendLogTimer;
+    private BlockingQueue<Message> messageQueue = new ArrayBlockingQueue<Message>(30);
+    private MessageDispatcher messageDispatcher;
     
     /*
      * Dane niezbędne do zalogowania do sieci Multitalk
@@ -39,6 +52,9 @@ public class MultitalkNetworkManager {
         this.context = context;
         this.broadcastNetworkManager = new BroadcastNetworkManager(context);
         this.tcpipNetworkManager = new TCPIPNetworkManager(context, this);
+        this.messageDispatcher = new MessageDispatcher(messageQueue);
+        
+        this.messageDispatcher.start();
         
         isLoggedIn = false;
         userInfo = null;
@@ -98,6 +114,10 @@ public class MultitalkNetworkManager {
         
         // wysłanie UDP discovery
         broadcastNetworkManager.sendUDPHostsDiscoveryPacket();
+        
+        // timer
+        sendLogTimer = new Timer();
+        sendLogTimer.schedule(new SendLogMessageTimerTask(), LOG_SEND_DELAY);
     }
     
     
@@ -114,10 +134,26 @@ public class MultitalkNetworkManager {
     
     
     /**
+     * Kończy działanie
+     */
+    public void destroy(){
+        logout();
+        try {
+            messageQueue.put(new FinishMessage());
+        } catch (InterruptedException e) {
+            Log.e(Constants.ERROR_TAG, "InterruptedException at destroy()");
+        }
+        if(sendLogTimer != null){
+            sendLogTimer.cancel();
+        }
+    }
+    
+    
+    /**
      * Dodaje informację o nowym użytkowniku
      * @param newUserInfo informacje o nowym użytkowniku
      */
-    private void addUserInfo(UserInfo newUserInfo){
+    private synchronized void addUserInfo(UserInfo newUserInfo){
         if(!users.contains(newUserInfo)){
             users.add(newUserInfo);
         }
@@ -128,9 +164,124 @@ public class MultitalkNetworkManager {
      * Usuwa informację o użytkowniku
      * @param userInfoToRemove informacje o użytkowniku do usunięcia
      */
-    private void removeUserInfo(UserInfo userInfoToRemove){
+    private synchronized void removeUserInfo(UserInfo userInfoToRemove){
         if(users.contains(userInfoToRemove)){
             users.remove(userInfoToRemove);
         }
+    }
+    
+    
+    /**
+     * Zwraca informację, czy zalogowano do sieci
+     * @return true jeżeli zalogowano do sieci, false w przeciwnym przypadku
+     */
+    public synchronized boolean isLoggedIn(){
+        return isLoggedIn;
+    }
+    
+    
+    /**
+     * Ustawia informację, czy zalogowano do sieci
+     * @param loggedIn informacja czy zalogowano do sieci
+     */
+    public synchronized void setLoggedIn(boolean loggedIn){
+        isLoggedIn = loggedIn;
+    }
+    
+    
+    /**
+     * Dodaje nowy komunikat do przetworzenia
+     * @param message komunikat
+     */
+    public void putMessage(Message message){
+        try {
+            messageQueue.put(message);
+        } catch (InterruptedException e) {
+            Log.e(Constants.ERROR_TAG, "InterruptedException at MultitalkNetworkManager#putMessage");
+            return;
+        }
+    }
+    
+    
+    /* *********************************************** */
+    /*   handlery dla komunikatów
+    /* *********************************************** */
+    
+    public void handleHiMessage(HiMessage message){
+        MultitalkNetworkManager.this.addUserInfo(message.getSenderInfo());
+        tcpipNetworkManager.connectToClient(message.getSenderInfo());
+        
+        for(UserInfo user : message.getLoggedUsers()){
+            MultitalkNetworkManager.this.addUserInfo(user);
+            tcpipNetworkManager.connectToClient(user);
+        }
+    }
+    
+    
+    
+    
+    /**
+     * Zadanie wysłania komunikatu logowania
+     */
+    class SendLogMessageTimerTask extends TimerTask{
+
+        @Override
+        public void run() {
+            // wysyłamy do wszystkich
+            LogMessage logMessage = new LogMessage();
+            logMessage.setSenderInfo(userInfo);
+            tcpipNetworkManager.sendMessageToAll(logMessage);
+            
+            // ustawienie znacznika
+            MultitalkNetworkManager.this.setLoggedIn(true);
+        }
+        
+    }
+    
+    
+    
+    /**
+     * Wątek przetwarzający komunikaty od klientów
+     */
+    class MessageDispatcher extends Thread{
+        private BlockingQueue<Message> messageQueue;
+        
+        public MessageDispatcher(BlockingQueue<Message> messageQueue) {
+            this.messageQueue = messageQueue;
+        }
+        
+        
+        @Override
+        public void run() {
+            Message message;
+
+            try {
+                
+                while(true){
+                    message = messageQueue.take();
+                    
+                    if(message instanceof HiMessage){
+                        MultitalkNetworkManager.this.handleHiMessage((HiMessage) message);                        
+                        continue;
+                        
+                    } else if(message instanceof LogMessage){
+                        
+                        // TODO
+                        
+                    } else if(message instanceof FinishMessage){
+                        // koniec
+                        return;
+                    }
+                    
+                    
+                }
+                
+            } catch (InterruptedException e) {
+                Log.e(Constants.ERROR_TAG, "InterruptedException at MessageDispatcher#run");
+                return;
+            }
+            
+        }
+        
     }
 }

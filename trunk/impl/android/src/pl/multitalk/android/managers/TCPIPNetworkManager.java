@@ -7,8 +7,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import pl.multitalk.android.datatypes.UserInfo;
+import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.managers.misc.ClientConnection;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.NetworkUtil;
@@ -114,6 +116,49 @@ public class TCPIPNetworkManager {
         clientConnections.put(userInfo, clientConnection);
     }
     
+    
+    /**
+     * Tworzy połączenie z klientem
+     * @param userInfo klient
+     */
+    public void connectToClient(UserInfo userInfo){
+        if(clientConnections.containsKey(userInfo)){
+            // już mamy to połączenie
+            return;
+        }
+        
+        InetAddress clientAddress = null;
+        
+        try {
+            clientAddress = NetworkUtil.getInetAddressFromString(userInfo.getIpAddress());
+            Socket socket = new Socket(clientAddress, Constants.TCP_PORT);
+            
+            ClientConnection clientConnection = new ClientConnection(userInfo, socket, this);
+            clientConnections.put(userInfo, clientConnection);
+            
+        } catch (UnknownHostException e) {
+            // TODO wysłać do multitalknetworkmanagera info o niepowodzeniu
+            Log.e(Constants.ERROR_TAG, "UnknownHostException occured at connectToClient"
+                    +"\nCause msg: "+e.getMessage());
+        } catch (IOException e) {
+            // TODO wysłać do multitalknetworkmanagera info o niepowodzeniu
+            Log.e(Constants.ERROR_TAG, "IOException occured at connectToClient"
+                    +"\nCause msg: "+e.getMessage());
+        }
+    }
+    
+    
+    /**
+     * Wysyła wiadomość do wszystkich klientów
+     * @param message wiadomość do wysłania
+     */
+    public void sendMessageToAll(Message message){
+        for(Entry<UserInfo, ClientConnection> entry : clientConnections.entrySet()){
+            Message cloneMessage = message.getClone();
+            cloneMessage.setRecipientInfo(entry.getKey());
+            entry.getValue().sendMessage(cloneMessage);
+        }
+    }
     
     
     

@@ -8,8 +8,8 @@ import java.util.concurrent.BlockingQueue;
 
 import android.util.Log;
 
-import pl.multitalk.android.managers.messages.FinishSenderMessage;
 import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.managers.messages.internal.FinishMessage;
 import pl.multitalk.android.util.Constants;
 
 /**
@@ -53,7 +53,7 @@ public class ClientTCPSender extends Thread {
                 message = messagesQueue.take();
                 
                 // czy koniec?
-                if(message instanceof FinishSenderMessage){
+                if(message instanceof FinishMessage){
                     finish = true;
                     continue;
                 }

@@ -98,4 +98,23 @@ public class HiMessage extends BaseMessage {
         
     }
 
+
+    @Override
+    public Message getClone() {
+        HiMessage cloneMessage = new HiMessage();
+        if(sender != null)
+            cloneMessage.setSenderInfo(new UserInfo(sender));
+        if(recipient != null)
+            cloneMessage.setRecipientInfo(new UserInfo(recipient));
+        
+        if(loggedUsers != null){
+            List<UserInfo> newLoggedUsers = new ArrayList<UserInfo>();
+            for(UserInfo userInfo : loggedUsers){
+                newLoggedUsers.add(new UserInfo(userInfo));
+            }
+            cloneMessage.setLoggedUsers(newLoggedUsers);
+        }
+        return cloneMessage;
+    }
+
 }

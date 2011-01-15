@@ -1,5 +1,8 @@
 package pl.multitalk.android;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import pl.multitalk.android.managers.MultitalkNetworkManager;
 import pl.multitalk.android.model.MultitalkApplication;
 import pl.multitalk.android.util.Constants;
@@ -11,6 +14,8 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -25,6 +30,22 @@ public class StartActivity extends Activity {
     private MultitalkApplication app;
     private ProgressDialog loggingInProgressDialog = null;
     private EditText loginEditText;
+    private Timer logCheckTimer;
+    
+    public static final String LOGGED_IN_FLAG = "LOGGED_IN";
+    
+    private Handler handler = new Handler(){
+        public void handleMessage(android.os.Message msg) {
+            if(msg.getData().getBoolean(LOGGED_IN_FLAG) == true){
+                // zalogowano
+                logCheckTimer.cancel();
+                loggingInProgressDialog.dismiss();
+                Intent intent = new Intent(Constants.ACTION_CONTACT_LIST_ACTIVITY);
+                startActivity(intent);
+            }
+        };
+    };
+    
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,18 +67,9 @@ public class StartActivity extends Activity {
             public void onClick(View v) {
                 String login = loginEditText.getText().toString();
                 
-//                // FIXME
-//                if(login.equals("kouodziey")){
-//                    Intent intent = new Intent(Constants.ACTION_CONTACT_LIST_ACTIVITY);
-//                    startActivity(intent);
-//                    return;
-//                }
-//                // end FIXME
-                
                 if(!checkWifiConnection()){
                     return;
                 }
-                
                 
                 if(login == null || "".equals(login)){
                     return;
@@ -66,9 +78,12 @@ public class StartActivity extends Activity {
                 loggingInProgressDialog = ProgressDialog.show(StartActivity.this, "", 
                         getString(R.string.start_loginDialog), true, true);
                 
-                // TODO logowanie
                 MultitalkNetworkManager multitalkNetworkManager = app.getMultitalkNetworkManager();
                 multitalkNetworkManager.logIn(login);
+                
+                // start timera
+                logCheckTimer = new Timer();
+                logCheckTimer.schedule(new LogCheckTimerTask(), 2000, 1000);
             }
         });
     }
@@ -86,8 +101,11 @@ public class StartActivity extends Activity {
     
     @Override
     protected void onDestroy() {
+        app.getMultitalkNetworkManager().destroy();
+        if(logCheckTimer != null){
+            logCheckTimer.cancel();
+        }
         super.onDestroy();
-        app.getMultitalkNetworkManager().logout();
     }
     
     
@@ -168,5 +186,26 @@ public class StartActivity extends Activity {
                     }
                 })
                 .setCancelable(true).setTitle(getString(R.string.common_errorOccured)).create().show();
+    }
+    
+    
+    
+    /**
+     * Zadanie sprawdzenia czy zalogowano do sieci
+     */
+    class LogCheckTimerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            if(app.getMultitalkNetworkManager().isLoggedIn()){
+                // zalogowano
+                Message msg = handler.obtainMessage();
+                Bundle b = new Bundle();
+                b.putBoolean(LOGGED_IN_FLAG, true);
+                msg.setData(b);
+                handler.sendMessage(msg);
+            }
+        }
+        
     }
 }
