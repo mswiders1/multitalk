@@ -27,6 +27,10 @@ public class MessageFactory {
         
         if(messageType.equals("HII")){
             message = new HiMessage();
+        
+        } else if(messageType.equals("LOG")){
+            message = new LogMessage();
+            
         }
         
         

@@ -184,12 +184,7 @@ public class ClientTCPReceiver extends Thread {
         }
         message.setSenderInfo(clientInfo);
         
-        // FIXME TMP
-        Log.d(Constants.DEBUG_TAG, "Odczytano info:\n"
-                +"uid: "+clientInfo.getUid()+"\n"
-                +"username: "+clientInfo.getUsername()+"\n");
-        
-        //networkManager.getMultitalkNetworkManager().newMessage(message)...
-        // TODO
+        // podaj dalej
+        networkManager.getMultitalkNetworkManager().putMessage(message);
     }
 }

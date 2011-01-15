@@ -31,6 +31,13 @@ public class UserInfo {
         this.macAddress = macAddress;
         this.ipAddress = ipAddress;
     }
+    
+    public UserInfo(UserInfo userInfo){
+        this.uid = (userInfo.uid != null)? new String(userInfo.uid) : null;
+        this.username = (userInfo.username != null)? new String(userInfo.username) : null;
+        this.macAddress = (userInfo.macAddress != null)? new String(userInfo.macAddress) : null;
+        this.ipAddress = (userInfo.ipAddress != null)? new String(userInfo.ipAddress) : null;
+    }
 
     public String getUid() {
         return uid;

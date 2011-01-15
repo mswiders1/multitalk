@@ -7,8 +7,8 @@ import android.util.Log;
 
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.TCPIPNetworkManager;
-import pl.multitalk.android.managers.messages.FinishSenderMessage;
 import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.managers.messages.internal.FinishMessage;
 import pl.multitalk.android.util.Constants;
 
 /**
@@ -66,7 +66,7 @@ public class ClientConnection {
      * Rozłącza się z klientem
      */
     public void disconnect(){
-        tcpSender.putMessage(new FinishSenderMessage());
+        tcpSender.putMessage(new FinishMessage());
         
         try {
             clientSocket.close(); // zakończy receiver-a
