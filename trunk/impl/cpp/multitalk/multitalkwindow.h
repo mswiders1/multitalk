@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include "connectdialog.h"
+#include "broadcast.h"
 
 namespace Ui {
     class MultitalkWindow;
@@ -20,7 +21,9 @@ public:
 private:
     Ui::MultitalkWindow *ui;
     QLabel* statusBarLabel;
-
+    Broadcast* broadcast;
+signals:
+    void connectToNetworkAccepted();
 
 private slots:
     void connectToNetwork();
