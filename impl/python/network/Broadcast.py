@@ -5,7 +5,10 @@ import Json
 import threading
 import SocketServer
 import queues
+from network.Interface import *
+from network.MessageParser import *
 
+UDP_PORT = 3554
 DISCOVERY_TIMEOUT_IN_SEC = 10
 DISCOVERY_PROGRESS = -1
 
@@ -38,13 +41,15 @@ def _startTimers(sequence):
     timerProgress = threading.Timer(sequence * DISCOVERY_TIMEOUT_IN_SEC/10,  _handleDiscoveryProgress)
     timerProgress.start()
 
-def doDiscovery():
-    print("%s: doing discovery" % __name__)
-    dest = ('<broadcast>',3554)
+def doDiscovery(host=None):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if not host:
+        host = '<broadcast>'
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    s.sendto(Json.getDiscoveryMsg(),  dest)
+    dest = (host,UDP_PORT)
+    s.bind(('',  0))
+    print u"UDP: rozsyłamy zgłoszenie na ",  dest
+    s.sendto(DISCOVERY_MSG,  dest)
     global DISCOVERY_PROGRESS
     DISCOVERY_PROGRESS = 0
     message = {}
@@ -63,20 +68,26 @@ class MyUDPHandler(SocketServer.BaseRequestHandler):
 
 def serve_thread():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    s.bind(("0.0.0.0",  0))
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    bindAddr = ('<broadcast>',  UDP_PORT)
+    s.bind(bindAddr)
     while 1:
         try:
-            print "Waiting for broadcast msg"
-            message = {}
-            message['CORE_MSG_TYPE'] = queues.CORE_MSG_TYPE.BROADCAST_REQUEST_RECEIVED
-            message['HOST'] = "192.168.0.1"
-            message['PORT'] = 3445
-            queues.coreQueue.put(message)
-            data, address = s.recvfrom(1024)
-            print "Got data from", address
-            #TODO: przeslac dane do Core
+            print u"UDP: próba odczytu danych z sieci", bindAddr 
+            data, (address,  port) = s.recvfrom(8192)
+            print u"UDP: odczytano dane z ", address
+            if data != DISCOVERY_MSG:
+                print u"UDP: Odebrane rozgloszenie ma inna zawartosc: ",  data
+                break
+            if not isMyAddr(address):
+                #Odebralismy komunikat wiec informujemy kontroler
+                message = {}
+                message['CORE_MSG_TYPE'] = queues.CORE_MSG_TYPE.BROADCAST_RECEIVED
+                message['FROM'] = address
+                queues.coreQueue.put(message)
+            else:
+                print u"UDP: ignoruje rozgloszenie bo sam je wyslalem :)"
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
@@ -84,4 +95,4 @@ def serve_thread():
 
 def startServer():
     threading.Thread(target=serve_thread).start()
-    print "Server loop running"
+    print "UDP: Uruchomiono serwer UDP w oddzielnym watku"

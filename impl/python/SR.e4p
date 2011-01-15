@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SR -->
-<!-- Saved: 2010-12-22, 16:04:52 -->
-<!-- Copyright (C) 2010 Marcin Kamionowski, soldier.kam@gmail.com -->
+<!-- Saved: 2011-01-15, 16:12:18 -->
+<!-- Copyright (C) 2011 Marcin Kamionowski, soldier.kam@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -28,6 +28,14 @@
     <Source>network/Json.py</Source>
     <Source>queues.py</Source>
     <Source>network/TCP.py</Source>
+    <Source>qtForms/Ui_window.py</Source>
+    <Source>qtForms/Ui_settings.py</Source>
+    <Source>qtForms/Ui_test.py</Source>
+    <Source>gui/Main.py</Source>
+    <Source>model/__init__.py</Source>
+    <Source>model/Model.py</Source>
+    <Source>network/Interface.py</Source>
+    <Source>network/MessageParser.py</Source>
   </Sources>
   <Forms>
     <Form>qtForms/window.ui</Form>

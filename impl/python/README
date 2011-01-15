@@ -1,6 +1,8 @@
 Zainstaluj Qt (chyba żartujesz że nie masz!)
 Zainstaluj PyQt
 
+pynetinfo
+
 A potem:
 chmod +x ./build.sh
 chmod +x ./run.sh
