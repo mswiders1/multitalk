@@ -46,13 +46,13 @@ public class StartActivity extends Activity {
             public void onClick(View v) {
                 String login = loginEditText.getText().toString();
                 
-                // FIXME
-                if(login.equals("kouodziey")){
-                    Intent intent = new Intent(Constants.ACTION_CONTACT_LIST_ACTIVITY);
-                    startActivity(intent);
-                    return;
-                }
-                // end FIXME
+//                // FIXME
+//                if(login.equals("kouodziey")){
+//                    Intent intent = new Intent(Constants.ACTION_CONTACT_LIST_ACTIVITY);
+//                    startActivity(intent);
+//                    return;
+//                }
+//                // end FIXME
                 
                 if(!checkWifiConnection()){
                     return;
@@ -64,7 +64,7 @@ public class StartActivity extends Activity {
                 }
                 
                 loggingInProgressDialog = ProgressDialog.show(StartActivity.this, "", 
-                        "Logging in. Please wait...", true, true);
+                        getString(R.string.start_loginDialog), true, true);
                 
                 // TODO logowanie
                 MultitalkNetworkManager multitalkNetworkManager = app.getMultitalkNetworkManager();
@@ -144,14 +144,14 @@ public class StartActivity extends Activity {
      */
     private void showErrorDialogWifiNotEnabled(){
         AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
-        builder.setMessage("Wifi jest wyłączone. Proszę włączyć i połączyć się z wybraną siecią.")
+        builder.setMessage(getString(R.string.start_wifiNotEnabledDialog))
                 .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
                 })
-                .setCancelable(true).setTitle("Wystąpił błąd").create().show();
+                .setCancelable(true).setTitle(getString(R.string.common_errorOccured)).create().show();
     }
     
     
@@ -160,13 +160,13 @@ public class StartActivity extends Activity {
      */
     private void showErrorDialogNoConnectionToNetwork(){
         AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
-        builder.setMessage("Wifi nie jest podłączone do żadnej sieci.")
+        builder.setMessage(getString(R.string.start_noConnectionDialog))
                 .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
                 })
-                .setCancelable(true).setTitle("Wystąpił błąd").create().show();
+                .setCancelable(true).setTitle(getString(R.string.common_errorOccured)).create().show();
     }
 }

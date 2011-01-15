@@ -38,4 +38,10 @@ public interface Message {
      */
     String serialize();
     
+    /**
+     * Deserializuje z postaci JSON
+     * @param jsonString komunikat w postaci JSON
+     */
+    void deserialize(String jsonString);
+    
 }
