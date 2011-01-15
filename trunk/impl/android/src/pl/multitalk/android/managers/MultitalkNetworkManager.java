@@ -92,12 +92,12 @@ public class MultitalkNetworkManager {
                 +", username: "+userInfo.getUsername()
                 +" | UID (before encoding): "+sb.toString()
                 +" | UID: "+userInfo.getUid());
+
+        // oczekiwanie na klientów
+        tcpipNetworkManager.startListeningForConnections();
         
         // wysłanie UDP discovery
         broadcastNetworkManager.sendUDPHostsDiscoveryPacket();
-        
-        // oczekiwanie na klientów
-        tcpipNetworkManager.startListeningForConnections();
     }
     
     

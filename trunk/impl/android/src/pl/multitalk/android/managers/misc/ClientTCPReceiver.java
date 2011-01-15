@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
+import org.json.JSONException;
+
 import android.util.Log;
 
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.TCPIPNetworkManager;
+import pl.multitalk.android.managers.messages.HiMessage;
 import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.managers.messages.MessageFactory;
 import pl.multitalk.android.util.Constants;
@@ -131,8 +134,17 @@ public class ClientTCPReceiver extends Thread {
                     // wycięcie i utworzenie wiadomości
                     String messageString = bufContent.substring(0, messageLength);
                     Log.d(Constants.DEBUG_TAG, "Odczytano wiadomość:\n" + messageString);
-                    Message message = MessageFactory.fromJSON(messageString);
-                    passMessage(message);
+                    
+                    Message message = null;
+                    try {
+                        message = MessageFactory.fromJSON(messageString);
+                        passMessage(message);
+                        
+                    } catch (JSONException e) {
+                        Log.d(Constants.ERROR_TAG, "Błąd parse-owania JSON-a: \n" 
+                                + e.getMessage());
+                        // trudno, jedziemy dalej...
+                    }
                     
                     // wyczyszczenie sb
                     sb.delete(0, newLineIdx + messageLength + 1);
@@ -165,7 +177,17 @@ public class ClientTCPReceiver extends Thread {
      * @param message odczytana wiadomość
      */
     private void passMessage(Message message){
-        // message.setSenderInfo(clientInfo);
+        if(message instanceof HiMessage){
+            UserInfo sender = ((HiMessage) message).getSenderInfo();
+            clientInfo.setUid(sender.getUid());
+            clientInfo.setUsername(sender.getUsername());
+        }
+        message.setSenderInfo(clientInfo);
+        
+        // FIXME TMP
+        Log.d(Constants.DEBUG_TAG, "Odczytano info:\n"
+                +"uid: "+clientInfo.getUid()+"\n"
+                +"username: "+clientInfo.getUsername()+"\n");
         
         //networkManager.getMultitalkNetworkManager().newMessage(message)...
         // TODO
