@@ -161,6 +161,14 @@ public class TCPIPNetworkManager {
     }
     
     
+    /**
+     * Wysyła wiadomość do klienta
+     * @param message wiadomość
+     */
+    public void sendMessage(Message message){
+        clientConnections.get(message.getRecipientInfo()).sendMessage(message);
+    }
+    
     
     /**
      * Nasłuchiwacz połączeń od innych klientów
