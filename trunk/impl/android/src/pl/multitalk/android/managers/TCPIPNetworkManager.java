@@ -2,6 +2,7 @@ package pl.multitalk.android.managers;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -135,7 +136,9 @@ public class TCPIPNetworkManager {
         
         try {
             clientAddress = NetworkUtil.getInetAddressFromString(userInfo.getIpAddress());
-            Socket socket = new Socket(clientAddress, Constants.TCP_PORT);
+            Socket socket = new Socket();
+            socket.connect(new InetSocketAddress(clientAddress, Constants.TCP_PORT),
+                    NetworkUtil.CONNECTION_TIMEOUT);
             
             ClientConnection clientConnection = new ClientConnection(userInfo, socket, this);
             clientConnections.put(userInfo, clientConnection);
