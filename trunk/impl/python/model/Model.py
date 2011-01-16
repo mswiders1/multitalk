@@ -13,7 +13,9 @@ class Model():
         self.__nodes = []   # lista UID innych wezlow
         self.__nodeToNickMaping = {} # mapowanie z UID na nazwe uzytkownika
         self.__nodeToIPMapping = {} # mapowanie x UID na ip uzytkownika (nie dla kazdego UID!!! - tylko dla tych co wyslali HII)
-        self.__logicalTime = []
+        self.__logicalTime = [] # macierz czasów logicznych
+        
+    def __getLogicalTimeForNode(self,  uid):
         
     def setNick(self,  nick):
         print "MODEL: ustawiam nick na " + nick
