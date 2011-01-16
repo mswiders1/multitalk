@@ -7,6 +7,7 @@
 TcpServer::TcpServer(QObject *parent,MultitalkWindow *main_) :
     QTcpServer(parent),main(main_)
 {
+    connect(this,SIGNAL(clientDisconnected(QString)),main,SLOT(clientDisconnected(QString)));
     if(!listen(QHostAddress::Any,3554))
         qDebug()<<"unable to Listen on port 3554";
     else
@@ -30,6 +31,7 @@ void TcpServer::incomingConnection(int socketDescriptor)
 void TcpServer::disconnectedConnection(TcpConnection *connection)
 {
     qDebug()<<"removing disconnected connection";
+    emit clientDisconnected(connection->clientUid);
     connectionList.removeOne(connection);
 }
 

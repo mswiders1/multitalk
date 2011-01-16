@@ -6,6 +6,7 @@
 #include "connectdialog.h"
 #include "broadcast.h"
 #include "tcpserver.h"
+#include "userdata.h"
 
 namespace Ui {
     class MultitalkWindow;
@@ -30,6 +31,7 @@ private:
     QString macAddress;
     QString connectIp;
     TcpServer* tcpServer;
+    QList<UserData> users;
 signals:
     void connectToNetworkAccepted();
 
@@ -39,6 +41,7 @@ private slots:
     void setNick(QString newNick);
     void connectToAddress(QHostAddress address);
     void receiveHIIMessage(QString uid,QString nick);
+    void clientDisconnected(QString uid);
 };
 
 #endif // MULTITALKWINDOW_H
