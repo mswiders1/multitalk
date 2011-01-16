@@ -22,11 +22,18 @@ private:
     Ui::MultitalkWindow *ui;
     QLabel* statusBarLabel;
     Broadcast* broadcast;
+    QString ipAddress;
+    QString macAddress;
+    QString connectIp;
+    QString nick;
+    QString uid;
 signals:
     void connectToNetworkAccepted();
 
 private slots:
     void connectToNetwork();
+    void setConnectIp(QString ip);
+    void setNick(QString newNick);
 };
 
 #endif // MULTITALKWINDOW_H
