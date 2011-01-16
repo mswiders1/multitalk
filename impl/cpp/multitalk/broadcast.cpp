@@ -4,8 +4,7 @@
 Broadcast::Broadcast(QObject *parent) :
     QUdpSocket(parent)
 {
-    bind(3554,QUdpSocket::ShareAddress);
-    connect(this,(SIGNAL(readyRead())),this,SLOT(processDatagrams()));
+   connect(this,(SIGNAL(readyRead())),this,SLOT(processDatagrams()));
 }
 
 void Broadcast::sendBroadcast()
@@ -23,5 +22,14 @@ void Broadcast::processDatagrams()
              datagram.resize(pendingDatagramSize());
              readDatagram(datagram.data(), datagram.size(),&address);
              qDebug()<<"Received broadcast:"<<datagram<<" "<<address;
+             if(QString("MULTITALK_5387132")==datagram.data())
+                emit gotConnectionRequest(address);
+             else
+                 qDebug()<<"bad magic text in udp packet";
     }
+}
+
+void Broadcast::startListening()
+{
+    bind(3554,QUdpSocket::ShareAddress);
 }
