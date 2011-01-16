@@ -4,6 +4,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import pl.multitalk.android.util.Constants;
+
+import android.util.Log;
+
 /**
  * Fabryka komunikatów
  * @author Michał Kołodziejski
@@ -31,6 +35,9 @@ public class MessageFactory {
         } else if(messageType.equals("LOG")){
             message = new LogMessage();
             
+        } else {
+            Log.d(Constants.DEBUG_TAG, "MessageFactory: Unknown message type");
+            return null;
         }
         
         

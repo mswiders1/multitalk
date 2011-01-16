@@ -57,8 +57,13 @@ public class ClientTCPSender extends Thread {
                     finish = true;
                     continue;
                 }
+
+                String messageContent = getMessageWithHeader(message.serialize());
                 
-                socketOutput.append(message.serialize());
+                Log.d(Constants.DEBUG_TAG, "sending message: " + messageContent
+                        +"\n to: " + socket.getInetAddress().getHostAddress());
+                
+                socketOutput.append(messageContent);
                 socketOutput.flush();
             }
             
@@ -80,5 +85,20 @@ public class ClientTCPSender extends Thread {
             Log.e(Constants.ERROR_TAG, "InterruptedException at ClientTCPSender");
             return;
         }
+    }
+    
+    
+    /**
+     * Dodaje nagłówek komunikatu i zwraca komunikat gotowy do wysłania
+     * @param messageContent ciało komunikatu
+     * @return komunikat gotowy do wysłania
+     */
+    private String getMessageWithHeader(String messageContent){
+        StringBuffer sb = new StringBuffer();
+        sb.append(Constants.BEGIN_MESSAGE_HEADER);
+        sb.append(messageContent.length());
+        sb.append("\n");
+        sb.append(messageContent);
+        return sb.toString();
     }
 }

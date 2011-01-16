@@ -24,5 +24,6 @@ public class Constants {
     public static final int UDP_PORT = 3554;
     public static final int TCP_PORT = 3554;
     public static final String DISCOVERY_PACKET_DATA = "MULTITALK_5387132";
+    public static final String BEGIN_MESSAGE_HEADER = "BEGIN_MESSAGE:";
     
 }
