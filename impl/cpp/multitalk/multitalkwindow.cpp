@@ -76,16 +76,26 @@ void MultitalkWindow::connectToAddress(QHostAddress address)
     tcpServer->connectToClient(address);
 }
 
-void MultitalkWindow::receiveHIIMessage(QString uid, QString nick)
+void MultitalkWindow::receiveNewClientMessage(QString uid, QString nick,QString ip)
 {
-    QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
-    newItem->setText(nick);
-    ui->listWidget->addItem(newItem);
-    UserData userData;
-    userData.uid=uid;
-    userData.nick=nick;
-    userData.item=newItem;
-    users.append(userData);
+    QList<UserData>::iterator i;
+    for(i=users.begin();i!=users.end();++i)
+    {
+        if(i->uid==uid)
+            break;
+    }
+    if(i==users.end())
+    {
+        QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
+        newItem->setText(nick);
+        ui->listWidget->addItem(newItem);
+        UserData userData;
+        userData.uid=uid;
+        userData.nick=nick;
+        userData.ip=ip;
+        userData.item=newItem;
+        users.append(userData);
+    }
 }
 
 void MultitalkWindow::clientDisconnected(QString uid)
