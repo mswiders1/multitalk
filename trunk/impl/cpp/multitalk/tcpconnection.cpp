@@ -53,7 +53,8 @@ void TcpConnection::dataWaiting()
                 if(result["TYPE"].toString()=="HII")
                 {
                     qDebug()<<"got HII message";
-                    emit gotHIIMessage(result["UID"].toString(),result["USERNAME"].toString());
+                    clientUid=result["UID"].toString();
+                    emit gotHIIMessage(clientUid,result["USERNAME"].toString());
                 }
             }
             else
