@@ -77,6 +77,10 @@ public class UserInfo {
         if(o == null)
             return false;
         
+        if(this == o){
+            return true;
+        }
+        
         if(!(o instanceof UserInfo))
             return false;
         
@@ -90,10 +94,10 @@ public class UserInfo {
     
     @Override
     public int hashCode() {
-        if(getUid() == null){
+        if(getIpAddress() == null){
             // whatever
             return 123;
         }
-        return getUid().hashCode();
+        return getIpAddress().hashCode();
     }
 }

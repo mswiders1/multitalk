@@ -9,7 +9,6 @@ import java.util.TimerTask;
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.model.MultitalkApplication;
 import pl.multitalk.android.ui.ContactListAdapter;
-import pl.multitalk.android.ui.ContactListItem;
 import pl.multitalk.android.util.Constants;
 
 import android.app.Activity;
@@ -53,7 +52,7 @@ public class ContactListActivity extends Activity {
         contactListView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ContactListItem item = (ContactListItem) parent.getItemAtPosition(position);
+                UserInfo item = (UserInfo) parent.getItemAtPosition(position);
                 Log.d(Constants.DEBUG_TAG, "Kliknięto kontakt: "+item.getUsername());
                 
                 Intent intent = new Intent(Constants.ACTION_CONVERSATION_ACTIVITY);
@@ -96,12 +95,12 @@ public class ContactListActivity extends Activity {
      */
     private void refreshContactList(){
         List<UserInfo> users = app.getMultitalkNetworkManager().getUsers();
-        contactListAdapter.clear();
+        contactListItems.clear();
         for(UserInfo user : users){
-            contactListAdapter.add(user);
+            contactListItems.add(user);
         }
-        contactListAdapter.sort(userComparator);
         contactListAdapter.notifyDataSetChanged();
+        contactListAdapter.sort(userComparator);
     }
     
     

@@ -111,6 +111,9 @@ public class TCPIPNetworkManager {
     public void newClientConnected(Socket socket){
         UserInfo userInfo = new UserInfo();
         userInfo.setIpAddress(socket.getInetAddress().getHostAddress());
+        // fake UID - nie wiemy jak się nazywa, ale musimy go rozpoznawać...
+        userInfo.setUid(String.valueOf(System.currentTimeMillis()));
+        userInfo.setUsername(String.valueOf(System.currentTimeMillis()));
         
         ClientConnection clientConnection = new ClientConnection(userInfo, socket, this);
         clientConnections.put(userInfo, clientConnection);
@@ -128,6 +131,7 @@ public class TCPIPNetworkManager {
         }
         
         InetAddress clientAddress = null;
+        Log.d(Constants.DEBUG_TAG, "TCP/IP connecting to client at: " + userInfo.getIpAddress());
         
         try {
             clientAddress = NetworkUtil.getInetAddressFromString(userInfo.getIpAddress());
@@ -149,10 +153,29 @@ public class TCPIPNetworkManager {
     
     
     /**
+     * Rozłącza się z użytkownikiem
+     * @param userInfo użytkownik
+     */
+    public void disconnectClient(UserInfo userInfo){
+        if(!clientConnections.containsKey(userInfo)){
+            // nie ma takiego połączenia
+            return;
+        }
+        
+        ClientConnection clientConnection = clientConnections.get(userInfo);
+        clientConnection.disconnect();
+        clientConnections.remove(userInfo);
+    }
+    
+    
+    /**
      * Wysyła wiadomość do wszystkich klientów
      * @param message wiadomość do wysłania
      */
     public void sendMessageToAll(Message message){
+        Log.d(Constants.DEBUG_TAG, "sending message to all: \n"
+                + message.serialize());
+        
         for(Entry<UserInfo, ClientConnection> entry : clientConnections.entrySet()){
             Message cloneMessage = message.getClone();
             cloneMessage.setRecipientInfo(entry.getKey());
@@ -166,7 +189,14 @@ public class TCPIPNetworkManager {
      * @param message wiadomość
      */
     public void sendMessage(Message message){
-        clientConnections.get(message.getRecipientInfo()).sendMessage(message);
+        Log.d(Constants.DEBUG_TAG, "sending message: \n"
+                + message.serialize()
+                +"\n to client at: "+message.getRecipientInfo().getIpAddress());
+        
+        ClientConnection clientConnection = clientConnections.get(message.getRecipientInfo());
+        if(clientConnection != null){
+            clientConnection.sendMessage(message);
+        }
     }
     
     

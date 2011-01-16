@@ -110,6 +110,8 @@ public class BroadcastNetworkManager {
         
         broadcastReceiver = new BroadcastReceiver(socket, this);
         broadcastReceiver.start();
+        
+        Log.d(Constants.DEBUG_TAG, "Started thread for broadcast listening");
     }
     
     
@@ -117,6 +119,7 @@ public class BroadcastNetworkManager {
      * Kończy nasłuchiwać po broadcast-cie
      */
     public void stopBroadcastListening(){
+        Log.d(Constants.DEBUG_TAG, "stopping broadcast listening...");
         if(socket != null && socket.isBound()){
             socket.close();
         }

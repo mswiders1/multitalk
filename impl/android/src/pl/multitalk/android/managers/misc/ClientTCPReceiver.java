@@ -11,6 +11,7 @@ import android.util.Log;
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.TCPIPNetworkManager;
 import pl.multitalk.android.managers.messages.HiMessage;
+import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.managers.messages.MessageFactory;
 import pl.multitalk.android.util.Constants;
@@ -181,6 +182,12 @@ public class ClientTCPReceiver extends Thread {
             UserInfo sender = ((HiMessage) message).getSenderInfo();
             clientInfo.setUid(sender.getUid());
             clientInfo.setUsername(sender.getUsername());
+            
+        } else if(message instanceof LogMessage){
+            UserInfo sender = ((LogMessage) message).getSenderInfo();
+            clientInfo.setUid(sender.getUid());
+            clientInfo.setUsername(sender.getUsername());
+            
         }
         message.setSenderInfo(clientInfo);
         

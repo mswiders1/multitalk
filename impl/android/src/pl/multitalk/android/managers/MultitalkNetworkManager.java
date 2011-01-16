@@ -32,7 +32,7 @@ public class MultitalkNetworkManager {
     private BroadcastNetworkManager broadcastNetworkManager;
     private TCPIPNetworkManager tcpipNetworkManager;
     private Timer sendLogTimer;
-    private BlockingQueue<Message> messageQueue = new ArrayBlockingQueue<Message>(30);
+    private BlockingQueue<Message> messageQueue = null;
     private MessageDispatcher messageDispatcher;
     
     /*
@@ -45,12 +45,14 @@ public class MultitalkNetworkManager {
      * Informacje o innych uzytkownikach
      */
     private List<UserInfo> users;
+    private List<UserInfo> notLoggedUsers;
     
     /**
      * Tworzy zarządcę sieci
      */
     public MultitalkNetworkManager(Context context){
         this.context = context;
+        this.messageQueue = new ArrayBlockingQueue<Message>(30);
         this.broadcastNetworkManager = new BroadcastNetworkManager(context, this);
         this.tcpipNetworkManager = new TCPIPNetworkManager(context, this);
         this.messageDispatcher = new MessageDispatcher(messageQueue);
@@ -60,6 +62,7 @@ public class MultitalkNetworkManager {
         isLoggedIn = false;
         userInfo = null;
         users = new ArrayList<UserInfo>();
+        notLoggedUsers = new ArrayList<UserInfo>();
     }
     
     
@@ -133,6 +136,7 @@ public class MultitalkNetworkManager {
         isLoggedIn = false;
         userInfo = null;
         users = new ArrayList<UserInfo>();
+        notLoggedUsers = new ArrayList<UserInfo>();
     }
     
     
@@ -170,6 +174,25 @@ public class MultitalkNetworkManager {
     private synchronized void removeUserInfo(UserInfo userInfoToRemove){
         if(users.contains(userInfoToRemove)){
             users.remove(userInfoToRemove);
+        }
+    }
+    
+    
+    /**
+     * Dodaje informację o nowym niezalogowanym użytkowniku
+     * @param newUserInfo informacje o nowym niezalogowanym użytkowniku
+     */
+    private synchronized void addNotLoggedUserInfo(UserInfo newUserInfo){
+        if(!notLoggedUsers.contains(newUserInfo)){
+            notLoggedUsers.add(newUserInfo);
+        }
+    }/**
+     * Usuwa informację o niezalogowanym użytkowniku
+     * @param userInfoToRemove informacje o niezalogowanym użytkowniku do usunięcia
+     */
+    private synchronized void removeNotLoggedUserInfo(UserInfo userInfoToRemove){
+        if(notLoggedUsers.contains(userInfoToRemove)){
+            notLoggedUsers.remove(userInfoToRemove);
         }
     }
     
@@ -224,6 +247,11 @@ public class MultitalkNetworkManager {
         tcpipNetworkManager.connectToClient(message.getSenderInfo());
         
         for(UserInfo user : message.getLoggedUsers()){
+            if(userInfo.equals(user) || userInfo.getIpAddress().equals(user.getIpAddress())){
+                // pomijamy siebie
+                continue;
+            }
+            
             MultitalkNetworkManager.this.addUserInfo(user);
             tcpipNetworkManager.connectToClient(user);
         }
@@ -232,7 +260,7 @@ public class MultitalkNetworkManager {
     
     public void handleDiscoveryPacketReceived(DiscoveryPacketReceivedMessage message){
         // dodajemy usera
-        MultitalkNetworkManager.this.addUserInfo(message.getSenderInfo());
+        MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
         tcpipNetworkManager.connectToClient(message.getSenderInfo());
         
         // w odpowiedzi wysyłamy HiMessage
@@ -250,6 +278,21 @@ public class MultitalkNetworkManager {
     }
     
     
+    public void handleLogMessage(LogMessage message){
+        UserInfo user = message.getSenderInfo();
+        if(userInfo.equals(user) || userInfo.getIpAddress().equals(user.getIpAddress())){
+            // wiadomość o zalogowaniu siebie
+            // ignorujemy i usuwamy ewentualny wpis 
+            removeNotLoggedUserInfo(user);
+            tcpipNetworkManager.disconnectClient(user);
+            return;
+        }
+        removeNotLoggedUserInfo(user);
+        addUserInfo(user);
+        
+        // TODO wysłać MTX message
+    }
+    
     
     /**
      * Zadanie wysłania komunikatu logowania
@@ -265,6 +308,9 @@ public class MultitalkNetworkManager {
             
             // ustawienie znacznika
             MultitalkNetworkManager.this.setLoggedIn(true);
+            
+            // rozpoczęcie nasłuchiwania po broadcast-cie
+            broadcastNetworkManager.startBroadcastListening();
         }
         
     }
@@ -284,25 +330,28 @@ public class MultitalkNetworkManager {
         
         @Override
         public void run() {
+            Log.d(Constants.DEBUG_TAG, "started MessageDispatcher");
             Message message;
 
             try {
                 
                 while(true){
-                    message = messageQueue.take();
+                    message = this.messageQueue.take();
                     
                     if(message instanceof DiscoveryPacketReceivedMessage){
+                        Log.d(Constants.DEBUG_TAG, "received discovery packet");
                         MultitalkNetworkManager.this.handleDiscoveryPacketReceived(
                                 (DiscoveryPacketReceivedMessage) message);
                         continue;
                     
                     }else if(message instanceof HiMessage){
+                        Log.d(Constants.DEBUG_TAG, "received HII message");
                         MultitalkNetworkManager.this.handleHiMessage((HiMessage) message);                        
                         continue;
                         
                     } else if(message instanceof LogMessage){
-                        
-                        // TODO
+                        Log.d(Constants.DEBUG_TAG, "received LOG message");
+                        MultitalkNetworkManager.this.handleLogMessage((LogMessage) message);
                         continue;
                         
                     } else if(message instanceof FinishMessage){
