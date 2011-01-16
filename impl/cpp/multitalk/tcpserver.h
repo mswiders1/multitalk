@@ -19,7 +19,7 @@ private:
     QList<TcpConnection*> connectionList;
     MultitalkWindow* main;
 signals:
-
+    void clientDisconnected(QString uid);
 public slots:
 
 private slots:

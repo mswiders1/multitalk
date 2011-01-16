@@ -11,8 +11,8 @@ class TcpConnection : public QTcpSocket
     Q_OBJECT
 public:
     explicit TcpConnection(QObject *parent,MultitalkWindow *main_);
-private:
     QString clientUid;
+private:
     bool headerRead;
     int numberOfBytesToRead;
     MultitalkWindow *main;

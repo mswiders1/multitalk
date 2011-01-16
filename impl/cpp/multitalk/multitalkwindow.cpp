@@ -4,6 +4,7 @@
 #include <QNetworkInterface>
 #include <QList>
 #include <QCryptographicHash>
+#include "userdata.h"
 
 MultitalkWindow::MultitalkWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -77,5 +78,32 @@ void MultitalkWindow::connectToAddress(QHostAddress address)
 
 void MultitalkWindow::receiveHIIMessage(QString uid, QString nick)
 {
-    ui->listWidget->addItem(nick);
+    QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
+    newItem->setText(nick);
+    ui->listWidget->addItem(newItem);
+    UserData userData;
+    userData.uid=uid;
+    userData.nick=nick;
+    userData.item=newItem;
+    users.append(userData);
+}
+
+void MultitalkWindow::clientDisconnected(QString uid)
+{
+    qDebug()<<"removing disconnected client:"<<uid;
+    QList<UserData>::iterator i;
+    int pos=0;
+    for(i=users.begin();i!=users.end();++i)
+    {
+        qDebug()<<i->uid;
+        if(i->uid==uid)
+            break;
+        pos++;
+    }
+    if(i!=users.end())
+    {
+        qDebug()<<"removing:"<<pos;
+        delete ui->listWidget->takeItem(pos);
+        users.removeAt(pos);
+    }
 }
