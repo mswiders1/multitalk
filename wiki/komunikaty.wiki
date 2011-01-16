@@ -112,11 +112,12 @@ Zawartosc: Informacje o wiedzy
 
 macierz:
 
-kolumnami wiedza uzytkownikow
-pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
+wierszami wiedza użytkowników
+
+pojedyncza komórka: wiedza o wiedzy o zegarze logicznym użytkowników 
 
 wektor kolejności:
-|| id usera, ktory ma wiedzę w i-tym wierszu tabeli||
+|| id usera, który ma wiedzę w i-tym wierszu tabeli||
 
 = przesylanie zwyklych wiadomosci=
 
