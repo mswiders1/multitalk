@@ -16,6 +16,7 @@ class Model():
         self.__logicalTime = [] # macierz czasów logicznych
         
     def __getLogicalTimeForNode(self,  uid):
+        return 
         
     def setNick(self,  nick):
         print "MODEL: ustawiam nick na " + nick
