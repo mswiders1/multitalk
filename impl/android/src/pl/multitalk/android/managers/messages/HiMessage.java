@@ -41,10 +41,20 @@ public class HiMessage extends BaseMessage {
             object.put("UID", sender.getUid());
             object.put("USERNAME", sender.getUsername());
             
+            // wektor informacji o wszystkich użytkownikach
             JSONArray vec = new JSONArray();
+            
+            // dodajemy siebie
+            JSONObject userObject = new JSONObject();
+            userObject.put("IP_ADDRESS", sender.getIpAddress());
+            userObject.put("UID", sender.getUid());
+            userObject.put("USERNAME", sender.getUsername());
+            vec.put(userObject);
+            
+            // i resztę...
             if(loggedUsers != null){
                 for(UserInfo user : loggedUsers){
-                    JSONObject userObject = new JSONObject();
+                    userObject = new JSONObject();
                     userObject.put("IP_ADDRESS", user.getIpAddress());
                     userObject.put("UID", user.getUid());
                     userObject.put("USERNAME", user.getUsername());

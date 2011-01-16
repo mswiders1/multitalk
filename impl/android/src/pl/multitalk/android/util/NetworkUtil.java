@@ -15,6 +15,8 @@ import android.util.Log;
  */
 public class NetworkUtil {
 
+    public static final int CONNECTION_TIMEOUT = 3000;
+    
     /**
      * Zwraca adres MAC karty sieciowej
      * @param context kontekst wywołania
@@ -169,7 +171,7 @@ public class NetworkUtil {
         
         return InetAddress.getByAddress(ipBytes);
     }
-
+    
     
     
     /**

@@ -61,15 +61,6 @@ public class ContactListActivity extends Activity {
             
         });
         
-        
-        // tymczasowe
-//        for(int i=0; i<20; ++i){
-//            ContactListItem item = new ContactListItem();
-//            item.setUsername("Firstname Lastname "+i);
-//            contactListAdapter.add(item);
-//            contactListAdapter.notifyDataSetChanged();
-//        }
-        
     }
     
     
@@ -78,7 +69,7 @@ public class ContactListActivity extends Activity {
         super.onResume();
         contactListRefresherTimer = new Timer();
         contactListRefresherTimer.schedule(new ContactListRefresherTimerTask(), 
-                3000, 3000);
+                100, 3000);
     }
     
     
