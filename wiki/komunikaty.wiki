@@ -72,7 +72,13 @@ Przykład:
                 "IP_ADDRESS": "192.168.0.5",
                 "UID": "3uktYcIto2saFasD=",
                 "USERNAME": "wujo"
+            },         
+            {
+                "IP_ADDRESS": "192.168.0.6",
+                "UID": "8IsXHf84O63uktYcIto2wk+h4sw=",
+                "USERNAME": "kouodziey"
             }         
+
         ]
 }
 
@@ -134,4 +140,4 @@ kolumnami wiedza uzytkownikow
 pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
 
 wektor kolejności:
-|| id usera, ktory ma wiedze na i-tej kolumnie tabeli||
+|| id usera, ktory ma wiedzę w i-tym wierszu tabeli||
