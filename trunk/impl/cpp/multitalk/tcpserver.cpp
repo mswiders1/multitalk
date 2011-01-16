@@ -45,6 +45,15 @@ void TcpServer::connectToClient(QHostAddress address)
     packet.insert("UID",main->uid);
     packet.insert("USERNAME",main->nick);
     QVariantList vector;
+    QList<UserData>::iterator i;
+    for(i=main->users.begin();i!=main->users.end();++i)
+    {
+        QVariantMap userMap;
+        userMap.insert("IP_ADDRESS",i->ip);
+        userMap.insert("UID",i->uid);
+        userMap.insert("USERNAME",i->nick);
+        vector.append(userMap);
+    }
     packet.insert("VECTOR",vector);
     QJson::Serializer serializer;
     QByteArray packetArray=serializer.serialize(packet);
@@ -52,6 +61,7 @@ void TcpServer::connectToClient(QHostAddress address)
     QTextStream(&header)<<"BEGIN_MESSAGE:"<<packetArray.size()<<"\n";
     clientConnection->write(QByteArray(header.toAscii()));
     clientConnection->write(packetArray);
+    qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
 
     //clientConnection->write(QByteArray("test\n"));
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));

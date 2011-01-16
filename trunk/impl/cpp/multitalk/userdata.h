@@ -8,6 +8,7 @@ class UserData
 public:
     QString uid;
     QString nick;
+    QString ip;
     QListWidgetItem* item;
 
 signals:

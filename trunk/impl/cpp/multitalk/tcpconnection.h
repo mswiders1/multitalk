@@ -19,7 +19,8 @@ private:
 
 signals:
     void connectionDisconnected(TcpConnection* connection);
-    void gotHIIMessage(QString uid,QString nick);
+    void gotHIIMessage(QString uid,QString nick,QString ip);
+    void gotLOGMessage(QString uid,QString nick,QString ip);
 public slots:
     void connectionClosed();
 private slots:

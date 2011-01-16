@@ -23,6 +23,7 @@ public:
     ~MultitalkWindow();
     QString nick;
     QString uid;
+    QList<UserData> users;
 private:
     Ui::MultitalkWindow *ui;
     QLabel* statusBarLabel;
@@ -31,7 +32,7 @@ private:
     QString macAddress;
     QString connectIp;
     TcpServer* tcpServer;
-    QList<UserData> users;
+
 signals:
     void connectToNetworkAccepted();
 
@@ -40,7 +41,7 @@ private slots:
     void setConnectIp(QString ip);
     void setNick(QString newNick);
     void connectToAddress(QHostAddress address);
-    void receiveHIIMessage(QString uid,QString nick);
+    void receiveNewClientMessage(QString uid,QString nick,QString ip);
     void clientDisconnected(QString uid);
 };
 

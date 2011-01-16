@@ -1,12 +1,13 @@
 #include "tcpconnection.h"
 #include <qjson/parser.h>
+#include <qjson/serializer.h>
 
 TcpConnection::TcpConnection(QObject *parent, MultitalkWindow *main_) :
     QTcpSocket(parent), headerRead(false), main(main_)
 {
     connect(this,SIGNAL(disconnected()),this,SLOT(connectionClosed()));
     connect(this,SIGNAL(readyRead()),this,SLOT(dataWaiting()));
-    connect(this,SIGNAL(gotHIIMessage(QString,QString)),main,SLOT(receiveHIIMessage(QString,QString)));
+    connect(this,SIGNAL(gotHIIMessage(QString,QString,QString)),main,SLOT(receiveNewClientMessage(QString,QString,QString)));
 }
 
 void TcpConnection::connectionClosed()
@@ -54,7 +55,27 @@ void TcpConnection::dataWaiting()
                 {
                     qDebug()<<"got HII message";
                     clientUid=result["UID"].toString();
-                    emit gotHIIMessage(clientUid,result["USERNAME"].toString());
+                    emit gotHIIMessage(clientUid,result["USERNAME"].toString(),peerAddress().toString());
+
+                    QVariantMap packet;
+                    packet.insert("TYPE","LOG");
+                    packet.insert("UID",main->uid);
+                    packet.insert("USERNAME",main->nick);
+                    QJson::Serializer serializer;
+                    QByteArray packetArray=serializer.serialize(packet);
+                    QString header;
+                    QTextStream(&header)<<"BEGIN_MESSAGE:"<<packetArray.size()<<"\n";
+                    write(QByteArray(header.toAscii()));
+                    write(packetArray);
+
+
+
+                }
+                else if(result["TYPE"].toString()=="LOG")
+                {
+                    qDebug()<<"got LOG message";
+                    clientUid=result["UID"].toString();
+                    emit gotLOGMessage(clientUid,result["USERNAME"].toString(),peerAddress().toString());
                 }
             }
             else
