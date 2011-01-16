@@ -9,8 +9,8 @@ def getDefaultGatewayInterfaceName():
     for route in netinfo.get_routes():
         if route['gateway'] == '0.0.0.0':
             return route['dev']
+    print "Brak sieci!!"
     assert(False)
-    
 
 def getBroadcastAddress():
     interface = getDefaultGatewayInterfaceName()

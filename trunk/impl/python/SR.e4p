@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SR -->
-<!-- Saved: 2011-01-15, 16:12:18 -->
+<!-- Saved: 2011-01-16, 22:38:02 -->
 <!-- Copyright (C) 2011 Marcin Kamionowski, soldier.kam@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
@@ -36,6 +36,14 @@
     <Source>model/Model.py</Source>
     <Source>network/Interface.py</Source>
     <Source>network/MessageParser.py</Source>
+    <Source>network/qt4reactor.py</Source>
+    <Source>network/BroadcastSender.py</Source>
+    <Source>network/BroadcastReceiver.py</Source>
+    <Source>network/TCPProtocol.py</Source>
+    <Source>core/Hash.py</Source>
+    <Source>network/TCPClient.py</Source>
+    <Source>network/TCPServer.py</Source>
+    <Source>appVar.py</Source>
   </Sources>
   <Forms>
     <Form>qtForms/window.ui</Form>

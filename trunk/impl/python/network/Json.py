@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import json
-import core.Core
 import queues
+import appVar
 
 TCP_FIRST_MSG = u'MULTITALK_5387132'
 
 def getHiiMsg():
-    assert(core.Core.model)
-    nick = core.Core.model.getNick()
-    id = core.Core.model.getMyId()
-    nodes = core.Core.model.getListOfNodes()
+    model = appVar.modelInstance
+    assert(model)
+    nick = model.getNick()
+    id = model.getMyId()
+    nodes = model.getListOfNodes()
     assert(nick)
     assert(id)
     assert(nodes)
@@ -20,8 +21,8 @@ def getHiiMsg():
     for node in nodes:
         n = {}
         n['UID'] = node
-        n['USERNAME'] = core.Core.model.getNickByUID(node)
-        n['IP_ADDRESS'] = core.Core.model.getIPByUID(node)
+        n['USERNAME'] = model.getNickByUID(node)
+        n['IP_ADDRESS'] = model.getIPByUID(node)
         nodesWithInfo.append(n)
     list = {'TYPE': u"HII", 'UID': id,  "USERNAME":nick,  "VECTOR":nodesWithInfo}
     return json.dumps(list,  indent=4)
@@ -43,8 +44,9 @@ def unpackHiiMsg(jsonObj,  senderIP):
     return message
 
 def getLogMsg():
-    id = core.Core.model.getMyId()
-    nick = core.Core.model.getNick()
+    model = appVar.model
+    id = model.getMyId()
+    nick = model.getNick()
     list = {'TYPE': u"LOG", 'UID': id,  "USERNAME":nick}
     return json.dumps(list,  indent=4)
 

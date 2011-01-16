@@ -4,8 +4,6 @@ from PyQt4 import QtCore,QtGui, Qt
 from qtForms.Ui_window import Ui_MainWindow
 from qtModels.ConversationModel import ConversationModel
 from qtModels.PeersModel import PeersModel
-import Queue
-import queues
 
 appName = "SRAppp"
 aboutMe = "MarcinKamionowski"
@@ -13,7 +11,6 @@ windowGeo = "windowGeometry"
 windowFlags = "windowFlags"
 splitterLeftRight = "splitterConvPeers"
 splitterUpDown = "splitterUpDown"
-GUI_TIMER_INTERVAL_IN_MS = 100
 
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
@@ -29,9 +26,11 @@ class Main(QtGui.QMainWindow):
         self.restoreWindowState()
         Main.logger = self.showMsgInLogView
         self.ui.newMessage.setFocus()
-        self.startTimer(GUI_TIMER_INTERVAL_IN_MS)
+        
+    def show(self):
         self.showLoginForm()
-     
+        QtGui.QMainWindow.show(self)
+        
     def showLoginForm(self):
         while 1:
             (nickName, ok)  = QtGui.QInputDialog.getText (self, Qt.QObject.trUtf8(self,"Podaj nazwę"), Qt.QObject.trUtf8(self,"Podaj nick"))
@@ -39,14 +38,10 @@ class Main(QtGui.QMainWindow):
                 break
             else:
                 print "Gui: uzytkownik podal zly nick"
-        message = {}
-        message['CORE_MSG_TYPE'] = queues.CORE_MSG_TYPE.USER_LOGIN
         if ok:
-            message['STATUS'] = True
-            message['NICK'] = unicode(nickName)
+            self.core.handleUserInsertedNick(nickName)
         else:
-            message['STATUS'] = False;
-        queues.coreQueue.put(message)
+            self.core.closeApp()
 
     def on_sendButton_released(self):
         self.peersModel.addPeer("192.168.0.1",  "Firebird")
@@ -94,43 +89,22 @@ class Main(QtGui.QMainWindow):
         self.settings.setValue(splitterUpDown, self.ui.splitterUpDown.saveState());
         
     def closeEvent(self,  closeEvent):
-        if self.canClose:
-            self.saveWindowState()
-            QtGui.QMainWindow.closeEvent(self,  closeEvent)
+        self.saveWindowState()
+        if self.core.closeApp():
+            return
         else:
-            print("GUI: close event")
-            closeEvent.ignore()
-            message = {}
-            message['CORE_MSG_TYPE'] = queues.CORE_MSG_TYPE.CLOSE_APP_REQ
-            queues.coreQueue.put(message)
-        
-    def parseQueue(self):
-        try:
-            queueElement = queues.guiQueue.get_nowait()
-            #print("GUI: Parsing queue element %s" % queueElement)
-            
-            if queueElement['GUI_MSG_TYPE'] == queues.GUI_MSG_TYPE.BROADCAST_WIN_SHOW:
-                self.pd = QtGui.QProgressDialog("Broadcast in progress.", QtCore.QString(), 0, 100,  self)
-                self.setWindowTitle("Progress...")
-                self.pd.open()
-            
-            if queueElement['GUI_MSG_TYPE'] == queues.GUI_MSG_TYPE.BROADCAST_PROGRESS:
-                self.pd.setValue(queueElement['PROGRESS'])
-                
-            if queueElement['GUI_MSG_TYPE'] == queues.GUI_MSG_TYPE.BROADCAST_WIN_CLOSE:
-                self.pd.cancel()
-            
-            if queueElement['GUI_MSG_TYPE'] == queues.GUI_MSG_TYPE.CLOSE_APP:
-                print("GUI: zamykamy okno")
-                self.canClose = True
-                self.close()
+            closeEvent.ingore()
+    
+    def setBroadcastProgress(self,  progress):
+        if progress == 0:
+            self.pd = QtGui.QProgressDialog("Broadcast in progress.", QtCore.QString(), 0, 100,  self)
+            self.setWindowTitle("Progress...")
+            self.pd.open()
+        elif progress == 100:
+            self.pd.cancel()
+        else:
+            self.pd.setValue(progress)
 
-
-        except Queue.Empty:
-            pass
-        except:
-            traceback.print_exc(file=sys.stdout)
-            raise
-        
-    def timerEvent(self,  timerEvent):
-        self.parseQueue()
+    def setCore(self,  core):
+        self.core = core
+    

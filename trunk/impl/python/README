@@ -1,7 +1,7 @@
 Zainstaluj Qt (chyba żartujesz że nie masz!)
 Zainstaluj PyQt
-
-pynetinfo
+Zainstaluj twisted (na ubuntu "python-twisted") w wersji 10.1
+Zainstaluj pynetinfo (przez easy-install)
 
 A potem:
 chmod +x ./build.sh
