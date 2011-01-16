@@ -5,32 +5,29 @@
 import os,sys, traceback,  SocketServer,  threading,  socket,  time
 
 from network.MessageParser import *
-from Json import *
+from Json import deserializeJsonObject,  unpackHiiMsg
+import queues
 TCP_PORT = 3554
 
 class ThreadedTCPRequestHandler(SocketServer.StreamRequestHandler):
 
     def handle(self):
         self.waitingForFirstMsg = True
-        print "TCP: przychodzace polaczenie z ",  self.client_address
+        print "TCP: przychodzace polaczenie z %s" % self.client_address[0]
         while 1:
-            lineOfText = self.rfile.readline()
-            len = getMessageLen(lineOfText)
-            if len:
-                msg = self.request.recv(len)
-                print "Odebrano wiadomosc od %s: %s" % (self.client_address,  msg)
-                if self.waitingForFirstMsg and isMsgLoginReqViaTcp(msg):
-                    self.waitingForFirstMsg = False
-                    print "TCP: wezel sie podlaczyl do nas - mozemy sie zalogowac"
+            isCorrect,  json = readMsgFromStream("TCP",  self.rfile,  self.client_address[0])
+            if isCorrect:
+                #TODO : asdasd
+                jsonObj = deserializeJsonObject(json)
+                if jsonObj['TYPE'] == "HII":
+                    print "TCP: odczytano wiadomosc typu Hi"
+                    message = unpackHiiMsg(jsonObj,  self.client_address[0])
+                    queues.coreQueue.put(message)
                 else:
-                    if not self.waitingForFirstMsg:
-                        print "TCP: wezel wyslal JSNO-a"
-                    else:
-                        print "TCP: chcialem sie zalogowac ale druga strona zle przedstawila sie"
-                        return
+                    print "TCP: nieznany typ wiadomosci"
             else:
-                print "TCP: nie prawidlowy poczatek wiadomosci: '%s'" %  lineOfText
-        
+                print "TCP: zamykam polaczenie - nie mozna odebrac wiadomosci od %s" % self.client_address[0]
+                return
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
@@ -56,20 +53,34 @@ class TCPServer():
 
 def __tcpClientHandler(host,  port, timeBetweenAttemps = 2):
     counter = 0
+    state = "init"
     while 1:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # Connect to server and send data
-            print "TCP: proba nawiazania polaczenia do %s:%s" % (host,  port)
-            sock.settimeout(5)
-            sock.connect((host, port))
-            print "TCP: podlaczono do %s:%s" % (host,  port)
+            print "TCP-c: proba nawiazania polaczenia do %s:%s" % (host,  port)
+            connectionTimeout = 5
+            sock.connect((host, connectionTimeout,   port))
+            file = sock.makefile("rb")
+            print "TCP-c: podlaczono do %s:%s" % (host,  port)
             counter = 0
-            jsonMsgLogin = getHiiMsg()
-            sock.send(getMsgWithJSONInside(jsonMsgLogin))
-            # Receive data from the server and shut down
-            #received = sock.recv(1024)
-            #sock.close()
+            while(1):
+                if state == "init":
+                    msgToSend = getFullHiiMsg()
+                    print "TCP-c: wysylam przywitanie do %s: %s" % (host,  msgToSend)
+                    file.write(msgToSend)
+                    file.flush()
+                    print "TCP-c: wyslano przywitanie do %s" % (host)
+                    state = "waitFotHii"
+                else:
+                    isCorrect,  json = readMsgFromStream("TCP-c",  file,  host)
+                    if isCorrect:
+                        print "TCP-c: odebrano wiadomosc od %s: '%s'" %(json,  host)
+                    else:
+                        print "TCP-c: nie można odczytać wiadomosci"
+                        break
+            print "TCP-c: koniec - zamykam polaczenie"
+            sock.close()
         except  IOError as err:
             print err
             counter += 1
@@ -78,8 +89,25 @@ def __tcpClientHandler(host,  port, timeBetweenAttemps = 2):
                 time.sleep(timeBetweenAttemps)
             else:
                 print "Give up! 3 attemps has been made"
-                break
-    
+                return
+
+def readMsgFromStream(whoCall,  stream,  addr):
+    while 1:
+        print "%s: proba odczytu linijki tekstu od %s" %( whoCall,  addr)
+        lineOfText = stream.readline()
+        if not lineOfText:
+            print "%s: nie mozna odczytac linijki tekstu od %s" % (whoCall,  addr)
+            return (False,  None)
+        len = getMessageLen(lineOfText)
+        if len:
+            print "%s: Odczytywanie zawartosci wiadomosci od %s(%s)" % (whoCall, addr, str(len))
+            json = stream.read(len)
+            print "%s: odczytano wiadomosc o dlugosci %s: %s" % (whoCall,  len,  json)
+            return (True,  json)
+        else:
+            print "%s: bledny poczatek wiadomosci od %s: %s" % (whoCall, addr,  lineOfText)
+            #i wracamy na poczatek petli
+        
 def connectToTcpServer(host,  port=TCP_PORT):
     #uruchamia watek ktory za zadanie ma podlaczyc sie do wskazanego wezla
     threading.Thread(target=__tcpClientHandler,  args=(host,  port)).start()

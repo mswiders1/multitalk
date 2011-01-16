@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """The user interface for our app"""
 
@@ -25,7 +26,6 @@ class Core(threading.Thread):
         global model 
         model = Model()
         self.tcpServer = None
-        Broadcast.startServer()
         while 1:
             queueElem = queues.coreQueue.get()
             insertElem = {}
@@ -33,7 +33,6 @@ class Core(threading.Thread):
             
             if queueElem['CORE_MSG_TYPE'] == queues.CORE_MSG_TYPE.BROADCAST_BEGIN:
                 #Rozpoczecie przeszukiwania
-                print "Core: rozpoczynam przeszukiwanie sieci"
                 insertElem['GUI_MSG_TYPE'] = queues.GUI_MSG_TYPE.BROADCAST_WIN_SHOW
                 queues.guiQueue.put(insertElem)
                 
@@ -48,6 +47,12 @@ class Core(threading.Thread):
                 print "Core: koniec przeszukiwanie sieci"
                 insertElem['GUI_MSG_TYPE'] = queues.GUI_MSG_TYPE.BROADCAST_WIN_CLOSE
                 queues.guiQueue.put(insertElem)
+                #TODO: teraz uzytkownik powinien podac IP lub stwierdzic ze jest pierwszy
+                if model.isIamAlone():
+                    print "Core: jestem sam :("
+                    model.setIamFirstNode()
+                #Wlączamy server broadcast aby otrzymywav informacje o koniecznosci podlaczenia
+                Broadcast.startServer()
                 
             elif queueElem['CORE_MSG_TYPE'] == queues.CORE_MSG_TYPE.BROADCAST_RECEIVED:
                 #Ktos chce abysmy sie do niego podlaczyli
@@ -57,7 +62,13 @@ class Core(threading.Thread):
             elif queueElem['CORE_MSG_TYPE'] == queues.CORE_MSG_TYPE.USER_LOGIN:
                 #Uzytkownik zamknal okno z nickiem
                 self.handleUserInsertedNick(queueElem)
-                
+            
+            elif queueElem['CORE_MSG_TYPE'] == queues.CORE_MSG_TYPE.HII_MESSAGE_RECEIVED:
+                #ktos podlaczyl sie do nas i powiedzial Hi
+                print "Core: analiza wiadomosci Hi"
+                for nodeFromVector in queueElem['NODES']:
+                    model.addNode(nodeFromVector['UID'],  nodeFromVector['NICK'],  nodeFromVector['IP'])
+            
             elif queueElem['CORE_MSG_TYPE'] == queues.CORE_MSG_TYPE.CLOSE_APP_REQ:
                 #uzytkownik chce zamknac aplikacje
                 print("Core: zamykamy aplikacje")
@@ -70,6 +81,7 @@ class Core(threading.Thread):
                 assert(False)
     
     def handleUserInsertedNick(self,  queueElem):
+        insertElem = {}
         if queueElem['STATUS']:
             #Logowanie uzytkownika
             nick = queueElem['NICK']
@@ -79,6 +91,7 @@ class Core(threading.Thread):
             try:
                 self.tcpServer = TCP.TCPServer()
                 self.tcpServer.startTcpServer()
+                print "Core: rozpoczynam przeszukiwanie sieci"
                 Broadcast.doDiscovery()
             except socket.error as err:
                 print("Core: nie można uruchomić zerwer TCP lub wyslac rozgloszenia")
