@@ -33,7 +33,12 @@ class Main(QtGui.QMainWindow):
         self.showLoginForm()
      
     def showLoginForm(self):
-        (nickName, ok)  = QtGui.QInputDialog.getText (self, Qt.QObject.trUtf8(self,"Podaj nazwę"), Qt.QObject.trUtf8(self,"Podaj nick"))
+        while 1:
+            (nickName, ok)  = QtGui.QInputDialog.getText (self, Qt.QObject.trUtf8(self,"Podaj nazwę"), Qt.QObject.trUtf8(self,"Podaj nick"))
+            if ok and len(nickName) > 0:
+                break
+            else:
+                print "Gui: uzytkownik podal zly nick"
         message = {}
         message['CORE_MSG_TYPE'] = queues.CORE_MSG_TYPE.USER_LOGIN
         if ok:

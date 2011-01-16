@@ -74,9 +74,9 @@ def serve_thread():
     s.bind(bindAddr)
     while 1:
         try:
-            print u"UDP: próba odczytu danych z sieci", bindAddr 
+            print u"UDP: czekamy na broadcast", bindAddr 
             data, (address,  port) = s.recvfrom(8192)
-            print u"UDP: odczytano dane z ", address
+            print u"UDP: odczytano broadcast z ", address
             if data != DISCOVERY_MSG:
                 print u"UDP: Odebrane rozgloszenie ma inna zawartosc: ",  data
                 break

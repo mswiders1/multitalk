@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from Json import *
 
 DISCOVERY_MSG = u'MULTITALK_5387132'
 pattern = re.compile("BEGIN_MESSAGE:(\d+){1}")
@@ -14,11 +15,14 @@ def getMessageLen(lineOfText):
  
 def getMsgWithJSONInside(json):
     jsonLen = len(json)
-    output = "BEGIN_MESSAGE:" + str(jsonLen) + ":\n"
+    output = "BEGIN_MESSAGE:" + str(jsonLen + 1) + "\n"
     output += json + "\n"
- 
-def isMsgLoginReqViaTcp(msg):
-    if cmp(msg,  DISCOVERY_MSG) == 0:
-        return True
-    else:
-        return False
+    return output
+
+def getFullTcpFirstMsg():
+    inner = getFirstTcpMsg()
+    return getMsgWithJSONInside(inner)
+
+def getFullHiiMsg():
+    inner = getHiiMsg()
+    return getMsgWithJSONInside(inner)
