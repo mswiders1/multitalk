@@ -44,7 +44,8 @@ void TcpServer::connectToClient(QHostAddress address)
     packet.insert("TYPE","HII");
     packet.insert("UID",main->uid);
     packet.insert("USERNAME",main->nick);
-    packet.insert("VECTOR","not implemented....");
+    QVariantList vector;
+    packet.insert("VECTOR",vector);
     QJson::Serializer serializer;
     QByteArray packetArray=serializer.serialize(packet);
     QString header;

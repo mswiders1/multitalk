@@ -95,7 +95,6 @@ void MultitalkWindow::clientDisconnected(QString uid)
     int pos=0;
     for(i=users.begin();i!=users.end();++i)
     {
-        qDebug()<<i->uid;
         if(i->uid==uid)
             break;
         pos++;
