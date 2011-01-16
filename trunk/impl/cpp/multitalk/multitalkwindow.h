@@ -5,10 +5,13 @@
 #include <QLabel>
 #include "connectdialog.h"
 #include "broadcast.h"
+#include "tcpserver.h"
 
 namespace Ui {
     class MultitalkWindow;
 }
+
+class TcpServer;
 
 class MultitalkWindow : public QMainWindow
 {
@@ -17,7 +20,8 @@ class MultitalkWindow : public QMainWindow
 public:
     explicit MultitalkWindow(QWidget *parent = 0);
     ~MultitalkWindow();
-
+    QString nick;
+    QString uid;
 private:
     Ui::MultitalkWindow *ui;
     QLabel* statusBarLabel;
@@ -25,8 +29,7 @@ private:
     QString ipAddress;
     QString macAddress;
     QString connectIp;
-    QString nick;
-    QString uid;
+    TcpServer* tcpServer;
 signals:
     void connectToNetworkAccepted();
 
@@ -34,6 +37,8 @@ private slots:
     void connectToNetwork();
     void setConnectIp(QString ip);
     void setNick(QString newNick);
+    void connectToAddress(QHostAddress address);
+    void receiveHIIMessage(QString uid,QString nick);
 };
 
 #endif // MULTITALKWINDOW_H

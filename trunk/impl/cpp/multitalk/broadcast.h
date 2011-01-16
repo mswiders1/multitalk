@@ -10,11 +10,13 @@ public:
     explicit Broadcast(QObject *parent = 0);
 
 signals:
+    void gotConnectionRequest(QHostAddress address);
 private slots:
     void processDatagrams();
 
 public slots:
     void sendBroadcast();
+    void startListening();
 
 };
 

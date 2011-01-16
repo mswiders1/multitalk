@@ -37,27 +37,27 @@
      </rect>
     </property>
    </widget>
-   <widget class="QListView" name="listView">
-    <property name="geometry">
-     <rect>
-      <x>400</x>
-      <y>0</y>
-      <width>191</width>
-      <height>211</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>220</y>
-      <width>581</width>
+      <width>591</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>Send message</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="listWidget">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>0</y>
+      <width>211</width>
+      <height>211</height>
+     </rect>
     </property>
    </widget>
   </widget>

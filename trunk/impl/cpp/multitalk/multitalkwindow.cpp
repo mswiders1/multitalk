@@ -14,7 +14,9 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
     statusBarLabel->setText("Not Connected");
     statusBar()->addPermanentWidget(statusBarLabel);
     broadcast=new Broadcast(this);
+    connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(startListening()));
     connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(sendBroadcast()));
+    connect(broadcast,SIGNAL(gotConnectionRequest(QHostAddress)),this,SLOT(connectToAddress(QHostAddress)));
     QList<QNetworkInterface> interfaces=QNetworkInterface::allInterfaces();
     QList<QNetworkInterface>::const_iterator i;
     for(i=interfaces.constBegin();i!=interfaces.constEnd();++i)
@@ -25,7 +27,7 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
     macAddress=i->hardwareAddress();
     ipAddress=i->addressEntries().begin()->ip().toString();
     qDebug()<<macAddress<<ipAddress;
-
+    tcpServer=NULL;
 }
 
 MultitalkWindow::~MultitalkWindow()
@@ -45,7 +47,14 @@ void MultitalkWindow::connectToNetwork()
     if(!connectDialog->exec())
         qDebug()<<"cancel";
     else
+    {
+        if(tcpServer!=NULL)
+            delete tcpServer;
+        else
+            tcpServer=new TcpServer(this,this);
         emit connectToNetworkAccepted();
+
+    }
 }
 
 void MultitalkWindow::setNick(QString newNick)
@@ -59,4 +68,14 @@ void MultitalkWindow::setNick(QString newNick)
 void MultitalkWindow::setConnectIp(QString ip)
 {
     connectIp=ip;
+}
+
+void MultitalkWindow::connectToAddress(QHostAddress address)
+{
+    tcpServer->connectToClient(address);
+}
+
+void MultitalkWindow::receiveHIIMessage(QString uid, QString nick)
+{
+    ui->listWidget->addItem(nick);
 }

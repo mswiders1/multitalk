@@ -13,11 +13,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         multitalkwindow.cpp \
     connectdialog.cpp \
-    broadcast.cpp
+    broadcast.cpp \
+    tcpserver.cpp \
+    tcpconnection.cpp
 
 HEADERS  += multitalkwindow.h \
     connectdialog.h \
-    broadcast.h
+    broadcast.h \
+    tcpserver.h \
+    tcpconnection.h
 
 FORMS    += multitalkwindow.ui \
     connectdialog.ui
+
+LIBS += -lqjson
