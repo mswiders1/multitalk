@@ -94,10 +94,10 @@ public class UserInfo {
     
     @Override
     public int hashCode() {
-        if(getIpAddress() == null){
+        if(getUid() == null){
             // whatever
             return 123;
         }
-        return getIpAddress().hashCode();
+        return getUid().hashCode();
     }
 }

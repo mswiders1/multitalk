@@ -107,4 +107,15 @@ public class ReliableBroadcastMatrix {
         
         return new RBMtxPair(copyMtxUsersOrder, copyMtx);
     }
+    
+    
+    /**
+     * Uaktualnia macierz na podstawie macierzy uzytkownika.
+     * Wykorzystywane po odczytaniu MTX message.
+     * @param user użytkownik, od którego otrzymano macierz
+     * @param userRBMtxPair para: macierz + kolejność użytkowników w macierzy
+     */
+    public synchronized void handleUserMatrix(UserInfo user, RBMtxPair userRBMtxPair){
+        // TODO
+    }
 }

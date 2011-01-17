@@ -255,8 +255,14 @@ public class MultitalkNetworkManager {
     /* *********************************************** */
     
     public void handleHiMessage(HiMessage message){
-        MultitalkNetworkManager.this.addUserInfo(message.getSenderInfo());
-        tcpipNetworkManager.connectToClient(message.getSenderInfo());
+        // uaktualniamy info o kliencie
+        UserInfo senderUserInfo = message.getSenderInfo();
+        UserInfo clientUserInfo = message.getUserInfo();
+        clientUserInfo.setIpAddress(senderUserInfo.getIpAddress());
+        
+        // dodajemy i aktualizujemy w network managerze
+        MultitalkNetworkManager.this.addUserInfo(clientUserInfo);
+        tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
         
         for(UserInfo user : message.getLoggedUsers()){
             if(userInfo.equals(user) || userInfo.getIpAddress().equals(user.getIpAddress())){
@@ -278,6 +284,7 @@ public class MultitalkNetworkManager {
         // w odpowiedzi wysyłamy HiMessage
         HiMessage hiMessage = new HiMessage();
         hiMessage.setSenderInfo(userInfo);
+        hiMessage.setUserInfo(userInfo);
         hiMessage.setRecipientInfo(message.getSenderInfo());
         // kopia
         List<UserInfo> loggedUsers = new ArrayList<UserInfo>();
@@ -291,22 +298,26 @@ public class MultitalkNetworkManager {
     
     
     public void handleLogMessage(LogMessage message){
-        UserInfo user = message.getSenderInfo();
-        if(userInfo.equals(user) || userInfo.getIpAddress().equals(user.getIpAddress())){
+        // uaktualniamy info o kliencie
+        UserInfo senderUserInfo = message.getSenderInfo();
+        UserInfo clientUserInfo = message.getUserInfo();
+        clientUserInfo.setIpAddress(senderUserInfo.getIpAddress());
+        
+        if(userInfo.equals(clientUserInfo) || userInfo.getIpAddress().equals(clientUserInfo.getIpAddress())){
             // wiadomość o zalogowaniu siebie
             // ignorujemy i usuwamy ewentualny wpis 
-            removeNotLoggedUserInfo(user);
-            tcpipNetworkManager.disconnectClient(user);
+            removeNotLoggedUserInfo(senderUserInfo);
+            tcpipNetworkManager.disconnectClient(senderUserInfo);
             return;
         }
-        removeNotLoggedUserInfo(user);
-        addUserInfo(user);
-        mtx.addUserWithZeroVector(user);
+        removeNotLoggedUserInfo(senderUserInfo);
+        addUserInfo(clientUserInfo);
+        mtx.addUserWithZeroVector(clientUserInfo);
         
         // wysłamy MTX message
         MtxMessage mtxMessage = new MtxMessage();
         mtxMessage.setSenderInfo(userInfo);
-        mtxMessage.setRecipientInfo(user);
+        mtxMessage.setRecipientInfo(clientUserInfo);
         mtxMessage.setMtxPair(mtx.getMatrix());
 
         tcpipNetworkManager.sendMessage(mtxMessage);
@@ -323,6 +334,7 @@ public class MultitalkNetworkManager {
             // wysyłamy do wszystkich
             LogMessage logMessage = new LogMessage();
             logMessage.setSenderInfo(userInfo);
+            logMessage.setUserInfo(userInfo);
             tcpipNetworkManager.sendMessageToAll(logMessage);
             
             // ustawienie znacznika

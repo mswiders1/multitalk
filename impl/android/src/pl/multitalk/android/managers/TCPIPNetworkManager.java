@@ -204,6 +204,19 @@ public class TCPIPNetworkManager {
     
     
     /**
+     * Aktualizuje informacje o uzytkowniku
+     * @param oldUserInfo stare informacje
+     * @param newUserInfo nowe informacje
+     */
+    public void updateUserInfo(UserInfo oldUserInfo, UserInfo newUserInfo){
+        ClientConnection clientConnection = clientConnections.get(oldUserInfo);
+        clientConnections.remove(oldUserInfo);
+        clientConnections.put(newUserInfo, clientConnection);
+        clientConnection.updateUserInfo(newUserInfo);
+    }
+    
+    
+    /**
      * Nasłuchiwacz połączeń od innych klientów
      */
     class ClientConnectionsListener implements Runnable {

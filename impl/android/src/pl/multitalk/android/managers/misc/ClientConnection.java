@@ -75,4 +75,14 @@ public class ClientConnection {
                     +"\nCause msg: "+e.getMessage());
         }
     }
+
+    
+    /**
+     * Aktualizuje informacje o uzytkowniku
+     * @param newUserInfo nowe informacje
+     */
+    public void updateUserInfo(UserInfo newUserInfo){
+        clientInfo = newUserInfo;
+        tcpReceiver.updateUserInfo(newUserInfo);
+    }
 }

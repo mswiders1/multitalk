@@ -10,8 +10,6 @@ import android.util.Log;
 
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.TCPIPNetworkManager;
-import pl.multitalk.android.managers.messages.HiMessage;
-import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.managers.messages.MessageFactory;
 import pl.multitalk.android.util.Constants;
@@ -40,6 +38,15 @@ public class ClientTCPReceiver extends Thread {
         this.socket = clientSocket;
         this.clientInfo = clientInfo;
         this.networkManager = networkManager;
+    }
+
+    
+    /**
+     * Aktualizuje informacje o uzytkowniku
+     * @param newUserInfo nowe informacje
+     */
+    public void updateUserInfo(UserInfo newUserInfo){
+        clientInfo = newUserInfo;
     }
     
     
@@ -178,17 +185,6 @@ public class ClientTCPReceiver extends Thread {
      * @param message odczytana wiadomość
      */
     private void passMessage(Message message){
-        if(message instanceof HiMessage){
-            UserInfo sender = ((HiMessage) message).getSenderInfo();
-            clientInfo.setUid(sender.getUid());
-            clientInfo.setUsername(sender.getUsername());
-            
-        } else if(message instanceof LogMessage){
-            UserInfo sender = ((LogMessage) message).getSenderInfo();
-            clientInfo.setUid(sender.getUid());
-            clientInfo.setUsername(sender.getUsername());
-            
-        }
         message.setSenderInfo(clientInfo);
         
         // podaj dalej

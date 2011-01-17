@@ -19,8 +19,18 @@ import pl.multitalk.android.util.Constants;
  */
 public class HiMessage extends BaseMessage {
 
+    private UserInfo userInfo;
     protected List<UserInfo> loggedUsers;
     
+
+    
+    public UserInfo getUserInfo() {
+        return userInfo;
+    }
+
+    public void setUserInfo(UserInfo userInfo) {
+        this.userInfo = userInfo;
+    }
     
     public List<UserInfo> getLoggedUsers() {
         return loggedUsers;
@@ -38,17 +48,17 @@ public class HiMessage extends BaseMessage {
         
         try {
             object.put("TYPE", "HII");
-            object.put("UID", sender.getUid());
-            object.put("USERNAME", sender.getUsername());
+            object.put("UID", userInfo.getUid());
+            object.put("USERNAME", userInfo.getUsername());
             
             // wektor informacji o wszystkich użytkownikach
             JSONArray vec = new JSONArray();
             
             // dodajemy siebie
             JSONObject userObject = new JSONObject();
-            userObject.put("IP_ADDRESS", sender.getIpAddress());
-            userObject.put("UID", sender.getUid());
-            userObject.put("USERNAME", sender.getUsername());
+            userObject.put("IP_ADDRESS", userInfo.getIpAddress());
+            userObject.put("UID", userInfo.getUid());
+            userObject.put("USERNAME", userInfo.getUsername());
             vec.put(userObject);
             
             // i resztę...
@@ -80,11 +90,9 @@ public class HiMessage extends BaseMessage {
             JSONTokener jsonTokener = new JSONTokener(jsonString);
             JSONObject object = (JSONObject) jsonTokener.nextValue();
 
-            if(sender==null){
-                sender = new UserInfo();
-            }
-            sender.setUid(object.getString("UID"));
-            sender.setUsername(object.getString("USERNAME"));
+            userInfo = new UserInfo();
+            userInfo.setUid(object.getString("UID"));
+            userInfo.setUsername(object.getString("USERNAME"));
             
             
             JSONArray vec = object.getJSONArray("VECTOR");
@@ -115,7 +123,9 @@ public class HiMessage extends BaseMessage {
             cloneMessage.setSenderInfo(new UserInfo(sender));
         if(recipient != null)
             cloneMessage.setRecipientInfo(new UserInfo(recipient));
-        
+
+        if(userInfo != null)
+            cloneMessage.setUserInfo(new UserInfo(userInfo));
         if(loggedUsers != null){
             List<UserInfo> newLoggedUsers = new ArrayList<UserInfo>();
             for(UserInfo userInfo : loggedUsers){
@@ -123,6 +133,7 @@ public class HiMessage extends BaseMessage {
             }
             cloneMessage.setLoggedUsers(newLoggedUsers);
         }
+        
         return cloneMessage;
     }
 
