@@ -174,3 +174,18 @@ Zawartość:
 || TYPE || CHAR(3) || _GET_ ||
 || UID || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64||
 || MSG_ID || INT || numer wiadomości (zegar logiczny) ||
+
+
+= OUT message =
+
+Protokół *TCP/IP*
+Odbiorca: wszyscy użytkownicy
+
+Informacja o wylogowaniu
+
+Zawartość:
+
+
+|| *nazwa pola* || *typ* || *wartość* ||
+|| TYPE || CHAR(3) || _OUT_ ||
+|| UID || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64||
