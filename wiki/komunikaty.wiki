@@ -22,6 +22,7 @@ Protokół: *UDP*, broadcast
 
 Zawartość: _MULTITALK_5387132_
 
+Ilość: 3 razy, co sekundę jeden
 
 
 = Podłączenie (p2p) =
