@@ -28,3 +28,13 @@ Założenie: unikalność *H(MAC + IP + username)* - traktowane jako UID
   * Wykorzystanie JSON-a jako formatu przesyłu danych
   * UID użytkownika: wartość funkcji skrótu z adresu MAC, adresu IP oraz tekstowej nazwy użytkownika
   * [komunikaty Struktura komunikatów]
+
+== Notatki ze spotkania 2011-01-17 ==
+
+Ustalone zmiany i rozszerzenia:
+  * wysyłanie broadcastu 3 razy, co 1 sekundę
+  * dodanie adresu IP w komunikacie LOG message
+  * w komunikacie MSG - wektor zegarów logicznych zamiast macierzy
+  * komunikat LIV - alive - co 5 sekund, do wszystkich
+  * komunikat GET - pobranie brakującej wiadomości
+  * komunikat OUT - logout
