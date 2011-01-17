@@ -24,7 +24,7 @@ class TCPProtocol(LineReceiver):
         if msgType == "HII" and self.state == WAIT_FOR_HII_OR_MULTITALK:
             appVar.coreInstance.handleHiiMessage(jsonObj,  self)
         elif msgType == "LOG" and self.state == WAIT_FOR_LOG:
-            if appVar.coreInstance.handleLogMessage(jsonObj):
+            if appVar.coreInstance.handleLogMessage(jsonObj,  self):
                 self.state = CONNECTED
             else:
                 self.logMsg("odrzucono logowanie - przerywam polaczenie")

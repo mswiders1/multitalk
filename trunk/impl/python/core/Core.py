@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 
 """The user interface for our app"""
 
@@ -45,6 +44,26 @@ class Core:
                 traceback.print_exc()
                 sys.exit()
             
+    def sendMessage(self,  uid,  msg):
+        if not msg:
+            return
+        if uid:
+            print u"Core: wysyłam wiadomość '%s' do %s" % (msg,  uid)
+            self.gui.messageReceived(self.model.getMyId(),  uid,  msg)#do testow
+        else:
+            print u"Core: wysyłam wiadomość '%s' do wszystkich" % msg#do testow
+            self.gui.messageReceived(self.model.getMyId(),  None,  msg)
+        #TODO: wysylka
+    
+    def userNameByUid(self,  uid):
+        return self.model.getNickByUID(uid)
+        
+    def isThisMyUid(self,  uid):
+        return uid == self.model.getMyId()
+    
+    def setDelayPerNode(self,  uid,  delayInSec):
+        print u"Core: ustawiam opóźnienie %d sekund dla klienta %s" % (delayInSec,  uid)
+            
     def handleHiiMessage(self,  msg,  connection):
         print "Core: analiza wiadomosci Hii"
         for nodeFromVector in msg['VECTOR']:
@@ -53,9 +72,10 @@ class Core:
         print "Core: mapuje wezel %s na polaczenie %s" % (msg['UID'],  connection)
         self.tcpm.mapNodeToConnection(msg['UID'],  connection)
 
-    def handleLogMessage(self,  msg):
+    def handleLogMessage(self,  msg,  connection):
         print "Core: analiza wiadomosci Log"
         self.model.logNewUser(msg['UID'],  msg['USERNAME'], None) # TODO: jaki adres ip wstawic?
+        self.tcpm.mapNodeToConnection(msg['UID'],  connection) # TODO : co w przypadku gdy connection sluzylo jako proxy dla tej wiadomoscis
         return True
 
     def closeApp(self):

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Messager</string>
+   <string>Multitalk</string>
   </property>
   <property name="windowIcon">
    <iconset resource="res.qrc">
@@ -72,7 +72,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Conversation:</string>
+               <string>Rozmowa:</string>
               </property>
              </widget>
             </item>
@@ -108,7 +108,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Peers:</string>
+               <string>Kontakty:</string>
               </property>
              </widget>
             </item>
@@ -146,7 +146,7 @@
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Message:</string>
+             <string>Wiadomość</string>
             </property>
            </widget>
           </item>

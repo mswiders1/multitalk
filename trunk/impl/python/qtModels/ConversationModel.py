@@ -31,10 +31,10 @@ class ConversationModel(QAbstractTableModel):
             return QVariant(self.headerdata[columnIdx])
         return QVariant()
 
-    def addMessage(self,  date,  source,  message):
+    def addMessage(self,  source,  message):
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
         self.lastMsgId += 1
-        self.arraydata.append([date,  source,  message,  self.lastMsgId])
+        self.arraydata.append([QTime.currentTime(),  source,  message,  self.lastMsgId])
         self.emit(SIGNAL("layoutChanged()"))       
         return self.lastMsgId
 

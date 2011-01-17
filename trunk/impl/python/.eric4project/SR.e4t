@@ -1,24 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-4.2.dtd">
 <!-- eric4 tasks file for project SR -->
-<!-- Saved: 2011-01-17, 13:49:15 -->
+<!-- Saved: 2011-01-17, 19:34:38 -->
 <Tasks version="4.2">
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: dodanie do macierzy zegarow</Summary>
     <Description></Description>
-    <Created>2011-01-17, 03:01:42</Created>
+    <Created>2011-01-17, 16:12:02</Created>
     <Resource>
       <Filename>model/Model.py</Filename>
-      <Linenumber>54</Linenumber>
+      <Linenumber>56</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: wysłać do wszystkich z którymi jestem polączony log msg</Summary>
+    <Summary>TODO: uzytkownik byl zalogowany wiec moze trzeba kogos powiadomic?</Summary>
     <Description></Description>
-    <Created>2011-01-17, 04:00:46</Created>
+    <Created>2011-01-17, 16:23:14</Created>
+    <Resource>
+      <Filename>network/TCPManager.py</Filename>
+      <Linenumber>32</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: wysylka</Summary>
+    <Description></Description>
+    <Created>2011-01-17, 19:33:01</Created>
     <Resource>
       <Filename>core/Core.py</Filename>
-      <Linenumber>69</Linenumber>
+      <Linenumber>56</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: jaki adres ip wstawic?</Summary>
+    <Description></Description>
+    <Created>2011-01-17, 19:33:01</Created>
+    <Resource>
+      <Filename>core/Core.py</Filename>
+      <Linenumber>77</Linenumber>
     </Resource>
   </Task>
 </Tasks>

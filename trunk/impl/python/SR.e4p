@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SR -->
-<!-- Saved: 2011-01-17, 05:05:51 -->
+<!-- Saved: 2011-01-17, 19:34:38 -->
 <!-- Copyright (C) 2011 Marcin Kamionowski, soldier.kam@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
@@ -43,11 +43,14 @@
     <Source>network/TCPServer.py</Source>
     <Source>appVar.py</Source>
     <Source>network/TCPManager.py</Source>
+    <Source>qtForms/Ui_private.py</Source>
+    <Source>gui/Private.py</Source>
   </Sources>
   <Forms>
     <Form>qtForms/window.ui</Form>
     <Form>qtForms/settings.ui</Form>
     <Form>qtForms/test.ui</Form>
+    <Form>qtForms/private.ui</Form>
   </Forms>
   <Translations>
   </Translations>

@@ -30,6 +30,9 @@ class PeersModel(QAbstractTableModel):
             return QVariant(self.headerdata[columnIdx])
         return QVariant()
     
+    def getPeerData(self,  index):
+        return self.arraydata[index]
+    
     def addPeer(self,  uid,  peerName):
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
         self.arraydata.append([peerName,  uid])
