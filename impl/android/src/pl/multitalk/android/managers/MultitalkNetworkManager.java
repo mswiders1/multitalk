@@ -301,6 +301,7 @@ public class MultitalkNetworkManager {
         }
         removeNotLoggedUserInfo(user);
         addUserInfo(user);
+        mtx.addUserWithZeroVector(user);
         
         // wysłamy MTX message
         MtxMessage mtxMessage = new MtxMessage();
