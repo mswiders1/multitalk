@@ -135,7 +135,7 @@ Zawartość: Macierze wiedzy i zwykła treść wiadomości
 || TYPE || CHAR(3) || _MSG_ ||
 || SENDER || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64 || 
 || RECIVER || CHAR(32)|| H(MAC + IP + username_) SHA-1 base 64 - moze byc puste || 
-|| MSG_ID|| LONG|| zegar logiczny||
+|| MSG_ID|| INT || zegar logiczny||
 || TIME_VEC || VECTOR || wektor wartości zegarów logicznych użytkowników ||
 || VEC || VECTOR || wektor kolejnosci ||
 || CONTENT || STRING || Hello world!||
@@ -158,3 +158,19 @@ Zawartość:
 || TYPE || CHAR(3) || _LIV_ ||
 || UID || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64||
 || IP_ADDRESS || VARCHAR(15) || adres ip ||
+
+
+= GET message =
+
+Protokół *TCP/IP*
+Odbiorca: wszyscy użytkownicy
+
+Pobieranie wiadomości wysłanej przez podanego użytkownika o podanym numerze.
+
+Zawartość:
+
+
+|| *nazwa pola* || *typ* || *wartość* ||
+|| TYPE || CHAR(3) || _GET_ ||
+|| UID || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64||
+|| MSG_ID || INT || numer wiadomości (zegar logiczny) ||
