@@ -30,7 +30,10 @@ Protokół: *TCP/IP*
 
 Odbiorca: węzeł podany przez użytkownika
 
-Zawartość: _MULTITALK_5387132_
+Zawartość:
+
+|| *nazwa pola* || *typ* || *wartość* ||
+|| TYPE || CHAR(3) || _P2P_ ||
 
 
 = Podłączenie - odpowiedź =
@@ -96,6 +99,7 @@ Zawartość: zestaw informacji o użytkowniku (*JSON*)
 || TYPE || CHAR(3) || _LOG_ ||
 || UID || CHAR(32) || _H(MAC + IP + username_) ||
 || USERNAME || VARCHAR(32) ||  ||
+|| IP_ADDRESS || VARCHAR(15) || adres ip ||
 
 = Przeslanie macierzy wiedzy do nowozalogowanego usera =
 
@@ -131,14 +135,25 @@ Zawartość: Macierze wiedzy i zwykła treść wiadomości
 || SENDER || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64 || 
 || RECIVER || CHAR(32)|| H(MAC + IP + username_) SHA-1 base 64 - moze byc puste || 
 || MSG_ID|| LONG|| zegar logiczny||
-|| MAC || MATRIX || macierz ||
+|| TIME_VEC || VECTOR || wektor wartości zegarów logicznych użytkowników ||
 || VEC || VECTOR || wektor kolejnosci ||
 || CONTENT || STRING || Hello world!||
 
-macierz:
+pojedyncza komorka wektora zegarów: wartość zegara logicznego użytkownika
 
-<b>wierszami</b>wiedza uzytkownikow
-pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
+wektor kolejności: UID usera, którego wartość zegara logicznego jest na i-tej pozycji wektora zegarów
 
-wektor kolejności:
-|| id usera, ktory ma wiedzę w i-tym wierszu tabeli||
+= LIV message =
+
+Protokół *TCP/IP*
+Odbiorca: wszyscy użytkownicy
+
+Wysyłany co 5 sekund.
+
+Zawartość:
+
+
+|| *nazwa pola* || *typ* || *wartość* ||
+|| TYPE || CHAR(3) || _LIV_ ||
+|| UID || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64||
+|| IP_ADDRESS || VARCHAR(15) || adres ip ||
