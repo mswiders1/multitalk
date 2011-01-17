@@ -8,6 +8,7 @@ TcpConnection::TcpConnection(QObject *parent, MultitalkWindow *main_) :
     connect(this,SIGNAL(disconnected()),this,SLOT(connectionClosed()));
     connect(this,SIGNAL(readyRead()),this,SLOT(dataWaiting()));
     connect(this,SIGNAL(gotHIIMessage(QString,QString,QString)),main,SLOT(receiveNewClientMessage(QString,QString,QString)));
+    connect(this,SIGNAL(gotLOGMessage(QString,QString,QString)),main,SLOT(receiveNewClientMessage(QString,QString,QString)));
 }
 
 void TcpConnection::connectionClosed()

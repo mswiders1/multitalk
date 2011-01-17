@@ -78,6 +78,7 @@ void MultitalkWindow::connectToAddress(QHostAddress address)
 
 void MultitalkWindow::receiveNewClientMessage(QString uid, QString nick,QString ip)
 {
+    qDebug()<<"receiveNewClientMessage";
     QList<UserData>::iterator i;
     for(i=users.begin();i!=users.end();++i)
     {
@@ -96,6 +97,8 @@ void MultitalkWindow::receiveNewClientMessage(QString uid, QString nick,QString 
         userData.item=newItem;
         users.append(userData);
     }
+    else
+        qDebug()<<"client already exists";
 }
 
 void MultitalkWindow::clientDisconnected(QString uid)
