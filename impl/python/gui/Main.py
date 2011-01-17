@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore,QtGui, Qt
+from PyQt4.QtCore import QModelIndex
 from qtForms.Ui_window import Ui_MainWindow
 from qtModels.ConversationModel import ConversationModel
 from qtModels.PeersModel import PeersModel
+from Private import Private
 
 appName = "SRAppp"
 aboutMe = "MarcinKamionowski"
@@ -11,13 +13,15 @@ windowGeo = "windowGeometry"
 windowFlags = "windowFlags"
 splitterLeftRight = "splitterConvPeers"
 splitterUpDown = "splitterUpDown"
-
+TO_ALL = None
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
     logger = None
     
     def __init__(self,  qsettings):
         QtGui.QMainWindow.__init__(self)
+        self.peerToWindow = {}
+        self.setWindowTitle("Multitalk")
         self.canClose = False
         self.settings = qsettings
         self.ui=Ui_MainWindow()
@@ -53,13 +57,26 @@ class Main(QtGui.QMainWindow):
         return True
         
     def on_sendButton_released(self):
-        #self.peersModel.addPeer("192.168.0.1",  "Firebird")
-        #self.conversationModel.addMessage(QtCore.QDateTime.currentDateTime(),  "Marcin",  "Hej tu ja!")
-        if callable(Main.logger):
-            Main.logger(self.ui.newMessage.text())
+        msg = unicode(self.ui.newMessage.text())
+        self.ui.newMessage.setText(u"")
+        self.core.sendMessage(TO_ALL,  msg)
+        
+    def on_peersView_clicked(self):
+        index = self.ui.peersView.currentIndex()
+        rowNumber = index.row()
+        name,  uid = self.peersModel.getPeerData(rowNumber)
+        if self.peerToWindow.keys().count(uid):
+            print "Gui: okno juz jest otwarte"
+        elif self.core.isThisMyUid(uid):
+            print "Gui: sam z sobą chcesz rozmawiać?"
         else:
-            print("Cannot log msg:")
-            print(self.ui.newMessage.text())
+            print "Gui: otwieram okno rozmowy z %s(%s)" % (uid,  name)
+            newWin = Private(self, self.core,  uid,  name)
+            newWin.show()
+            self.peerToWindow[uid] = newWin
+        
+    def conversationWindowClosed(self,  uid):
+        del self.peerToWindow[uid]
         
     def addNode(self,  uid,  name):
         Main.logger(u"Dodano użytkownika %s (%s)" % (name,  uid))
@@ -68,6 +85,16 @@ class Main(QtGui.QMainWindow):
     def delNode(self,  uid,  name):
         Main.logger(u"Usunięto użytkownika %s (%s)" % (name,  uid))
         self.peersModel.delPeer(uid,  name)
+        
+    def messageReceived(self,  uidSender,  uidReceiver,  msg):
+        isMsgToAll = uidReceiver == None
+        Main.logger(u"Otrzymano wiadomość '%s' od %s (do wszystkich: %s)" %(msg,  uidSender,  isMsgToAll))
+        if isMsgToAll:
+            self.conversationModel.addMessage(self.core.userNameByUid(uidSender),  msg)
+        elif self.peerToWindow.keys().count(uidSender):
+            peerWin = self.peerToWindow[uidSender]
+            peerWin.messageReceived(uidSender, msg)
+            
         
     def on_newMessage_returnPressed(self):
         mouseEvent = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonPress, self.ui.sendButton.pos(), QtCore.Qt.LeftButton, QtCore.Qt.LeftButton, QtCore.Qt.NoModifier )
@@ -116,7 +143,7 @@ class Main(QtGui.QMainWindow):
     def setBroadcastProgress(self,  progress):
         if progress == 0:
             self.pd = QtGui.QProgressDialog("Broadcast in progress.", QtCore.QString(), 0, 100,  self)
-            self.setWindowTitle("Progress...")
+            self.pd.setWindowTitle("Progress...")
             self.pd.open()
         elif progress == 100:
             self.pd.cancel()
