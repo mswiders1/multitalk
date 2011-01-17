@@ -27,30 +27,47 @@ class Main(QtGui.QMainWindow):
         Main.logger = self.showMsgInLogView
         self.ui.newMessage.setFocus()
         
-    def show(self):
-        self.showLoginForm()
-        QtGui.QMainWindow.show(self)
+    def showGui(self):
+        if self.showLoginForm():
+            QtGui.QMainWindow.show(self)
+            return True
+        else:
+            self.close()
+            return False
         
     def showLoginForm(self):
+        (networkAddr,  ok)  = QtGui.QInputDialog.getText (self, Qt.QObject.trUtf8(self,"Podaj adres ip"), Qt.QObject.trUtf8(self,"Podaj adres ip lub anuluj"))
+        if ok and len(unicode(networkAddr)) > 0:
+           self.core.userInsertedNetworkAddr(unicode(networkAddr))
+        elif ok:
+            print "Gui: wprowadzono pusty adres hosta"
         while 1:
             (nickName, ok)  = QtGui.QInputDialog.getText (self, Qt.QObject.trUtf8(self,"Podaj nazwę"), Qt.QObject.trUtf8(self,"Podaj nick"))
             if ok and len(nickName) > 0:
                 break
-            else:
+            elif ok:
                 print "Gui: uzytkownik podal zly nick"
-        if ok:
-            self.core.handleUserInsertedNick(nickName)
-        else:
-            self.core.closeApp()
-
+            else:
+                return False
+        self.core.handleUserInsertedNick(unicode(nickName))
+        return True
+        
     def on_sendButton_released(self):
-        self.peersModel.addPeer("192.168.0.1",  "Firebird")
-        self.conversationModel.addMessage(QtCore.QDateTime.currentDateTime(),  "Marcin",  "Hej tu ja!")
+        #self.peersModel.addPeer("192.168.0.1",  "Firebird")
+        #self.conversationModel.addMessage(QtCore.QDateTime.currentDateTime(),  "Marcin",  "Hej tu ja!")
         if callable(Main.logger):
             Main.logger(self.ui.newMessage.text())
         else:
             print("Cannot log msg:")
             print(self.ui.newMessage.text())
+        
+    def addNode(self,  uid,  name):
+        Main.logger(u"Dodano użytkownika %s (%s)" % (name,  uid))
+        self.peersModel.addPeer(uid,  name)
+        
+    def delNode(self,  uid,  name):
+        Main.logger(u"Usunięto użytkownika %s (%s)" % (name,  uid))
+        self.peersModel.delPeer(uid,  name)
         
     def on_newMessage_returnPressed(self):
         mouseEvent = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonPress, self.ui.sendButton.pos(), QtCore.Qt.LeftButton, QtCore.Qt.LeftButton, QtCore.Qt.NoModifier )
@@ -89,6 +106,7 @@ class Main(QtGui.QMainWindow):
         self.settings.setValue(splitterUpDown, self.ui.splitterUpDown.saveState());
         
     def closeEvent(self,  closeEvent):
+        print "Gui: close event"
         self.saveWindowState()
         if self.core.closeApp():
             return
@@ -104,6 +122,7 @@ class Main(QtGui.QMainWindow):
             self.pd.cancel()
         else:
             self.pd.setValue(progress)
+            self.pd.show()
 
     def setCore(self,  core):
         self.core = core

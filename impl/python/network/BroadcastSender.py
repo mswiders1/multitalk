@@ -29,8 +29,8 @@ def startSender(reactor):
 
 def __startTimers(reactor):
     appVar.coreInstance.broadcastProgress(0)
-    for delay in range(1, 11):
-        procentage = delay * 10
+    for delay in range(1, 6):
+        procentage = delay * 20
         reactor.callLater(delay,  _handleDiscoveryProgress,  procentage)
     
 def _handleDiscoveryProgress(procentage):

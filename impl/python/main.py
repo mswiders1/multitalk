@@ -29,18 +29,18 @@ def main():
     app.setStyleSheet(stylesheet)
     qt4reactor.install(app)
     from twisted.internet import reactor
+    # make sure stopping twisted event also shuts down QT
+    reactor.addSystemEventTrigger('after', 'shutdown', app.quit )
+    # shutdown twisted when window is closed
+    app.connect(app, QtCore.SIGNAL("lastWindowClosed()"), reactor.stop)
     qtWinSettings = QtCore.QSettings(aboutMe, appName);
     appVar.modelInstance = Model()
     appVar.guiInstance = Main(qtWinSettings)
     appVar.coreInstance = Core(reactor)
     appVar.coreInstance.setGui(appVar.guiInstance)
     appVar.guiInstance.setCore(appVar.coreInstance)
-    appVar.guiInstance.show()
-    # make sure stopping twisted event also shuts down QT
-    reactor.addSystemEventTrigger('after', 'shutdown', app.quit )
-    # shutdown twisted when window is closed
-    app.connect(app, QtCore.SIGNAL("lastWindowClosed()"), reactor.stop)
-    reactor.run()
+    if appVar.guiInstance.showGui():
+        reactor.run()
      
 if __name__ == "__main__":
     print("Call main()")

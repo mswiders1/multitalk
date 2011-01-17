@@ -3,3 +3,4 @@
 coreInstance = None
 modelInstance = None
 guiInstance = None
+tcpManager = None
