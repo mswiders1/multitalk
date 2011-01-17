@@ -1,11 +1,35 @@
 import java.util.*;
 
 public class Message {
+	
+	protected String type;
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+	
+	public Message()
+	{ }
+	
+	public Message(String type)
+	{
+		this.type = type;
+	}
+}
+
+class BroadcastMsg
+{
+	private String content;
 	private String header;
 	private long length;
-	private String MessageJson;
 	
-	
+	public String getContent() {
+		return content;
+	}
 	public String getHeader() {
 		return header;
 	}
@@ -17,32 +41,6 @@ public class Message {
 	}
 	public void setLength(long length) {
 		this.length = length;
-	}
-	public String getMessageJson() {
-		return MessageJson;
-	}
-	public void setMessageJson(String messageJson) {
-		MessageJson = messageJson;
-	}
-	
-	public Message()
-	{
-		this.setHeader("BEGIN_MESSAGE:");
-	}
-	public Message(long l ,String m)
-	{
-		this.setHeader("BEGIN_MESSAGE:");
-		this.setLength(l);
-		this.setMessageJson(m);
-	}
-}
-
-class BroadcastMsg
-{
-	private String content;	
-	
-	public String getContent() {
-		return content;
 	}
 	
 	public void setContent(String content) {
@@ -56,10 +54,9 @@ class BroadcastMsg
 	
 }
 
-class P2pMsg
+class P2pMsg extends Message
 {
-	private String content;
-	private String type;
+	private String content;	
 
 	public String getContent() {
 		return content;
@@ -67,20 +64,10 @@ class P2pMsg
 	
 	public void setContent(String content) {
 		this.content = content;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-	
-		
+	}		
 	public P2pMsg()
-	{
-		this.setType("P2P");
+	{	super();
+		this.setType("P2P");		
 		this.setContent("MULTITALK_5387132");
 	}
 }
@@ -122,18 +109,17 @@ class UserVector
 	}
 }
 
-class HiiMsg
+class HiiMsg extends Message
 {
-	private String type;
 	private String uid;
 	private String username;
 	private Vector<UserVector> Vector;
+	
+	
 	public String getType() {
 		return type;
 	}
-	public void setType(String type) {
-		this.type = type;
-	}
+	
 	public String getUid() {
 		return uid;
 	}
@@ -152,35 +138,32 @@ class HiiMsg
 	public void setVector(Vector<UserVector> vector) {
 		Vector = vector;
 	}
-	
+
 	public HiiMsg(String uid, String username,
 			Vector<UserVector> vector) {
-		
+		super();
 		this.type = "HII";
 		this.uid = uid;
 		this.username = username;
 		Vector = vector;
+		
 	}
 	
 	public HiiMsg()
-	{
+	{	
+		super();
 		this.type = "HII";
 		Vector = new Vector<UserVector>();
 	}	
 }
 
-class LogMsg
+class LogMsg extends Message
 {
-	private String type;
+	
 	private String uid;
+	private String ip_address;
 	private String usename;
 	
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
-	}
 	public String getUid() {
 		return uid;
 	}
@@ -192,14 +175,25 @@ class LogMsg
 	}
 	public void setUsename(String usename) {
 		this.usename = usename;
+	}	
+	public String getIp_address() {
+		return ip_address;
+	}
+	public void setIp_address(String ipAddress) {
+		ip_address = ipAddress;
 	}
 	
-	public LogMsg(String uid, String usename) {	
+	public LogMsg(String uid, String usename, String ip) {
+		super();
 		this.type = "LOG";
 		this.uid = uid;
 		this.usename = usename;
+		this.ip_address = ip;
 	}
-	public LogMsg(){this.type = "LOG";};
+	public LogMsg()
+	{	super();
+		this.type = "LOG";
+	}
 }
 
 class UserId
@@ -221,6 +215,7 @@ class UserId
 	public UserId(){}
 	
 }
+
 
 class Knowlage
 {
@@ -245,17 +240,11 @@ class Knowlage
 	
 }
 
-class MtxMsg
+class MtxMsg extends Message
 {
-	private String type;
 	private Vector<Vector<Knowlage>> mac;
 	private Vector<UserId> vector;
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
-	}
+	
 	public Vector<Vector<Knowlage>> getMac() {
 		return mac;
 	}
@@ -271,14 +260,17 @@ class MtxMsg
 	
 	public MtxMsg(Vector<Vector<Knowlage>> mac,
 			Vector<UserId> vector) {
-		
+		super();
 		this.type = "MTX";
 		this.mac = mac;
 		this.vector = vector;
 	}
 	
+	
+	
 	public MtxMsg()
-	{
+	{	
+		super();
 		this.type = "MTX";
 		this.mac = new Vector<Vector<Knowlage>>();
 		this.vector = new Vector<UserId>();
@@ -286,21 +278,16 @@ class MtxMsg
 	
 }
 
-class MsgMsg
+class MsgMsg extends Message
 {
-	private String type;
+	
 	private String sender;
 	private String receiver;
 	private long msg_id;
-	private Vector<Vector<Knowlage>> mac;
+	private Vector<Knowlage> time_vec;
 	private Vector<UserId> vec;
 	private String content;
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
-	}
+	
 	public String getSender() {
 		return sender;
 	}
@@ -319,11 +306,11 @@ class MsgMsg
 	public void setMsg_id(long msgId) {
 		msg_id = msgId;
 	}
-	public Vector<Vector<Knowlage>> getMac() {
-		return mac;
+	public Vector<Knowlage> getTime_vec() {
+		return time_vec;
 	}
-	public void setMac(Vector<Vector<Knowlage>> mac) {
-		this.mac = mac;
+	public void setMac(Vector<Knowlage> time_vec) {
+		this.time_vec = time_vec;
 	}
 	public Vector<UserId> getVec() {
 		return vec;
@@ -338,28 +325,115 @@ class MsgMsg
 		this.content = content;
 	}
 	public MsgMsg(String sender, String receiver, long msgId,
-			Vector<Vector<Knowlage>> mac, Vector<UserId> vec, String content) {
-	
+			Vector<Knowlage> time_vec, Vector<UserId> vec, String content) {
+		super();
 		this.type = "MSG";
 		this.sender = sender;
 		this.receiver = receiver;
 		this.msg_id = msgId;
-		this.mac = mac;
+		this.time_vec = time_vec;
 		this.vec = vec;
 		this.content = content;
 	}
 	
 	public MsgMsg()
 	{
+		super();
 		this.type = "MSG";
 		this.vec = new Vector<UserId>();
-		this.mac = new Vector<Vector<Knowlage>>();
+		this.time_vec = new Vector<Knowlage>();
 	}
 	
 	
 }
 
+class LivMsg extends Message
+{
+	private String uid;
+	private String ip_address;
+	
+	public String getUid() {
+		return uid;
+	}
+	public void setUid(String uid) {
+		this.uid = uid;
+	}
+	public String getIp_address() {
+		return ip_address;
+	}
+	public void setIp_address(String ipAddress) {
+		ip_address = ipAddress;
+	}
+	
+	public LivMsg(String uid, String ipAddress) {
+		super();
+		this.type ="LIV";
+		this.uid = uid;
+		ip_address = ipAddress;
+	}
+	
+	public LivMsg()
+	{
+		super();
+		this.type ="LIV";		
+	}
+	
+	
+}
 
+class GetMsg extends Message
+{
+	private String uid;
+	private long msg_id;
+	public String getUid() {
+		return uid;
+	}
+	public void setUid(String uid) {
+		this.uid = uid;
+	}
+	public long getMsg_id() {
+		return msg_id;
+	}
+	public void setMsg_id(long msgId) {
+		msg_id = msgId;
+	}
+	public GetMsg(String uid, long msgId) {
+		super();
+		this.type = "LIV";
+		this.uid = uid;
+		msg_id = msgId;
+	}
+	public GetMsg()
+	{
+		super();
+		this.type= "OUT";
+	}
+	
+}
+class OutMsg extends Message
+{
+	private String uid;
 
+	public String getUid() {
+		return uid;
+	}
+
+	public void setUid(String uid) {
+		this.uid = uid;
+	}
+
+	public OutMsg(String uid) {
+		super();
+		this.type = "OUT";
+		this.uid = uid;
+	}
+	
+	public OutMsg()
+	{
+		super();
+		this.type = "OUT";
+	}
+	
+}
 
 
