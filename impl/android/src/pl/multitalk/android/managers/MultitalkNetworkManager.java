@@ -324,6 +324,13 @@ public class MultitalkNetworkManager {
     }
     
     
+    public void handleMtxMessage(MtxMessage message){
+        mtx.handleUserMatrix(message.getMtxPair());
+    }
+    
+    
+    
+    
     /**
      * Zadanie wysłania komunikatu logowania
      */
@@ -387,7 +394,7 @@ public class MultitalkNetworkManager {
                         
                     } else if(message instanceof MtxMessage){
                         Log.d(Constants.DEBUG_TAG, "received MTX message");
-                        // TODO
+                        MultitalkNetworkManager.this.handleMtxMessage((MtxMessage) message);
                         continue;
                         
                     } else if(message instanceof FinishMessage){

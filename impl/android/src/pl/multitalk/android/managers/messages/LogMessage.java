@@ -33,6 +33,7 @@ public class LogMessage extends BaseMessage {
             userInfo = new UserInfo();
             userInfo.setUid(object.getString("UID"));
             userInfo.setUsername(object.getString("USERNAME"));
+            userInfo.setIpAddress(object.getString("IP_ADDRESS"));
             
         } catch (JSONException e) {
             Log.e(Constants.ERROR_TAG, "JSONException at LogMessage#deserialize()");
@@ -49,6 +50,7 @@ public class LogMessage extends BaseMessage {
             object.put("TYPE", "LOG");
             object.put("UID", userInfo.getUid());
             object.put("USERNAME", userInfo.getUsername());
+            object.put("IP_ADDRESS", userInfo.getIpAddress());
             
         } catch (JSONException e) {
             Log.e(Constants.ERROR_TAG, "JSONException at LogMessage#serialize()");
