@@ -112,10 +112,40 @@ public class ReliableBroadcastMatrix {
     /**
      * Uaktualnia macierz na podstawie macierzy uzytkownika.
      * Wykorzystywane po odczytaniu MTX message.
-     * @param user użytkownik, od którego otrzymano macierz
      * @param userRBMtxPair para: macierz + kolejność użytkowników w macierzy
      */
-    public synchronized void handleUserMatrix(UserInfo user, RBMtxPair userRBMtxPair){
-        // TODO
+    public synchronized void handleUserMatrix(RBMtxPair userRBMtxPair){
+        List<UserInfo> userMtxOrder = userRBMtxPair.getMtxUsersOrder();
+        List<List<Integer>> userMtx = userRBMtxPair.getMtx();
+        
+        // lista pozycji użytkowników w lokalnej macierzy
+        List<Integer> localUsersPos = new LinkedList<Integer>();
+        for(int i=0; i<userMtxOrder.size(); ++i){
+            UserInfo user = userMtxOrder.get(i);
+            int localUserPos = mtxUsersOrder.indexOf(user);
+            localUsersPos.add(localUserPos);
+        }
+        
+        for(int i=0; i<userMtxOrder.size(); ++i){
+            int localUserVecPos = localUsersPos.get(i).intValue();
+            if(localUserVecPos == -1){
+                // nie powinno się zdarzyć, ale just in case
+                continue;
+            }
+            
+            List<Integer> vec = userMtx.get(i);
+            List<Integer> localVec = mtx.get(localUserVecPos);
+            for(int j=0; j<vec.size(); ++j){
+                int localVecPos = localUsersPos.get(j).intValue();
+                if(localVecPos == -1){
+                    // nie powinno się zdarzyć, ale just in case
+                    continue;
+                }
+                
+                int max = (vec.get(j).intValue() > localVec.get(localVecPos).intValue()) 
+                            ? vec.get(j).intValue() : localVec.get(localVecPos).intValue();
+                localVec.set(localVecPos, max);
+            }
+        }
     }
 }
