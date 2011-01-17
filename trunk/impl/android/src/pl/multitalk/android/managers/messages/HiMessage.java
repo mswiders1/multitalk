@@ -80,7 +80,6 @@ public class HiMessage extends BaseMessage {
             JSONTokener jsonTokener = new JSONTokener(jsonString);
             JSONObject object = (JSONObject) jsonTokener.nextValue();
 
-            object.getString("TYPE");
             if(sender==null){
                 sender = new UserInfo();
             }
