@@ -13,8 +13,10 @@ import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.messages.HiMessage;
 import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.managers.messages.MtxMessage;
 import pl.multitalk.android.managers.messages.internal.DiscoveryPacketReceivedMessage;
 import pl.multitalk.android.managers.messages.internal.FinishMessage;
+import pl.multitalk.android.model.ReliableBroadcastMatrix;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.DigestUtil;
 import pl.multitalk.android.util.NetworkUtil;
@@ -46,6 +48,12 @@ public class MultitalkNetworkManager {
      */
     private List<UserInfo> users;
     private List<UserInfo> notLoggedUsers;
+    
+    /**
+     * Macierz wiedzy o wiedzy użytkowników
+     */
+    private ReliableBroadcastMatrix mtx;
+    
     
     /**
      * Tworzy zarządcę sieci
@@ -117,6 +125,9 @@ public class MultitalkNetworkManager {
                 +" | UID (before encoding): "+sb.toString()
                 +" | UID: "+userInfo.getUid());
         
+        // nowa macierz
+        mtx = new ReliableBroadcastMatrix(userInfo);
+        
         // wysłanie UDP discovery
         broadcastNetworkManager.sendUDPHostsDiscoveryPacket();
         
@@ -171,6 +182,7 @@ public class MultitalkNetworkManager {
      * Usuwa informację o użytkowniku
      * @param userInfoToRemove informacje o użytkowniku do usunięcia
      */
+    @SuppressWarnings("unused")
     private synchronized void removeUserInfo(UserInfo userInfoToRemove){
         if(users.contains(userInfoToRemove)){
             users.remove(userInfoToRemove);
@@ -290,7 +302,13 @@ public class MultitalkNetworkManager {
         removeNotLoggedUserInfo(user);
         addUserInfo(user);
         
-        // TODO wysłać MTX message
+        // wysłamy MTX message
+        MtxMessage mtxMessage = new MtxMessage();
+        mtxMessage.setSenderInfo(userInfo);
+        mtxMessage.setRecipientInfo(user);
+        mtxMessage.setMtxPair(mtx.getMatrix());
+
+        tcpipNetworkManager.sendMessage(mtxMessage);
     }
     
     
@@ -352,6 +370,11 @@ public class MultitalkNetworkManager {
                     } else if(message instanceof LogMessage){
                         Log.d(Constants.DEBUG_TAG, "received LOG message");
                         MultitalkNetworkManager.this.handleLogMessage((LogMessage) message);
+                        continue;
+                        
+                    } else if(message instanceof MtxMessage){
+                        Log.d(Constants.DEBUG_TAG, "received MTX message");
+                        // TODO
                         continue;
                         
                     } else if(message instanceof FinishMessage){

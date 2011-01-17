@@ -75,7 +75,7 @@ public class ClientTCPReceiver extends Thread {
                     }
                     else { // (readChars != -1)
                         packet = new String(buf, 0, readChars);
-                        Log.d(Constants.DEBUG_TAG, "Read packet: "+packet);
+//                        Log.d(Constants.DEBUG_TAG, "Read packet: "+packet);
                         sb.append(packet);
                     }
                     
@@ -110,7 +110,7 @@ public class ClientTCPReceiver extends Thread {
                         }
                         
                         String header = msgBuf.substring(0, newLineIdx);
-                        Log.d(Constants.DEBUG_TAG, "Nagłówek "+header);
+//                        Log.d(Constants.DEBUG_TAG, "Nagłówek "+header);
                         
                         // 14 == header.indexOf(":")
                         messageLength = Integer.valueOf(header.substring(14)).intValue();

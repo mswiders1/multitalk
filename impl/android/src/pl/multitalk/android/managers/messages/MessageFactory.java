@@ -35,6 +35,9 @@ public class MessageFactory {
         } else if(messageType.equals("LOG")){
             message = new LogMessage();
             
+        } else if(messageType.equals("MTX")){
+            message = new MtxMessage();
+            
         } else {
             Log.d(Constants.DEBUG_TAG, "MessageFactory: Unknown message type");
             return null;
