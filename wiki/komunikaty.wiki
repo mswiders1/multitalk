@@ -1,4 +1,4 @@
-#summary Komunikaty przesyłane przez sieć
+a#summary Komunikaty przesyłane przez sieć
 
 = UWAGA!=
 
@@ -137,7 +137,7 @@ Zawartość: Macierze wiedzy i zwykła treść wiadomości
 
 macierz:
 
-kolumnami wiedza uzytkownikow
+<b>wierszami</b>wiedza uzytkownikow
 pojedyncza komorka: wiedza o wiedzy o zegarze logicznym uzytkownikow 
 
 wektor kolejności:
