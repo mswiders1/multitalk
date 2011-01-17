@@ -26,3 +26,7 @@ def getFullTcpFirstMsg():
 def getFullHiiMsg():
     inner = getHiiMsg()
     return getMsgWithJSONInside(inner)
+
+def getFullLogMsg():
+    inner = getLogMsg()
+    return getMsgWithJSONInside(inner)

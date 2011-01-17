@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 import json
 import queues
 import appVar
@@ -16,7 +17,7 @@ def getHiiMsg():
     assert(id)
     assert(nodes)
     assert(len(nodes) >= 1)
-    assert(nodes.count(id) == 1)
+    assert nodes.count(id) == 1,   "brak wezla w na liscie %s" % nodes
     nodesWithInfo = []
     for node in nodes:
         n = {}
@@ -44,7 +45,7 @@ def unpackHiiMsg(jsonObj,  senderIP):
     return message
 
 def getLogMsg():
-    model = appVar.model
+    model = appVar.modelInstance
     id = model.getMyId()
     nick = model.getNick()
     list = {'TYPE': u"LOG", 'UID': id,  "USERNAME":nick}

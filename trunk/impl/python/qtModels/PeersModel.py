@@ -10,7 +10,7 @@ class PeersModel(QAbstractTableModel):
         """
         QAbstractTableModel.__init__(self, parent, *args) 
         self.arraydata = []
-        self.headerdata = ['IP', 'Name']
+        self.headerdata = ['Name', 'UID']
  
     def rowCount(self, parent): 
         return len(self.arraydata) 
@@ -30,9 +30,14 @@ class PeersModel(QAbstractTableModel):
             return QVariant(self.headerdata[columnIdx])
         return QVariant()
     
-    def addPeer(self,  ipAddr,  peerName):
+    def addPeer(self,  uid,  peerName):
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
-        self.arraydata.append([ipAddr,  peerName])
+        self.arraydata.append([peerName,  uid])
+        self.emit(SIGNAL("layoutChanged()"))
+
+    def delPeer(self,  uid,  peerName):
+        self.emit(SIGNAL("layoutAboutToBeChanged()"))
+        self.arraydata.remove([uid,  peerName])
         self.emit(SIGNAL("layoutChanged()"))
 
     def sort(self, Ncol, order):
