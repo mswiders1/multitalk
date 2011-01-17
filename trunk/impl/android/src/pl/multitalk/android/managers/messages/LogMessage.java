@@ -14,17 +14,25 @@ import android.util.Log;
  */
 public class LogMessage extends BaseMessage {
 
+    private UserInfo userInfo;
+    
+    public UserInfo getUserInfo() {
+        return userInfo;
+    }
+
+    public void setUserInfo(UserInfo userInfo) {
+        this.userInfo = userInfo;
+    }
+
     @Override
     public void deserialize(String jsonString) {
         try {
             JSONTokener jsonTokener = new JSONTokener(jsonString);
             JSONObject object = (JSONObject) jsonTokener.nextValue();
 
-            if(sender==null){
-                sender = new UserInfo();
-            }
-            sender.setUid(object.getString("UID"));
-            sender.setUsername(object.getString("USERNAME"));
+            userInfo = new UserInfo();
+            userInfo.setUid(object.getString("UID"));
+            userInfo.setUsername(object.getString("USERNAME"));
             
         } catch (JSONException e) {
             Log.e(Constants.ERROR_TAG, "JSONException at LogMessage#deserialize()");
@@ -39,8 +47,8 @@ public class LogMessage extends BaseMessage {
         
         try {
             object.put("TYPE", "LOG");
-            object.put("UID", sender.getUid());
-            object.put("USERNAME", sender.getUsername());
+            object.put("UID", userInfo.getUid());
+            object.put("USERNAME", userInfo.getUsername());
             
         } catch (JSONException e) {
             Log.e(Constants.ERROR_TAG, "JSONException at LogMessage#serialize()");
@@ -59,6 +67,9 @@ public class LogMessage extends BaseMessage {
             cloneMessage.setSenderInfo(new UserInfo(sender));
         if(recipient != null)
             cloneMessage.setRecipientInfo(new UserInfo(recipient));
+        
+        if(userInfo != null)
+            cloneMessage.setUserInfo(new UserInfo(userInfo));
         
         return cloneMessage;
     }
