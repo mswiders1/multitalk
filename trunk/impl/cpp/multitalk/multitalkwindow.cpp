@@ -113,6 +113,7 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
     qDebug()<<"Multitalkwindow got message type:"<<msg.type;
     if(msg.type=="LOG")
     {
+        qDebug()<<"uid:"<<msg.uid<<" username:"<<username;
         QList<UserData>::iterator i;
         for(i=users.begin();i!=users.end();++i)
         {
