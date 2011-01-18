@@ -13,4 +13,6 @@
 <string name="common_errorOccured">Wystąpił błąd</string>
 <string name="start_noConnectionDialog">Wifi nie jest podłączone do żadnej sieci.</string>
 <string name="start_wifiNotEnabledDialog">Wifi jest wyłączone. Proszę włączyć i połączyć się z wybraną siecią.</string>
+<string name="menu_contact_list_item">Lista kontaktów</string>
+<string name="menu_logout_item">Wyloguj</string>
 </resources>

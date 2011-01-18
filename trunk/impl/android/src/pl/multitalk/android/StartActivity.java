@@ -111,6 +111,16 @@ public class StartActivity extends Activity {
     }
     
     
+    @Override
+    protected void onNewIntent(Intent intent) {
+        // logout
+        app.getMultitalkNetworkManager().destroy();
+        finish();
+        Process.killProcess(Process.myPid());
+    }
+    
+    
+    
     /**
      * Wpisuje do logów informacje na potrzeby debugu
      */

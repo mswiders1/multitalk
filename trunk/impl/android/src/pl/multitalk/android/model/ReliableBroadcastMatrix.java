@@ -148,4 +148,22 @@ public class ReliableBroadcastMatrix {
             }
         }
     }
+    
+    
+    /**
+     * Usuwa z macierzy informacje o użytkowniku
+     * @param user uzytkownik
+     */
+    public synchronized void removeUserFromMatrix(UserInfo user){
+        int userPos = mtxUsersOrder.indexOf(user);
+        if(userPos == -1)
+            return;
+        
+        mtxUsersOrder.remove(userPos);
+        for(List<Integer> vec : mtx){
+            vec.remove(userPos);
+        }
+        mtx.remove(userPos);
+        
+    }
 }

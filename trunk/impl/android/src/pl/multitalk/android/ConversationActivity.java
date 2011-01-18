@@ -5,8 +5,11 @@ import java.util.List;
 
 import pl.multitalk.android.ui.ConversationListAdapter;
 import pl.multitalk.android.ui.ConversationListItem;
+import pl.multitalk.android.ui.MenuUtil;
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ListView;
 
 /**
@@ -50,5 +53,29 @@ public class ConversationActivity extends Activity {
             conversationListItems.add(item);
             conversationAdapter.notifyDataSetChanged();
         }
+    }
+    
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        
+        MenuUtil.createMenu(menu);
+        return true;
+    }
+    
+    
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        
+        startActivity(item.getIntent());
+        return true;
     }
 }

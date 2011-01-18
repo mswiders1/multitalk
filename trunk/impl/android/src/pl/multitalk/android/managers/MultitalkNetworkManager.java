@@ -14,6 +14,7 @@ import pl.multitalk.android.managers.messages.HiMessage;
 import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.managers.messages.MtxMessage;
+import pl.multitalk.android.managers.messages.OutMessage;
 import pl.multitalk.android.managers.messages.internal.DiscoveryPacketReceivedMessage;
 import pl.multitalk.android.managers.messages.internal.FinishMessage;
 import pl.multitalk.android.model.ReliableBroadcastMatrix;
@@ -141,9 +142,17 @@ public class MultitalkNetworkManager {
      * Wylogowuje z sieci Multitalk
      */
     public void logout(){
-        tcpipNetworkManager.disconnectAllClients();
-        tcpipNetworkManager.stopListeningForConnections();
+        if(isLoggedIn){
+            // wysłanie OUT message
+            OutMessage outMessage = new OutMessage();
+            outMessage.setSenderInfo(userInfo);
+            outMessage.setUserInfo(userInfo);
+            tcpipNetworkManager.sendMessageToAll(outMessage);
+        }
+        
         broadcastNetworkManager.stopBroadcastListening();
+        tcpipNetworkManager.stopListeningForConnections();
+        tcpipNetworkManager.disconnectAllClients();
         isLoggedIn = false;
         userInfo = null;
         users = new ArrayList<UserInfo>();
@@ -254,6 +263,10 @@ public class MultitalkNetworkManager {
     /*   handlery dla komunikatów
     /* *********************************************** */
     
+    /**
+     * Obsługuje komunikat HII
+     * @param message komunikat
+     */
     public void handleHiMessage(HiMessage message){
         // uaktualniamy info o kliencie
         UserInfo senderUserInfo = message.getSenderInfo();
@@ -275,7 +288,11 @@ public class MultitalkNetworkManager {
         }
     }
     
-    
+
+    /**
+     * Obsługuje komunikat discovery
+     * @param message komunikat
+     */
     public void handleDiscoveryPacketReceived(DiscoveryPacketReceivedMessage message){
         // dodajemy usera
         MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
@@ -296,7 +313,11 @@ public class MultitalkNetworkManager {
         tcpipNetworkManager.sendMessage(hiMessage);
     }
     
-    
+
+    /**
+     * Obsługuje komunikat LOG
+     * @param message komunikat
+     */
     public void handleLogMessage(LogMessage message){
         // uaktualniamy info o kliencie
         UserInfo senderUserInfo = message.getSenderInfo();
@@ -323,12 +344,25 @@ public class MultitalkNetworkManager {
         tcpipNetworkManager.sendMessage(mtxMessage);
     }
     
-    
+
+    /**
+     * Obsługuje komunikat MTX
+     * @param message komunikat
+     */
     public void handleMtxMessage(MtxMessage message){
         mtx.handleUserMatrix(message.getMtxPair());
     }
     
-    
+
+    /**
+     * Obsługuje komunikat OUT
+     * @param message komunikat
+     */
+    public void handleOutMessage(OutMessage message){
+        mtx.removeUserFromMatrix(message.getUserInfo());
+        tcpipNetworkManager.disconnectClient(message.getUserInfo());
+        users.remove(message.getUserInfo());
+    }
     
     
     /**
@@ -395,6 +429,11 @@ public class MultitalkNetworkManager {
                     } else if(message instanceof MtxMessage){
                         Log.d(Constants.DEBUG_TAG, "received MTX message");
                         MultitalkNetworkManager.this.handleMtxMessage((MtxMessage) message);
+                        continue;
+                        
+                    } else if(message instanceof OutMessage){
+                        Log.d(Constants.DEBUG_TAG, "received OUT message");
+                        MultitalkNetworkManager.this.handleOutMessage((OutMessage) message);
                         continue;
                         
                     } else if(message instanceof FinishMessage){

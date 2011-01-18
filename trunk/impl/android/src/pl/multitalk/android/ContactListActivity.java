@@ -9,6 +9,7 @@ import java.util.TimerTask;
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.model.MultitalkApplication;
 import pl.multitalk.android.ui.ContactListAdapter;
+import pl.multitalk.android.ui.MenuUtil;
 import pl.multitalk.android.util.Constants;
 
 import android.app.Activity;
@@ -16,6 +17,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -94,6 +97,29 @@ public class ContactListActivity extends Activity {
         contactListAdapter.sort(userComparator);
     }
     
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        
+        MenuUtil.createMenu(menu);
+        return true;
+    }
+    
+    
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        
+        startActivity(item.getIntent());
+        return true;
+    }
     
     
     
