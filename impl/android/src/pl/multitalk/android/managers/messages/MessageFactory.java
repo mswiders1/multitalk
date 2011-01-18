@@ -44,6 +44,9 @@ public class MessageFactory {
         } else if(messageType.equals("OUT")){
             message = new OutMessage();
             
+        } else if(messageType.equals("P2P")){
+            message = new P2PMessage();
+            
         } else {
             Log.d(Constants.DEBUG_TAG, "MessageFactory: Unknown message type");
             return null;

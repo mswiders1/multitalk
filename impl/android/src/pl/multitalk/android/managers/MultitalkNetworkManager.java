@@ -16,6 +16,7 @@ import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.managers.messages.MtxMessage;
 import pl.multitalk.android.managers.messages.OutMessage;
+import pl.multitalk.android.managers.messages.P2PMessage;
 import pl.multitalk.android.managers.messages.internal.DiscoveryPacketReceivedMessage;
 import pl.multitalk.android.managers.messages.internal.FinishMessage;
 import pl.multitalk.android.model.ReliableBroadcastMatrix;
@@ -288,6 +289,26 @@ public class MultitalkNetworkManager {
     }
     
     
+    /**
+     * Wysyła HII message do użytkownika
+     * @param recipientInfo odbiorca
+     */
+    private void sendHiiMessage(UserInfo recipientInfo){
+        HiMessage hiMessage = new HiMessage();
+        hiMessage.setSenderInfo(userInfo);
+        hiMessage.setUserInfo(userInfo);
+        hiMessage.setRecipientInfo(recipientInfo);
+        // kopia
+        List<UserInfo> loggedUsers = new ArrayList<UserInfo>();
+        for(UserInfo user : users){
+            loggedUsers.add(new UserInfo(user));
+        }
+        hiMessage.setLoggedUsers(loggedUsers);
+        
+        tcpipNetworkManager.sendMessage(hiMessage);
+    }
+    
+    
     /* *********************************************** */
     /*   handlery dla komunikatów
     /* *********************************************** */
@@ -328,18 +349,7 @@ public class MultitalkNetworkManager {
         tcpipNetworkManager.connectToClient(message.getSenderInfo());
         
         // w odpowiedzi wysyłamy HiMessage
-        HiMessage hiMessage = new HiMessage();
-        hiMessage.setSenderInfo(userInfo);
-        hiMessage.setUserInfo(userInfo);
-        hiMessage.setRecipientInfo(message.getSenderInfo());
-        // kopia
-        List<UserInfo> loggedUsers = new ArrayList<UserInfo>();
-        for(UserInfo user : users){
-            loggedUsers.add(new UserInfo(user));
-        }
-        hiMessage.setLoggedUsers(loggedUsers);
-        
-        tcpipNetworkManager.sendMessage(hiMessage);
+        sendHiiMessage(message.getSenderInfo());
     }
     
 
@@ -393,6 +403,19 @@ public class MultitalkNetworkManager {
         removeUserInfo(message.getUserInfo());
         addNotLoggedUserInfo(message.getUserInfo());
         
+    }
+    
+    
+    /**
+     * Obsługuje komunikat P2P
+     * @param message komunikat
+     */
+    public void handleP2PMessage(P2PMessage message){
+        // dodajemy usera
+        MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
+        
+        // w odpowiedzi wysyłamy HiMessage
+        sendHiiMessage(message.getSenderInfo());
     }
     
     
@@ -486,6 +509,11 @@ public class MultitalkNetworkManager {
                         MultitalkNetworkManager.this.handleOutMessage((OutMessage) message);
                         continue;
                         
+                    } else if(message instanceof P2PMessage){
+                        Log.d(Constants.DEBUG_TAG, "received P2P packet");
+                        MultitalkNetworkManager.this.handleP2PMessage((P2PMessage) message);
+                        continue;
+                    
                     } else if(message instanceof FinishMessage){
                         // koniec
                         return;
