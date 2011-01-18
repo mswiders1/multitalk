@@ -81,8 +81,9 @@ public class MultitalkNetworkManager {
     /**
      * Przeprowadza akcję logowania do sieci Multitalk
      * @param login login użytkownika
+     * @param peerIpAddress opcjonalny adres IP
      */
-    public void logIn(String login){
+    public void logIn(String login, String peerIpAddress){
         if(isLoggedIn){
             logout();
         }
@@ -132,8 +133,24 @@ public class MultitalkNetworkManager {
         // nowa macierz
         mtx = new ReliableBroadcastMatrix(userInfo);
         
-        // wysłanie UDP discovery
-        broadcastNetworkManager.sendDiscoveryPackets();
+        if(peerIpAddress == null){
+            // wysłanie UDP discovery
+            broadcastNetworkManager.sendDiscoveryPackets();
+            
+        } else {
+            // bezpośrednie połączenie
+            UserInfo peerUser = new UserInfo();
+            peerUser.setIpAddress(peerIpAddress);
+            peerUser.setUid(String.valueOf(System.currentTimeMillis()));
+            addNotLoggedUserInfo(peerUser);
+            tcpipNetworkManager.connectToClient(peerUser);
+            
+            // wysłanie P2P message
+            P2PMessage p2pMessage = new P2PMessage();
+            p2pMessage.setSenderInfo(userInfo);
+            p2pMessage.setRecipientInfo(peerUser);
+            tcpipNetworkManager.sendMessage(p2pMessage);
+        }
         
         // timer
         sendLogTimer = new Timer();
@@ -325,6 +342,7 @@ public class MultitalkNetworkManager {
         
         // dodajemy i aktualizujemy w network managerze
         MultitalkNetworkManager.this.addUserInfo(clientUserInfo);
+        mtx.addUserWithZeroVector(clientUserInfo);
         tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
         
         for(UserInfo user : message.getLoggedUsers()){
@@ -334,6 +352,7 @@ public class MultitalkNetworkManager {
             }
             
             MultitalkNetworkManager.this.addUserInfo(user);
+            mtx.addUserWithZeroVector(clientUserInfo);
             tcpipNetworkManager.connectToClient(user);
         }
     }

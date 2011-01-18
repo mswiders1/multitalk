@@ -2,6 +2,7 @@ package pl.multitalk.android;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 import pl.multitalk.android.managers.MultitalkNetworkManager;
 import pl.multitalk.android.model.MultitalkApplication;
@@ -20,6 +21,8 @@ import android.os.Process;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 
 /**
@@ -28,9 +31,13 @@ import android.widget.EditText;
  */
 public class StartActivity extends Activity {
     
+    private static final Pattern ipAddressPattern = Pattern.compile("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$");
+    
     private MultitalkApplication app;
     private ProgressDialog loggingInProgressDialog = null;
     private EditText loginEditText;
+    private EditText ipAddressEditText;
+    private CheckBox p2pCheckbox;
     private Timer logCheckTimer;
     
     public static final String LOGGED_IN_FLAG = "LOGGED_IN";
@@ -57,6 +64,7 @@ public class StartActivity extends Activity {
         setContentView(R.layout.start_activity);
         
         loginEditText = (EditText) findViewById(R.id.start_loginInput);
+        ipAddressEditText = (EditText) findViewById(R.id.start_ipAddressInput);
         
         // debug
         printDebugInfo();
@@ -76,15 +84,43 @@ public class StartActivity extends Activity {
                     return;
                 }
                 
+                String ipAddress = ipAddressEditText.getText().toString();
+                if(p2pCheckbox.isChecked()){
+                    if(!ipAddressPattern.matcher(ipAddress).matches()){
+                        // nieprawidłowy adres IP
+                        showErrorDialogInvalidIPAddress();
+                        return;
+                    }
+                } else {
+                    ipAddress = null;
+                }
+                
                 loggingInProgressDialog = ProgressDialog.show(StartActivity.this, "", 
                         getString(R.string.start_loginDialog), true, true);
                 
                 MultitalkNetworkManager multitalkNetworkManager = app.getMultitalkNetworkManager();
-                multitalkNetworkManager.logIn(login);
+                multitalkNetworkManager.logIn(login, ipAddress);
                 
                 // start timera
                 logCheckTimer = new Timer();
                 logCheckTimer.schedule(new LogCheckTimerTask(), 2000, 1000);
+            }
+        });
+        
+        p2pCheckbox = (CheckBox) findViewById(R.id.start_p2pCheckbox);
+        p2pCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                View ipSection = findViewById(R.id.start_ipAddressSection);
+                
+                if(isChecked){
+                    ipSection.setVisibility(View.VISIBLE);
+                    
+                } else {
+                    ipSection.setVisibility(View.GONE);
+                    ipAddressEditText.setText("");
+                    
+                }
             }
         });
     }
@@ -191,6 +227,22 @@ public class StartActivity extends Activity {
     private void showErrorDialogNoConnectionToNetwork(){
         AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
         builder.setMessage(getString(R.string.start_noConnectionDialog))
+                .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setCancelable(true).setTitle(getString(R.string.common_errorOccured)).create().show();
+    }
+    
+    
+    /**
+     * Wyświetla okno dialogowe z błędem adres IP
+     */
+    private void showErrorDialogInvalidIPAddress(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+        builder.setMessage(getString(R.string.start_invalidIpAddressDialog))
                 .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
