@@ -42,6 +42,7 @@ void TcpServer::connectToClient(QHostAddress address,Message msg)
     for(i=connectionList.begin();i!=connectionList.end();i++)
     {
         TcpConnection *conn=*i;
+        qDebug()<<"peer address:"<<conn->peerAddress();
         if(conn->peerAddress()==address)
         {
             qDebug()<<"already connected to this address:"<<address;
