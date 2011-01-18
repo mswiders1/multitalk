@@ -15,6 +15,7 @@ public class Constants {
     /*
      * Akcje
      */
+    public static final String ACTION_START_ACTIVITY = "pl.multitalk.android.Start";
     public static final String ACTION_CONTACT_LIST_ACTIVITY = "pl.multitalk.android.ContactList";
     public static final String ACTION_CONVERSATION_ACTIVITY = "pl.multitalk.android.Conversation";
 
