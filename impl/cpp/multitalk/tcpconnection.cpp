@@ -11,6 +11,11 @@ TcpConnection::TcpConnection(QObject *parent) :
     connect(this,SIGNAL(readyRead()),this,SLOT(dataWaiting()));;
 }
 
+TcpConnection::~TcpConnection()
+{
+    flush();
+}
+
 void TcpConnection::connectionClosed()
 {
     emit connectionDisconnected(this);
@@ -152,5 +157,6 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     QTextStream(&header)<<"BEGIN_MESSAGE:"<<packetArray.size()<<"\n";
     write(QByteArray(header.toAscii()));
     write(packetArray);
+    //flush();
     //qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
 }
