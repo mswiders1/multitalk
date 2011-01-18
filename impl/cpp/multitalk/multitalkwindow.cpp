@@ -111,19 +111,38 @@ void MultitalkWindow::clientDisconnected(QString uid)
 void MultitalkWindow::handleReceivedMessage(Message msg)
 {
     qDebug()<<"Multitalkwindow got message type:"<<msg.type;
-    if(msg.type=="LOG")
+    if(msg.type=="HII")
     {
-        qDebug()<<"uid:"<<msg.uid<<" username:"<<username;
+        QList<UserData>::iterator myList;
+        QList<UserData>::iterator remoteList;
+        for(remoteList=msg.vector.begin();remoteList!=msg.vector.end();remoteList++)
+        {
+            qDebug()<<"got hii user:"<<remoteList->username;
+            for(myList=users.begin();myList!=users.end();myList++)
+            {
+                if(myList->uid==remoteList->uid)
+                    break;
+            }
+            if(myList==users.end())
+            {
+                QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
+                newItem->setText(remoteList->username);
+                users.append(*remoteList);
+            }
+        }
+    } else if(msg.type=="LOG")
+    {
+        qDebug()<<"uid:"<<msg.uid<<" username:"<<msg.username;
         QList<UserData>::iterator i;
         for(i=users.begin();i!=users.end();++i)
         {
-            if(i->uid==uid)
+            if(i->uid==msg.uid)
                 break;
         }
         if(i==users.end())
         {
             QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
-            newItem->setText(username);
+            newItem->setText(msg.username);
             ui->listWidget->addItem(newItem);
             UserData userData;
             userData.uid=msg.uid;
