@@ -88,12 +88,20 @@ void TcpConnection::parseMessage(QByteArray& data)
         else if(msg.type=="LOG")
         {
             //qDebug()<<"got LOG message";
-            clientUid=result["UID"].toString();
-            msg.uid=clientUid;
+            msg.uid=result["UID"].toString();
             msg.username=result["USERNAME"].toString();
             msg.ip_address=result["IP_ADDRESS"].toString();
         }
-        else
+        else if(msg.type=="OUT")
+        {
+            msg.uid=result["UID"].toString();
+
+        } else if(msg.type=="LIV")
+        {
+            msg.uid=result["UID"].toString();
+            msg.ip_address=result["IP_ADDRESS"].toString();
+            msg.sequence=result["SEQUENCE"].toLongLong();
+        } else
         {
             qDebug()<<"WARNING:unknown message type, ignoring";
             qDebug()<<"__________________MESSAGE DUMP____________________";

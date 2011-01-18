@@ -19,6 +19,7 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
     connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(startListening()));
     connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(sendBroadcast()));
     connect(broadcast,SIGNAL(gotConnectionRequest(QHostAddress)),this,SLOT(connectToAddress(QHostAddress)));
+    connect(this,SIGNAL(sendMessageToNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
     QList<QNetworkInterface> interfaces=QNetworkInterface::allInterfaces();
     QList<QNetworkInterface>::const_iterator i;
     for(i=interfaces.constBegin();i!=interfaces.constEnd();++i)
@@ -53,8 +54,11 @@ void MultitalkWindow::connectToNetwork()
     else
     {
         if(tcpServer!=NULL)
+        {
+            sendOutMessage();
             delete tcpServer;
-
+        }
+        uid=newUid;
         tcpServer=new TcpServer(this);
         connect(tcpServer,SIGNAL(receivedMessageFromNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
         connect(tcpServer,SIGNAL(clientDisconnected(QString)),this,SLOT(clientDisconnected(QString)));
@@ -75,7 +79,7 @@ void MultitalkWindow::setNick(QString newNick)
 {
     username=newNick;
     QString text=macAddress+ipAddress+username;
-    uid=QString(QCryptographicHash::hash(text.toAscii(),QCryptographicHash::Sha1).toBase64());
+    newUid=QString(QCryptographicHash::hash(text.toAscii(),QCryptographicHash::Sha1).toBase64());
     qDebug()<<"uid:"<<uid;
 }
 
@@ -86,6 +90,11 @@ void MultitalkWindow::setConnectIp(QString ip)
 
 void MultitalkWindow::connectToAddress(QHostAddress address)
 {
+    if(address==QHostAddress(ipAddress))
+    {
+        qDebug()<<"not connecting to myself";
+        return;
+    }
     Message msg;
     msg.type="HII";
     msg.uid=uid;
@@ -157,6 +166,12 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         }
         else
             qDebug()<<"client already exists";
+    } else if(msg.type=="OUT")
+    {
+        clientDisconnected(msg.uid);
+    } else if(msg.type=="LIV")
+    {
+        qDebug()<<"client alive:"<<msg.uid;
     }
 }
 
@@ -168,6 +183,7 @@ void MultitalkWindow::sendLogMessage()
     msg.username=username;
     msg.ip_address=ipAddress;
     emit sendMessageToNetwork(msg);
+
     livTimer->setInterval(10000);
     livTimer->start();
     connect(livTimer,SIGNAL(timeout()),this,SLOT(sendLivMessage()));
