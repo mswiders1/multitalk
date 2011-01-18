@@ -69,6 +69,15 @@ void TcpConnection::parseMessage(QByteArray& data)
             clientUid=result["UID"].toString();
             msg.uid=clientUid;
             msg.username=result["USERNAME"].toString();
+            foreach(QVariant item,result["VECTOR"].toList())
+            {
+                QVariantMap client=item.toMap();
+                UserData user;
+                user.ip=client["IP_ADDRESS"].toString();
+                user.uid=client["UID"].toString();
+                user.username=client["USERNAME"].toString();
+                msg.vector.append(user);
+            }
         }
         else if(msg.type=="LOG")
         {
