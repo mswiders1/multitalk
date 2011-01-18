@@ -38,7 +38,11 @@ def getFullOutMsg():
 def getFullP2pMsg():
     inner = getP2pMsg()
     return getMsgWithJSONInside(inner)
-    
+
+def getFullMtxMsg():
+    inner = getMtxMsg()
+    return getMsgWithJSONInside(inner)
+
 def getFullGetMsg(senderOfMissinMsg,  timeOfSend):
     inner = getGetMsg(senderOfMissinMsg,  timeOfSend)
     return getMsgWithJSONInside(inner)

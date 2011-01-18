@@ -47,15 +47,8 @@ class Model():
         self.__preferredNodesAddr = None # adres wezla podany przez uzytkownika abysmy podlaczyli sie do niego
         
         self.__nodes = {}   # mapa uid -> obiekt Node 
-        #self.__nodeToNickMaping = {} # mapowanie z UID na nazwe uzytkownika
-        #self.__nodeToIPMapping = {} # mapowanie x UID na ip uzytkownika (nie dla kazdego UID!!! - tylko dla tych co wyslali HII)
+        self.__nodesUid = [] # lista uid aby zachowac kolejnosc
         self.__logicalTime = [] # macierz czasów logicznych
-        
-        
-    def __getLogicalTimeForNode(self,  uid):
-        assert(False)
-        #TODO : do roboty
-        return 
         
     def setPreferredNodesAddr(self,  address):
         self.__preferredNodesAddr = address
@@ -89,6 +82,18 @@ class Model():
     def getListOfNodes(self):
         return list(self.__nodes.keys())
         
+    def getMatrix(self):
+        return self.__logicalTime; #TODO: zwracać kopię?
+        
+    def getIncrementedMatrix(self):
+        uid = self.getMyId()
+        index = self.__nodesUid.index(uid)
+        currentValue = self.__logicalTime[index][index]
+        newValue = currentValue + 1
+        print "Model: nowa wartosc zegara logicznego %d" % newValue
+        self.__logicalTime[index][index] = newValue
+        return self.getMatrix()
+        
     def addNode(self,  uid,  username,  ip):
         #TODO: dodanie do macierzy zegarow
         assert(len(uid) == len(base64.b64encode(hashlib.sha1().digest())))
@@ -100,6 +105,8 @@ class Model():
             node.setName(username)
             node.setIp(ip)
             self.__nodes[uid] = node
+            self.__nodesUid.append(uid)
+            #TODO: co z macierza
             appVar.guiInstance.addNode(uid,  username)
         else:
             print "Model: juz znam wezel o id %s" % uid
@@ -107,6 +114,7 @@ class Model():
     def removeNode(self,  uid):
         print "Model: usuwam wskazanego wezla - %s" % uid
         del self.__nodes[uid]
+        #TODO: usuwac z macierzy i nodesUid? 
         appVar.guiInstance.delNode(uid)
         
     def markNodeIsAlive(self,  uid):

@@ -43,10 +43,10 @@ class TCPManager(Singleton):
         assert(self.__mappedProtocols.has_key(uid) == False)
         self.__mappedProtocols[uid] = protocol
         
-    def isConnectedToIp(self,  ip):
+    def isNotConnectedToIp(self,  ip):
         countOfConnections = self.__ipOfConnections.count(ip)
         assert 0 <= countOfConnections  <= 1,  "bledna ilosc polaczen do adresu ip %s : %s" %(ip,  self.__ipOfConnections)
-        return countOfConnections > 0
+        return countOfConnections == 0
         
     def getConnectionToNode(self,  uid):
         return self.__mappedProtocols[uid]

@@ -11,10 +11,10 @@ class Heartbeat(LoopingCall):
         LoopingCall.__init__(self,  core.handleHeartbeatTimePassed)
     
     def start(self):
-        print "Heartbeat: uruchamiam"
+        print "Heartbeat: start"
         LoopingCall.start(self,  interval=INTERVAL,  now=BEGIN)
         
     def stop(self):
-        print "Heartbeat: zatrzymuje"
+        print "Heartbeat: stop"
         LoopingCall.stop(self)
         

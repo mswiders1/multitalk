@@ -43,6 +43,10 @@ def getGetMsg(uidOfMissingMsgSender,  timeOfSend):
 def getP2pMsg():
     list = {'TYPE': u"P2P"}
     return json.dumps(list,  indent=4)
+
+def getMtxMsg():
+    list = {'TYPE': u"MTX",  "MAC":  appVar.modelInstance.getMatrix(),  "VEC":appVar.modelInstance.getListOfNodes()}
+    return json.dumps(list,  indent=4)
     
 def getHiiMsg():
     model = appVar.modelInstance
