@@ -127,6 +127,8 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
     if(messageHistory.contains(msg))
     {
         qDebug()<<"already got this message, ignoring";
+        qDebug()<<msg.type;
+        qDebug()<<msg.uid;
         return;
     }
     else
@@ -135,6 +137,7 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         if(messageHistory.size()>1000)
             messageHistory.removeLast();
         if(msg.type!="HII")
+            //qDebug()<<"should send";
             emit sendMessageToNetwork(msg);
     }
     qDebug()<<"Multitalkwindow got message type:"<<msg.type;
@@ -187,6 +190,8 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         qDebug()<<"client alive:"<<msg.uid;
     }
 }
+
+
 
 void MultitalkWindow::sendLogMessage()
 {
