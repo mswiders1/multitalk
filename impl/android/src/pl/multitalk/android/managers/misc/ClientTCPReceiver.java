@@ -146,7 +146,10 @@ public class ClientTCPReceiver extends Thread {
                     Message message = null;
                     try {
                         message = MessageFactory.fromJSON(messageString);
-                        passMessage(message);
+                        if(message != null){
+                            // znana wiadomość - przekazujemy
+                            passMessage(message);
+                        }
                         
                     } catch (JSONException e) {
                         Log.d(Constants.ERROR_TAG, "Błąd parse-owania JSON-a: \n" 
