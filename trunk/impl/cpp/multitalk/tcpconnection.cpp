@@ -13,6 +13,7 @@ TcpConnection::TcpConnection(QObject *parent) :
 
 TcpConnection::~TcpConnection()
 {
+    qDebug()<<"will wait for pushing out messages:"<<peerAddress()<<" "<<bytesToWrite();
     flush();
 }
 

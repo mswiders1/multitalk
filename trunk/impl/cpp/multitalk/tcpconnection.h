@@ -11,7 +11,7 @@ class TcpConnection : public QTcpSocket
     Q_OBJECT
 public:
     explicit TcpConnection(QObject *parent);
-    ~TcpConnection();
+    virtual ~TcpConnection();
     QString clientUid;
 private:
     bool headerRead;
