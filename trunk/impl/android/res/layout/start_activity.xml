@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+<RelativeLayout
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
@@ -17,8 +20,9 @@
             android:id="@+id/start_header"
             android:text="@string/start_header"
             android:gravity="center"
-            android:textSize="17sp"
+            android:textSize="18sp"
             android:textStyle="bold"
+            android:textColor="#FFFFFF"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
     </LinearLayout>
@@ -31,11 +35,15 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/start_section_header"
         android:paddingTop="20dp"
-        android:paddingBottom="5dp">
+        android:paddingBottom="5dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
         
         <TextView 
             android:id="@+id/start_loginInfo"
             android:text="@string/start_loginInfo"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true" />
@@ -51,16 +59,58 @@
             android:layout_marginTop="5dp"
             android:layout_centerHorizontal="true"
             android:text="kouodziey"/> <!-- FIXME tymczasowe!!! -->
-            
-        <Button 
-            android:id="@+id/start_loginButton"
-            android:text="@string/start_loginButton"
+        
+        <CheckBox
+            android:id="@+id/start_p2pCheckbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/start_loginInput"
             android:layout_marginTop="5dp"
+            android:layout_centerHorizontal="true"
+            android:checked="false"
+            android:text="@string/start_p2pCheckbox"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp" />
+        
+        <LinearLayout 
+            android:id="@+id/start_ipAddressSection"
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/start_p2pCheckbox"
+            android:layout_centerHorizontal="true"
+            android:visibility="gone" >
+            
+	        <TextView
+	            android:id="@+id/start_ipAddressLabel"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/start_ipAddressLabel"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+	            
+	        <EditText
+                android:id="@+id/start_ipAddressInput"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:width="180dp" />
+        
+        </LinearLayout>
+        
+        
+        <Button 
+            android:id="@+id/start_loginButton"
+            android:text="@string/start_loginButton"
+            android:textSize="15sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/start_ipAddressSection"
+            android:layout_marginTop="5dp"
             android:layout_centerHorizontal="true" />
+            
     </RelativeLayout>
 
 
 </RelativeLayout>
+</ScrollView>
