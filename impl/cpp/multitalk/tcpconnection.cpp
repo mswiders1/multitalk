@@ -91,6 +91,9 @@ void TcpConnection::parseMessage(QByteArray& data)
         else
         {
             qDebug()<<"WARNING:unknown message type, ignoring";
+            qDebug()<<"__________________MESSAGE DUMP____________________";
+            qDebug()<<data;
+            qDebug()<<"________________END MESSAGE DUMP__________________";
             return;
         }
         emit receivedMessageFromNetwork(msg);
@@ -128,9 +131,19 @@ void TcpConnection::sendMessageToNetwork(Message msg)
         packet.insert("USERNAME",msg.username);
         packet.insert("IP_ADDRESS",msg.ip_address);
         qDebug()<<"sending LOG message, uid:"<<msg.uid<<" username:"<<msg.username;
+    } else if(msg.type=="LIV")
+    {
+        packet.insert("TYPE",msg.type);
+        packet.insert("UID",msg.uid);
+        packet.insert("IP_ADDRESS",msg.ip_address);
+        packet.insert("SEQUENCE",QString().setNum(msg.sequence));
+    } else if(msg.type=="OUT")
+    {
+        packet.insert("TYPE",msg.type);
+        packet.insert("UID",msg.uid);
     } else
     {
-        qDebug()<<"ERROR:bad message type to connect, dropping type:"<<msg.type;
+        qDebug()<<"ERROR:bad message type to send, dropping type:"<<msg.type;
         return;
     }
     QJson::Serializer serializer;
