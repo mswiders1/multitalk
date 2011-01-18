@@ -21,6 +21,7 @@ public:
     int msg_id;
     QList<int> time_vec;
     QString content;
+    long sequence;
 };
 
 #endif // MESSAGE_H

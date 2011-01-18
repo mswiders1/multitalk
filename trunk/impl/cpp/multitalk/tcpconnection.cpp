@@ -2,6 +2,7 @@
 #include <qjson/parser.h>
 #include <qjson/serializer.h>
 #include "message.h"
+#include <QHostAddress>
 
 TcpConnection::TcpConnection(QObject *parent) :
     QTcpSocket(parent), headerRead(false)

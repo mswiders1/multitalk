@@ -2,7 +2,6 @@
 #define TCPCONNECTION_H
 
 #include <QTcpSocket>
-#include "multitalkwindow.h"
 #include "message.h"
 
 class MultitalkWindow;
@@ -16,7 +15,6 @@ public:
 private:
     bool headerRead;
     int numberOfBytesToRead;
-    MultitalkWindow *main;
     void parseMessage(QByteArray& data);
 signals:
     void connectionDisconnected(TcpConnection* connection);

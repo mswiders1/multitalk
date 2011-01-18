@@ -4,11 +4,7 @@
 #include <QTcpServer>
 #include <QList>
 #include "tcpconnection.h"
-#include "multitalkwindow.h"
 #include "message.h"
-
-class MultitalkWindow;
-class TcpConnection;
 
 class TcpServer : public QTcpServer
 {
