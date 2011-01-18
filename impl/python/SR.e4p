@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SR -->
-<!-- Saved: 2011-01-17, 19:34:38 -->
+<!-- Saved: 2011-01-18, 16:58:03 -->
 <!-- Copyright (C) 2011 Marcin Kamionowski, soldier.kam@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
@@ -45,6 +45,7 @@
     <Source>network/TCPManager.py</Source>
     <Source>qtForms/Ui_private.py</Source>
     <Source>gui/Private.py</Source>
+    <Source>core/Heartbeat.py</Source>
   </Sources>
   <Forms>
     <Form>qtForms/window.ui</Form>

@@ -97,9 +97,17 @@ class Core:
     
     def handleLogMessage(self,  msg,  connection):
         print "Core: analiza wiadomosci Log"
-        self.model.logNewUser(msg['UID'],  msg['USERNAME'], None) # TODO: jaki adres ip wstawic?
-        self.tcpm.mapNodeToConnection(msg['UID'],  connection) # TODO : co w przypadku gdy connection sluzylo jako proxy dla tej wiadomoscis
-        return True
+        if self.model.logNewUser(msg['UID'],  msg['USERNAME'], msg['IP_ADDRESS']):
+            self.tcpm.mapNodeToConnection(msg['UID'],  connection) # TODO : co w przypadku gdy connection sluzylo jako proxy dla tej wiadomoscis
+            connection.sendMtxMsg()
+            print "Core: przesłałem MTX"
+            return True
+        else:
+            return False
+
+    def handleMtxMessage(self,  msg):
+        print "Core: analiza wiadomosci MTX"
+        
 
     def handleOutMessage(self,  msg):
         print "Core: ktos sie żegna z nami :("
@@ -142,7 +150,8 @@ class Core:
                 
     def handleReceivedBroadcastPacket(self,  fromIP):
         print "Core: ktos chce abysmy podlaczyli sie do niego"
-        if not self.tcpm.isConnectedToIp(fromIP):
+        if self.tcpm.isNotConnectedToIp(fromIP):
+            print "Core: nie mam do niego polaczenie wiec tworze je %s" % fromIP
             TCPClient.startTCPConnection(self.reactor,  fromIP)
     
     def setGui(self,  gui):

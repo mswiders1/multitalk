@@ -9,8 +9,9 @@ INIT = 1
 WAIT_FOR_HII = 2
 WAIT_FOR_HII_OR_P2P = 3
 WAIT_FOR_LOG = 4
-CONNECTED = 5
-DISCONNECTED = 6
+WAIT_FOR_MTX = 5
+CONNECTED = 6
+DISCONNECTED = 7
 MULTITALK_TAG = 'MULTITALK_5387132'
 
 class TCPProtocol(LineReceiver):
@@ -25,7 +26,7 @@ class TCPProtocol(LineReceiver):
         
         if msgType == "HII" and ( self.state == WAIT_FOR_HII_OR_P2P or self.state == WAIT_FOR_HII):
             appVar.coreInstance.handleHiiMessage(jsonObj,  self)
-            self.state = CONNECTED
+            self.state = WAIT_FOR_MTX
         elif msgType == "P2P" and self.state == WAIT_FOR_HII_OR_P2P:
             # otrzymalismy P2P wiec przedstawiamy sie i oczekujemy na LOG
             msgToSend = MessageParser.getFullHiiMsg()
@@ -38,10 +39,13 @@ class TCPProtocol(LineReceiver):
             else:
                 self.logMsg("odrzucono logowanie - przerywam polaczenie")
                 self.transport.loseConnection()
-        elif msgType == 'OUT':
+        elif msgType == 'MTX' and self.state == WAIT_FOR_MTX:
+            appVar.coreInstance.handleMtxMessage(jsonObj)
+            self.state = CONNECTED
+        elif msgType == 'OUT' and self.state == CONNECTED:
             appVar.coreInstance.handleOutMessage(jsonObj)
             self.state = DISCONNECTED
-        elif msgType == 'LIV':
+        elif msgType == 'LIV' and self.state == CONNECTED:
             appVar.coreInstance.handleLivMessage(jsonObj)
         else:
             self.logMsg("bledny typ wiadomosci '%s' w stanie %d" % (msgType,  self.state))
@@ -54,6 +58,11 @@ class TCPProtocol(LineReceiver):
     
     def connectionMade(self):
         self.logMsg("nowe polaczenie")
+        if not appVar.tcpManager.isNotConnectedToIp(self.transport.getPeer().host):
+            #mamy juz polaczenie do niego wiec kazemy mu spadac
+            self.logMsg("dziekuje ale mam juz takie polaczenie :)")
+            self.transport.loseConnection()
+            return
         self.transport.setTcpNoDelay(True)
         if self.state == INIT:
             appVar.tcpManager.newConnection(self)
@@ -146,7 +155,11 @@ class TCPProtocol(LineReceiver):
         self.logMsg("wysylam out msg '%s'" % msgToSend)
         self.sendPacket(msgToSend)
         self.transport.loseConnection()
-    
+        
+    def sendMtxMsg(self):
+        msgToSend = MessageParser.getFullMtxMsg()
+        self.sendPacket(msgToSend)
+        
     def logMsg(self,  msg):
         print "TCP: %s (%s)" %(msg,  self.transport.getPeer())
 

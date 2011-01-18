@@ -54,6 +54,8 @@ class Main(QtGui.QMainWindow):
             else:
                 return False
         self.core.handleUserInsertedNick(unicode(nickName))
+        title = self.windowTitle()
+        self.setWindowTitle(unicode(title) + u" (" + unicode(nickName) + ")")
         return True
         
     def on_sendButton_released(self):
