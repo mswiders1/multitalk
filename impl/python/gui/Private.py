@@ -12,10 +12,10 @@ class Private(QtGui.QDialog):
         self.core = core
         self.uidOfOtherSide = uid
         self.nameOfOtherSide = useraname
-        self.setWindowTitle("Rozmowa z %s" % useraname)
         self.ui=Ui_Private()
         self.ui.setupUi(self)
         self.initModels()
+        self.setWindowTitle("Rozmowa z %s" % useraname)
         self.ui.msgText.setFocus()
         
     def on_sendButton_released(self):
@@ -43,11 +43,15 @@ class Private(QtGui.QDialog):
         tv = self.ui.conversationView.horizontalHeader()
         tv.setStretchLastSection(True)
         self.ui.conversationView.resizeColumnsToContents()
+    
+    def userDisconnected(self):
+        self.ui.conversationView.setEnabled(False)
+        self.ui.sendButton.setEnabled(False)
+        self.ui.msgText.setEnabled(False)
+        self.ui.delay.setEnabled(False)
+        title = unicode(self.windowTitle())
+        self.setWindowTitle(title + u"(rozłączony)")
         
-    def showMsgInLogView(self,  message):
-        text = self.ui.logView.toPlainText()
-        self.ui.logView.setPlainText(text.append(message).append("\n"))
-
     def closeEvent(self,  closeEvent):
         print "Gui: zamykam okno rozmowy"
         self.mainWndow.conversationWindowClosed(self.uidOfOtherSide)

@@ -82,10 +82,13 @@ class Main(QtGui.QMainWindow):
         Main.logger(u"Dodano użytkownika %s (%s)" % (name,  uid))
         self.peersModel.addPeer(uid,  name)
         
-    def delNode(self,  uid,  name):
-        Main.logger(u"Usunięto użytkownika %s (%s)" % (name,  uid))
-        self.peersModel.delPeer(uid,  name)
-        
+    def delNode(self,  uid):
+        Main.logger(u"Usunięto użytkownika %s" % (uid))
+        self.peersModel.delPeer(uid)
+        if self.peerToWindow.keys().count(uid):
+            print "Gui: blokuje okno rozmowy z uzytkownikiem %s " % uid
+            self.peerToWindow[uid].userDisconnected()
+            
     def messageReceived(self,  uidSender,  uidReceiver,  msg):
         isMsgToAll = uidReceiver == None
         Main.logger(u"Otrzymano wiadomość '%s' od %s (do wszystkich: %s)" %(msg,  uidSender,  isMsgToAll))

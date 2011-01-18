@@ -66,6 +66,13 @@ class Model():
         else:
             print "Model: juz znam wezel o id %s" % uid
 
+    def removeNode(self,  uid):
+        print "Model: usuwam wskazanego wezla - %s" % uid
+        self.__nodes.remove(uid)
+        del self.__nodeToIPMapping[uid]
+        del self.__nodeToNickMaping[uid]
+        appVar.guiInstance.delNode(uid)
+
     def setIamFirstNode(self):
         self.addNode(self.getMyId(),  self.getNick(),  getInetAddress())
 
