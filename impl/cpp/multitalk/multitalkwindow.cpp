@@ -124,6 +124,18 @@ void MultitalkWindow::clientDisconnected(QString uid)
 
 void MultitalkWindow::handleReceivedMessage(Message msg)
 {
+    if(messageHistory.contains(msg))
+    {
+        qDebug()<<"already got this message, ignoring";
+        return;
+    }
+    else
+    {
+        messageHistory.push_front(msg);
+        if(messageHistory.size()>1000)
+            messageHistory.removeLast();
+        emit sendMessageToNetwork(msg);
+    }
     qDebug()<<"Multitalkwindow got message type:"<<msg.type;
     if(msg.type=="HII")
     {

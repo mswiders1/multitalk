@@ -22,6 +22,8 @@ public:
     QList<int> time_vec;
     QString content;
     qlonglong sequence;
+
+    bool operator==(Message const& a);
 };
 
 #endif // MESSAGE_H

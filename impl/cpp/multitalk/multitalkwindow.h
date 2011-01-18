@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QLabel>
+#include <QLinkedList>
 #include "connectdialog.h"
 #include "broadcast.h"
 #include "tcpserver.h"
@@ -26,6 +27,7 @@ public:
     QString uid;
     QString newUid;
     QList<UserData> users;
+    QLinkedList<Message> messageHistory;
 private:
     Ui::MultitalkWindow *ui;
     QLabel* statusBarLabel;

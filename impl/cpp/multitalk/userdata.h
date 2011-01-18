@@ -10,6 +10,7 @@ public:
     QString uid;
     QString username;
     QString ip;
+    bool operator==(UserData const& a);
 };
 
 
