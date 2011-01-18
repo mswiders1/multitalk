@@ -78,9 +78,19 @@ class Core:
         self.tcpm.mapNodeToConnection(msg['UID'],  connection) # TODO : co w przypadku gdy connection sluzylo jako proxy dla tej wiadomoscis
         return True
 
+    def handleOutMessage(self,  msg):
+        print "Core: ktos sie żegna z nami :("
+        uid = msg["UID"]
+        self.model.removeNode(uid)
+
     def closeApp(self):
         print "Core: zamykam applikacje"
+        self.__sendOutMsgToAll()
         return True
+        
+    def __sendOutMsgToAll(self):
+        for connection in self.tcpm.getMappedConnections():
+            connection.sendOutMsgAndCloseConnection()
         
     def __handleBroadcastEnd(self):
         #Koniec przeszukiwania

@@ -38,9 +38,12 @@ class PeersModel(QAbstractTableModel):
         self.arraydata.append([peerName,  uid])
         self.emit(SIGNAL("layoutChanged()"))
 
-    def delPeer(self,  uid,  peerName):
+    def delPeer(self,  uid):
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
-        self.arraydata.remove([uid,  peerName])
+        for peer in self.arraydata:
+            if peer[1] == uid:
+                self.arraydata.remove(peer)
+                break
         self.emit(SIGNAL("layoutChanged()"))
 
     def sort(self, Ncol, order):

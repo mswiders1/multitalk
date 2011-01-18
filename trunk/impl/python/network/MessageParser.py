@@ -30,3 +30,7 @@ def getFullHiiMsg():
 def getFullLogMsg():
     inner = getLogMsg()
     return getMsgWithJSONInside(inner)
+
+def getFullOutMsg():
+    inner = getOutMsg()
+    return getMsgWithJSONInside(inner)

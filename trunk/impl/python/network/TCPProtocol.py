@@ -29,6 +29,8 @@ class TCPProtocol(LineReceiver):
             else:
                 self.logMsg("odrzucono logowanie - przerywam polaczenie")
                 self.transport.loseConnection()
+        elif msgType == "OUT":
+            appVar.coreInstance.handleOutMessage(jsonObj)
         else:
             self.logMsg("bledny typ wiadomosci '%s' w stanie %d" % (msgType,  self.state))
             self.transport.loseConnection()
@@ -115,7 +117,13 @@ class TCPProtocol(LineReceiver):
         msgToSend = MessageParser.getFullLogMsg()
         self.logMsg("wysylam log msg '%s'" % msgToSend)
         self.sendPacket(msgToSend)
-                    
+    
+    def sendOutMsgAndCloseConnection(self):
+        msgToSend = MessageParser.getFullOutMsg()
+        self.logMsg("wysylam out msg '%s'" % msgToSend)
+        self.sendPacket(msgToSend)
+        self.transport.loseConnection()
+    
     def logMsg(self,  msg):
         print "TCP: %s (%s)" %(msg,  self.transport.getPeer())
 
