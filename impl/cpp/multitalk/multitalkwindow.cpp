@@ -133,12 +133,10 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
     }
     else
     {
-        messageHistory.push_front(msg);
-        if(messageHistory.size()>1000)
-            messageHistory.removeLast();
+        storeMessage(msg);
         if(msg.type!="HII")
-            //qDebug()<<"should send";
             emit sendMessageToNetwork(msg);
+
     }
     qDebug()<<"Multitalkwindow got message type:"<<msg.type;
     if(msg.type=="HII")
@@ -191,6 +189,12 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
 }
 
 
+void MultitalkWindow::storeMessage(Message msg)
+{
+    messageHistory.push_front(msg);
+    if(messageHistory.size()>1000)
+        messageHistory.removeLast();
+}
 
 void MultitalkWindow::sendLogMessage()
 {
@@ -199,6 +203,7 @@ void MultitalkWindow::sendLogMessage()
     msg.uid=uid;
     msg.username=username;
     msg.ip_address=ipAddress;
+    //storeMessage(msg);
     emit sendMessageToNetwork(msg);
 
     livTimer->setInterval(10000);
@@ -213,6 +218,7 @@ void MultitalkWindow::sendLivMessage()
     msg.uid=uid;
     msg.ip_address=ipAddress;
     msg.sequence=livSequence++;
+    //storeMessage(msg);
     emit sendMessageToNetwork(msg);
 }
 
@@ -221,5 +227,6 @@ void MultitalkWindow::sendOutMessage()
     Message msg;
     msg.type="OUT";
     msg.uid=uid;
+    //storeMessage(msg);
     emit sendMessageToNetwork(msg);
 }

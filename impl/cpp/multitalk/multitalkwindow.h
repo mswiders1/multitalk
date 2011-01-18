@@ -38,7 +38,7 @@ private:
     TcpServer* tcpServer;
     long livSequence;
     QTimer* livTimer;
-
+    void storeMessage(Message msg);
 
 signals:
     void connectToNetworkAccepted();
@@ -54,6 +54,7 @@ private slots:
     void sendLogMessage();
     void sendLivMessage();
     void sendOutMessage();
+
 };
 
 #endif // MULTITALKWINDOW_H
