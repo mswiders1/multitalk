@@ -20,11 +20,12 @@ void TcpServer::incomingConnection(int socketDescriptor)
 {
     TcpConnection *clientConnection=new TcpConnection(this);
     connectionList.append(clientConnection);
+    clientConnection->setSocketDescriptor(socketDescriptor);
     if(clientConnection->peerAddress()!=clientConnection->localAddress())
     {
         connect(this,SIGNAL(sendMessageToNetwork(Message)),clientConnection,SLOT(sendMessageToNetwork(Message)));
     }
-    clientConnection->setSocketDescriptor(socketDescriptor);
+
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));
     connect(clientConnection,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(disconnectedConnection(TcpConnection*)));
     connect(clientConnection,SIGNAL(receivedMessageFromNetwork(Message)),this,SIGNAL(receivedMessageFromNetwork(Message)));
