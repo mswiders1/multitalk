@@ -149,7 +149,7 @@ wektor kolejności: UID usera, którego wartość zegara logicznego jest na i-te
 Protokół *TCP/IP*
 Odbiorca: wszyscy użytkownicy
 
-Wysyłany co 5 sekund.
+Wysyłany co 10 sekund.
 
 Zawartość:
 
@@ -158,6 +158,7 @@ Zawartość:
 || TYPE || CHAR(3) || _LIV_ ||
 || UID || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64||
 || IP_ADDRESS || VARCHAR(15) || adres ip ||
+|| SEQUENCE || NUMBER || kolejne numery ||
 
 
 = GET message =
