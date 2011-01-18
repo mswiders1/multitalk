@@ -117,7 +117,9 @@ void MultitalkWindow::clientDisconnected(QString uid)
     if(i!=users.end())
     {
         qDebug()<<"removing:"<<pos;
-        delete ui->listWidget->takeItem(pos);
+        QListWidgetItem* item=ui->listWidget->takeItem(pos);
+        if(item!=0)
+            delete item;
         users.removeAt(pos);
     }
 }
