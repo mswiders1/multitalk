@@ -4,10 +4,9 @@
 #include <qjson/serializer.h>
 #include <QTextStream>
 
-TcpServer::TcpServer(QObject *parent,MultitalkWindow *main_) :
-    QTcpServer(parent),main(main_)
+TcpServer::TcpServer(QObject *parent) :
+    QTcpServer(parent)
 {
-    connect(this,SIGNAL(clientDisconnected(QString)),main,SLOT(clientDisconnected(QString)));
     if(!listen(QHostAddress::Any,3554))
         qDebug()<<"unable to Listen on port 3554";
     else
@@ -19,11 +18,12 @@ TcpServer::TcpServer(QObject *parent,MultitalkWindow *main_) :
 
 void TcpServer::incomingConnection(int socketDescriptor)
 {
-    TcpConnection *clientConnection=new TcpConnection(this,main);
+    TcpConnection *clientConnection=new TcpConnection(this);
     connectionList.append(clientConnection);
     clientConnection->setSocketDescriptor(socketDescriptor);
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));
     connect(clientConnection,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(disconnectedConnection(TcpConnection*)));
+    connect(clientConnection,SIGNAL(receivedMessageFromNetwork(Message)),this,SIGNAL(receivedMessageFromNetwork(Message)));
     qDebug()<<"client connected:"<<clientConnection->peerAddress();
     qDebug()<<"socket descriptor:"<<socketDescriptor;
 }
@@ -35,36 +35,16 @@ void TcpServer::disconnectedConnection(TcpConnection *connection)
     connectionList.removeOne(connection);
 }
 
-void TcpServer::connectToClient(QHostAddress address)
+void TcpServer::connectToClient(QHostAddress address,Message msg)
 {
-    TcpConnection *clientConnection=new TcpConnection(this,main);
+    TcpConnection *clientConnection=new TcpConnection(this);
     connectionList.append(clientConnection);
     clientConnection->connectToHost(address,3554);
-    QVariantMap packet;
-    packet.insert("TYPE","HII");
-    packet.insert("UID",main->uid);
-    packet.insert("USERNAME",main->nick);
-    QVariantList vector;
-    QList<UserData>::iterator i;
-    for(i=main->users.begin();i!=main->users.end();++i)
-    {
-        QVariantMap userMap;
-        userMap.insert("IP_ADDRESS",i->ip);
-        userMap.insert("UID",i->uid);
-        userMap.insert("USERNAME",i->nick);
-        vector.append(userMap);
-    }
-    packet.insert("VECTOR",vector);
-    QJson::Serializer serializer;
-    QByteArray packetArray=serializer.serialize(packet);
-    QString header;
-    QTextStream(&header)<<"BEGIN_MESSAGE:"<<packetArray.size()<<"\n";
-    clientConnection->write(QByteArray(header.toAscii()));
-    clientConnection->write(packetArray);
-    qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
-
-    //clientConnection->write(QByteArray("test\n"));
+    clientConnection->sendMessageToNetwork(msg);
+    //clientConnection->write(QByteArray("test\n"));*/
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));
     connect(clientConnection,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(disconnectedConnection(TcpConnection*)));
+    connect(this,SIGNAL(sendMessageToNetwork(Message)),clientConnection,SLOT(sendMessageToNetwork(Message)));
     qDebug()<<"connect to:"<<address;
 }
+
