@@ -97,7 +97,8 @@ class Main(QtGui.QMainWindow):
         elif self.peerToWindow.keys().count(uidSender):
             peerWin = self.peerToWindow[uidSender]
             peerWin.messageReceived(uidSender, msg)
-            
+        else:
+                print "Gui: brak okna dla %s " % uidSender
         
     def on_newMessage_returnPressed(self):
         mouseEvent = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonPress, self.ui.sendButton.pos(), QtCore.Qt.LeftButton, QtCore.Qt.LeftButton, QtCore.Qt.NoModifier )

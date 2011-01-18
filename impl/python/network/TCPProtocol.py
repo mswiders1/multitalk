@@ -6,9 +6,11 @@ import json
 import appVar
 
 INIT = 1
-WAIT_FOR_HII_OR_MULTITALK = 3
+WAIT_FOR_HII = 2
+WAIT_FOR_HII_OR_P2P = 3
 WAIT_FOR_LOG = 4
 CONNECTED = 5
+DISCONNECTED = 6
 MULTITALK_TAG = 'MULTITALK_5387132'
 
 class TCPProtocol(LineReceiver):
@@ -21,23 +23,33 @@ class TCPProtocol(LineReceiver):
         self.logMsg("odebralem obiekt json")
         msgType = jsonObj['TYPE']
         
-        if msgType == "HII" and self.state == WAIT_FOR_HII_OR_MULTITALK:
+        if msgType == "HII" and ( self.state == WAIT_FOR_HII_OR_P2P or self.state == WAIT_FOR_HII):
             appVar.coreInstance.handleHiiMessage(jsonObj,  self)
+            self.state = CONNECTED
+        elif msgType == "P2P" and self.state == WAIT_FOR_HII_OR_P2P:
+            # otrzymalismy P2P wiec przedstawiamy sie i oczekujemy na LOG
+            msgToSend = MessageParser.getFullHiiMsg()
+            self.logMsg("wysyłam wiadomosc i czekam na log msg : '%s'" % msgToSend)
+            self.sendPacket(msgToSend)
+            self.state = WAIT_FOR_LOG
         elif msgType == "LOG" and self.state == WAIT_FOR_LOG:
             if appVar.coreInstance.handleLogMessage(jsonObj,  self):
                 self.state = CONNECTED
             else:
                 self.logMsg("odrzucono logowanie - przerywam polaczenie")
                 self.transport.loseConnection()
-        elif msgType == "OUT":
+        elif msgType == 'OUT':
             appVar.coreInstance.handleOutMessage(jsonObj)
+            self.state = DISCONNECTED
+        elif msgType == 'LIV':
+            appVar.coreInstance.handleLivMessage(jsonObj)
         else:
             self.logMsg("bledny typ wiadomosci '%s' w stanie %d" % (msgType,  self.state))
+            self.state = DISCONNECTED
             self.transport.loseConnection()
     
     def sendPacket(self,  msg):
         self.transport.write(msg)
-        self.transport.write("\n")
         self.logMsg("wyslano dane ")
     
     def connectionMade(self):
@@ -52,14 +64,14 @@ class TCPProtocol(LineReceiver):
                 self.logMsg("wysyłam wiadomosc i czekam na log msg : '%s'" % msgToSend)
                 self.sendPacket(msgToSend)
             elif self.isClient and self.isReversed:
-                # to my utworzylismy polaczenie wiec wysylamy MULTITALK_5387132 i czekamy na HII msg
+                # to my utworzylismy polaczenie wiec wysylamy P2P i czekamy na HII msg
                 self.logMsg("czekam na znacznik %s")
-                self.sendPacket(MULTITALK_TAG)
-                self.state = WAIT_FOR_HII_OR_MULTITALK
+                self.sendPacket(MessageParser.getFullP2pMsg())
+                self.state = WAIT_FOR_HII
             else:
-                # ktos do nas sie podlaczyl wiec poprostu czekamy na HII lub MULTITALK_5387132
+                # ktos do nas sie podlaczyl wiec poprostu czekamy na HII lub P2P
                 self.logMsg("czekam na hii/multitalk message")
-                self.state = WAIT_FOR_HII_OR_MULTITALK
+                self.state = WAIT_FOR_HII_OR_P2P
         else:
             self.logMsg("bledny stan protokolu")
             assert(False)
@@ -70,14 +82,14 @@ class TCPProtocol(LineReceiver):
     
     def lineReceived(self, line):
         self.logMsg("otrzymałem linie tekstu")
-        if self.state == WAIT_FOR_HII_OR_MULTITALK and line == MULTITALK_TAG:
+        if self.state == WAIT_FOR_HII_OR_P2P and line == MULTITALK_TAG:
             #ktos podlaczyl sie do nas podajac z palca IP wiec wysylamy mu HII i oczekujemy na LOG
             msgToSend = MessageParser.getFullHiiMsg()
             self.logMsg("wysylam hi msg '%s'" % msgToSend)
             self.sendPacket(msgToSend)
             self.state = WAIT_FOR_LOG
             return
-        elif self.state == WAIT_FOR_HII_OR_MULTITALK:
+        elif self.state == WAIT_FOR_HII_OR_P2P:
             self.logMsg("niedopasowalem znacznika %s wiec oczekuja ze otrzymam HII" % MULTITALK_TAG)
             
         len = MessageParser.getMessageLen(line)
@@ -98,16 +110,23 @@ class TCPProtocol(LineReceiver):
         if len(self.packet) >= self.packetSize:
             self.logMsg("odczytano caly pakiet")
             self.setLineMode()
-            self.__deserializeJson()
-            
+            #wydzielamy z pakietu to co chcielismy otrzymac
+            packet = self.packet[0:self.packetSize]
+            restOfData = self.packet[self.packetSize:]
+            self.__deserializeJson(packet)
+            self.setLineMode()
+            self.packet = None
+            # reszte przekazujemy do ponownej analizy
+            if len(restOfData):
+                self.dataReceived(restOfData)
         else:
             self.logMsg("odczytano fragment pakietu %s" % len(self.packet))
             
         
-    def __deserializeJson(self):
-        assert(self.packet)
-        self.logMsg("deserializacja jsona '%s'" % self.packet)
-        jsonObj = json.loads(self.packet)
+    def __deserializeJson(self,  packet):
+        assert(packet)
+        self.logMsg("deserializacja jsona '%s'" % packet)
+        jsonObj = json.loads(packet)
         if jsonObj:
             self.jsonReceived(jsonObj)
         else:
@@ -116,6 +135,10 @@ class TCPProtocol(LineReceiver):
     def sendLogMsg(self):
         msgToSend = MessageParser.getFullLogMsg()
         self.logMsg("wysylam log msg '%s'" % msgToSend)
+        self.sendPacket(msgToSend)
+    
+    def sendLivMsg(self):
+        msgToSend = MessageParser.getFullLivMsg()
         self.sendPacket(msgToSend)
     
     def sendOutMsgAndCloseConnection(self):

@@ -34,3 +34,15 @@ def getFullLogMsg():
 def getFullOutMsg():
     inner = getOutMsg()
     return getMsgWithJSONInside(inner)
+    
+def getFullP2pMsg():
+    inner = getP2pMsg()
+    return getMsgWithJSONInside(inner)
+    
+def getFullGetMsg(senderOfMissinMsg,  timeOfSend):
+    inner = getGetMsg(senderOfMissinMsg,  timeOfSend)
+    return getMsgWithJSONInside(inner)
+
+def getFullLivMsg():
+    inner = getLivMsg()
+    return getMsgWithJSONInside(inner)
