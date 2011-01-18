@@ -11,6 +11,7 @@ import android.content.Context;
 import android.util.Log;
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.messages.HiMessage;
+import pl.multitalk.android.managers.messages.LivMessage;
 import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
 import pl.multitalk.android.managers.messages.MtxMessage;
@@ -35,6 +36,7 @@ public class MultitalkNetworkManager {
     private BroadcastNetworkManager broadcastNetworkManager;
     private TCPIPNetworkManager tcpipNetworkManager;
     private Timer sendLogTimer;
+    private Timer sendLivTimer;
     private BlockingQueue<Message> messageQueue = null;
     private MessageDispatcher messageDispatcher;
     
@@ -142,6 +144,8 @@ public class MultitalkNetworkManager {
      * Wylogowuje z sieci Multitalk
      */
     public void logout(){
+        stopSendingLivMessage();
+        
         if(isLoggedIn){
             // wysłanie OUT message
             OutMessage outMessage = new OutMessage();
@@ -207,7 +211,10 @@ public class MultitalkNetworkManager {
         if(!notLoggedUsers.contains(newUserInfo)){
             notLoggedUsers.add(newUserInfo);
         }
-    }/**
+    }
+    
+    
+    /**
      * Usuwa informację o niezalogowanym użytkowniku
      * @param userInfoToRemove informacje o niezalogowanym użytkowniku do usunięcia
      */
@@ -233,6 +240,10 @@ public class MultitalkNetworkManager {
      */
     public synchronized void setLoggedIn(boolean loggedIn){
         isLoggedIn = loggedIn;
+
+        // rozpoczęcie nasłuchiwania po broadcast-cie
+        broadcastNetworkManager.startBroadcastListening();
+        startSendingLivMessage();
     }
     
     
@@ -255,6 +266,25 @@ public class MultitalkNetworkManager {
         } catch (InterruptedException e) {
             Log.e(Constants.ERROR_TAG, "InterruptedException at MultitalkNetworkManager#putMessage");
             return;
+        }
+    }
+    
+    
+    /**
+     * Rozpoczyna wysyłanie komunikatów LIV
+     */
+    private void startSendingLivMessage(){
+        sendLivTimer = new Timer();
+        sendLivTimer.schedule(new SendLivMessageTimerTask(), 3000, 5000);
+    }
+    
+    
+    /**
+     * Kończy wysyłanie komunikatów LIV
+     */
+    private void stopSendingLivMessage(){
+        if(sendLivTimer != null){
+            sendLivTimer.cancel();
         }
     }
     
@@ -380,9 +410,23 @@ public class MultitalkNetworkManager {
             
             // ustawienie znacznika
             MultitalkNetworkManager.this.setLoggedIn(true);
-            
-            // rozpoczęcie nasłuchiwania po broadcast-cie
-            broadcastNetworkManager.startBroadcastListening();
+        }
+        
+    }
+    
+    
+    /**
+     * Zadanie wysłania komunikatu alive
+     */
+    class SendLivMessageTimerTask extends TimerTask{
+
+        @Override
+        public void run() {
+            // wysyłamy do wszystkich
+            LivMessage message = new LivMessage();
+            message.setSenderInfo(userInfo);
+            message.setUserInfo(userInfo);
+            tcpipNetworkManager.sendMessageToAll(message);
         }
         
     }
@@ -410,13 +454,18 @@ public class MultitalkNetworkManager {
                 while(true){
                     message = this.messageQueue.take();
                     
-                    if(message instanceof DiscoveryPacketReceivedMessage){
+                    if(message instanceof LivMessage){
+                        Log.d(Constants.DEBUG_TAG, "received LIV message");
+                        // TODO
+                        continue;
+                    
+                    } else if(message instanceof DiscoveryPacketReceivedMessage){
                         Log.d(Constants.DEBUG_TAG, "received discovery packet");
                         MultitalkNetworkManager.this.handleDiscoveryPacketReceived(
                                 (DiscoveryPacketReceivedMessage) message);
                         continue;
                     
-                    }else if(message instanceof HiMessage){
+                    } else if(message instanceof HiMessage){
                         Log.d(Constants.DEBUG_TAG, "received HII message");
                         MultitalkNetworkManager.this.handleHiMessage((HiMessage) message);                        
                         continue;
