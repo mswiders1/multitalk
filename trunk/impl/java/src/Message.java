@@ -56,19 +56,9 @@ class BroadcastMsg
 
 class P2pMsg extends Message
 {
-	private String content;	
-
-	public String getContent() {
-		return content;
-	}
-	
-	public void setContent(String content) {
-		this.content = content;
-	}		
 	public P2pMsg()
 	{	super();
-		this.setType("P2P");		
-		this.setContent("MULTITALK_5387132");
+		this.setType("P2P");
 	}
 }
 
