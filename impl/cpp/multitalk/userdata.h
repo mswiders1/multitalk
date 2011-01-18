@@ -1,19 +1,16 @@
 #ifndef USERDATA_H
 #define USERDATA_H
 
-#include <QListWidget>
+#include <QString>
 
 class UserData
 {
 public:
+    UserData();
     QString uid;
-    QString nick;
+    QString username;
     QString ip;
-    QListWidgetItem* item;
-
-signals:
-
-public slots:
-
 };
+
+
 #endif // USERDATA_H

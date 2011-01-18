@@ -5,6 +5,7 @@
 #include <QList>
 #include <QCryptographicHash>
 #include "userdata.h"
+#include <QTimer>
 
 MultitalkWindow::MultitalkWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -52,16 +53,23 @@ void MultitalkWindow::connectToNetwork()
         if(tcpServer!=NULL)
             delete tcpServer;
         else
-            tcpServer=new TcpServer(this,this);
+        {
+            tcpServer=new TcpServer(this);
+            connect(tcpServer,SIGNAL(receivedMessageFromNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
+            connect(tcpServer,SIGNAL(clientDisconnected(QString)),this,SLOT(clientDisconnected(QString)));
+        }
         emit connectToNetworkAccepted();
 
+        QTimer::singleShot(5000,this,SLOT(sendLogMessage()));
+
+        connect(this,SIGNAL(sendMessageToNetwork(Message)),tcpServer,SIGNAL(sendMessageToNetwork(Message)));
     }
 }
 
 void MultitalkWindow::setNick(QString newNick)
 {
-    nick=newNick;
-    QString text=macAddress+ipAddress+nick;
+    username=newNick;
+    QString text=macAddress+ipAddress+username;
     uid=QString(QCryptographicHash::hash(text.toAscii(),QCryptographicHash::Sha1).toBase64());
     qDebug()<<"uid:"<<uid;
 }
@@ -73,32 +81,12 @@ void MultitalkWindow::setConnectIp(QString ip)
 
 void MultitalkWindow::connectToAddress(QHostAddress address)
 {
-    tcpServer->connectToClient(address);
-}
-
-void MultitalkWindow::receiveNewClientMessage(QString uid, QString nick,QString ip)
-{
-    qDebug()<<"receiveNewClientMessage";
-    QList<UserData>::iterator i;
-    for(i=users.begin();i!=users.end();++i)
-    {
-        if(i->uid==uid)
-            break;
-    }
-    if(i==users.end())
-    {
-        QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
-        newItem->setText(nick);
-        ui->listWidget->addItem(newItem);
-        UserData userData;
-        userData.uid=uid;
-        userData.nick=nick;
-        userData.ip=ip;
-        userData.item=newItem;
-        users.append(userData);
-    }
-    else
-        qDebug()<<"client already exists";
+    Message msg;
+    msg.type="HII";
+    msg.uid=uid;
+    msg.username=username;
+    msg.vector=users;
+    tcpServer->connectToClient(address,msg);
 }
 
 void MultitalkWindow::clientDisconnected(QString uid)
@@ -118,4 +106,41 @@ void MultitalkWindow::clientDisconnected(QString uid)
         delete ui->listWidget->takeItem(pos);
         users.removeAt(pos);
     }
+}
+
+void MultitalkWindow::handleReceivedMessage(Message msg)
+{
+    qDebug()<<"Multitalkwindow got message type:"<<msg.type;
+    if(msg.type=="LOG")
+    {
+        QList<UserData>::iterator i;
+        for(i=users.begin();i!=users.end();++i)
+        {
+            if(i->uid==uid)
+                break;
+        }
+        if(i==users.end())
+        {
+            QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
+            newItem->setText(username);
+            ui->listWidget->addItem(newItem);
+            UserData userData;
+            userData.uid=msg.uid;
+            userData.username=msg.username;
+            userData.ip=msg.ip_address;
+            users.append(userData);
+        }
+        else
+            qDebug()<<"client already exists";
+    }
+}
+
+void MultitalkWindow::sendLogMessage()
+{
+    Message msg;
+    msg.type="LOG";
+    msg.uid=uid;
+    msg.username=username;
+    msg.ip_address=ipAddress;
+    emit sendMessageToNetwork(msg);
 }

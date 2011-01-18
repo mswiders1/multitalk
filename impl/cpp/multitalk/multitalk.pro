@@ -16,14 +16,16 @@ SOURCES += main.cpp\
     broadcast.cpp \
     tcpserver.cpp \
     tcpconnection.cpp \
-    userdata.cpp
+    userdata.cpp \
+    message.cpp
 
 HEADERS  += multitalkwindow.h \
     connectdialog.h \
     broadcast.h \
     tcpserver.h \
     tcpconnection.h \
-    userdata.h
+    userdata.h \
+    message.h
 
 FORMS    += multitalkwindow.ui \
     connectdialog.ui
