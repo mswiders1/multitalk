@@ -11,7 +11,31 @@ public class MyId {
 	
 	
 	
-	private void findNIC()
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public InetAddress getInaddr() {
+		return inaddr;
+	}
+
+	public void setInaddr(InetAddress inaddr) {
+		this.inaddr = inaddr;
+	}
+
+	public NetworkInterface getNic() {
+		return nic;
+	}
+
+	public void setNic(NetworkInterface nic) {
+		this.nic = nic;
+	}
+
+	public void findNIC()
 	{
 		Enumeration  e,e2;
 		NetworkInterface ni;
@@ -46,7 +70,7 @@ public class MyId {
     	  return Integer.toHexString(i);
     	}
     
-    private String findIp(InetAddress _ia)
+    public String findIp(InetAddress _ia)
     {
     	String ip = "";    	 
     	try{
@@ -59,7 +83,7 @@ public class MyId {
     	return ip;
     }
     
-    private String findMac(NetworkInterface _nic)
+    public String findMac(NetworkInterface _nic)
     {
     	String mac = "";
     	byte [] b;

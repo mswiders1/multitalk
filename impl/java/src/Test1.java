@@ -8,6 +8,14 @@ public class Test1 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
+		
+		Broadcast b = new Broadcast(new NetManagement());
+		b.send();
+		b.receive();
+		//b.closeSocket();
+		
+		/*
 		Knowlage k = new Knowlage(1);
 		UserId u = new UserId(2);
 		Vector vk = new Vector();
@@ -34,6 +42,7 @@ public class Test1 {
 		serial.pack(mtx);
 		System.out.println(serial.getObj().toString());
 		serial.unpack(serial.getObj());
+		*/
 		//
 		// TODO Auto-generated method stub
 		/*Vector <Contact> v = new Vector<Contact>();
