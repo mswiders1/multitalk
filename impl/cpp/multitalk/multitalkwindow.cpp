@@ -30,6 +30,7 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
     ipAddress=i->addressEntries().begin()->ip().toString();
     qDebug()<<macAddress<<ipAddress;
     tcpServer=NULL;
+    livSequence=0;
 }
 
 MultitalkWindow::~MultitalkWindow()
@@ -52,18 +53,20 @@ void MultitalkWindow::connectToNetwork()
     {
         if(tcpServer!=NULL)
             delete tcpServer;
-        else
-        {
-            tcpServer=new TcpServer(this);
-            connect(tcpServer,SIGNAL(receivedMessageFromNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
-            connect(tcpServer,SIGNAL(clientDisconnected(QString)),this,SLOT(clientDisconnected(QString)));
-        }
-        emit connectToNetworkAccepted();
 
+        tcpServer=new TcpServer(this);
+        connect(tcpServer,SIGNAL(receivedMessageFromNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
+        connect(tcpServer,SIGNAL(clientDisconnected(QString)),this,SLOT(clientDisconnected(QString)));
         QTimer::singleShot(5000,this,SLOT(sendLogMessage()));
         QTimer::singleShot(1000,broadcast,SLOT(sendBroadcast()));
         QTimer::singleShot(2000,broadcast,SLOT(sendBroadcast()));
         connect(this,SIGNAL(sendMessageToNetwork(Message)),tcpServer,SIGNAL(sendMessageToNetwork(Message)));
+        livTimer=new QTimer(this);
+
+        emit connectToNetworkAccepted();
+
+
+
     }
 }
 
@@ -163,5 +166,18 @@ void MultitalkWindow::sendLogMessage()
     msg.uid=uid;
     msg.username=username;
     msg.ip_address=ipAddress;
+    emit sendMessageToNetwork(msg);
+    livTimer->setInterval(10000);
+    livTimer->start();
+    connect(livTimer,SIGNAL(timeout()),this,SLOT(sendLivMessage()));
+}
+
+void MultitalkWindow::sendLivMessage()
+{
+    Message msg;
+    msg.type="LIV";
+    msg.uid=uid;
+    msg.ip_address=ipAddress;
+    msg.sequence=livSequence++;
     emit sendMessageToNetwork(msg);
 }

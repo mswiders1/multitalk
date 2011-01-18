@@ -15,8 +15,6 @@ namespace Ui {
     class MultitalkWindow;
 }
 
-class TcpServer;
-
 class MultitalkWindow : public QMainWindow
 {
     Q_OBJECT
@@ -35,6 +33,8 @@ private:
     QString macAddress;
     QString connectIp;
     TcpServer* tcpServer;
+    long livSequence;
+    QTimer* livTimer;
 
 
 signals:
@@ -49,6 +49,7 @@ private slots:
     void handleReceivedMessage(Message msg);
     void clientDisconnected(QString uid);
     void sendLogMessage();
+    void sendLivMessage();
 };
 
 #endif // MULTITALKWINDOW_H
