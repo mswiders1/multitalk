@@ -195,7 +195,6 @@ public class MultitalkNetworkManager {
      * Usuwa informację o użytkowniku
      * @param userInfoToRemove informacje o użytkowniku do usunięcia
      */
-    @SuppressWarnings("unused")
     private synchronized void removeUserInfo(UserInfo userInfoToRemove){
         if(users.contains(userInfoToRemove)){
             users.remove(userInfoToRemove);
@@ -389,9 +388,11 @@ public class MultitalkNetworkManager {
      * @param message komunikat
      */
     public void handleOutMessage(OutMessage message){
-        mtx.removeUserFromMatrix(message.getUserInfo());
+//        mtx.removeUserFromMatrix(message.getUserInfo());
         tcpipNetworkManager.disconnectClient(message.getUserInfo());
-        users.remove(message.getUserInfo());
+        removeUserInfo(message.getUserInfo());
+        addNotLoggedUserInfo(message.getUserInfo());
+        
     }
     
     
