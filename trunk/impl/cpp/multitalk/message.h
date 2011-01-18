@@ -18,10 +18,10 @@ public:
     QList<QString> vec;
     QString sender;
     QString reciver;
-    int msg_id;
+    qint32 msg_id;
     QList<int> time_vec;
     QString content;
-    long sequence;
+    qlonglong sequence;
 };
 
 #endif // MESSAGE_H

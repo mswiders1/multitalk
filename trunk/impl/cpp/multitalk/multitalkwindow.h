@@ -21,9 +21,10 @@ class MultitalkWindow : public QMainWindow
 
 public:
     explicit MultitalkWindow(QWidget *parent = 0);
-    ~MultitalkWindow();
+    virtual ~MultitalkWindow();
     QString username;
     QString uid;
+    QString newUid;
     QList<UserData> users;
 private:
     Ui::MultitalkWindow *ui;
