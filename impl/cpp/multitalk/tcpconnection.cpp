@@ -73,6 +73,7 @@ void TcpConnection::parseMessage(QByteArray& data)
         else if(msg.type=="LOG")
         {
             //qDebug()<<"got LOG message";
+            clientUid=result["UID"].toString();
             msg.uid=clientUid;
             msg.username=result["USERNAME"].toString();
             msg.ip_address=result["IP_ADDRESS"].toString();
@@ -116,6 +117,7 @@ void TcpConnection::sendMessageToNetwork(Message msg)
         packet.insert("UID",msg.uid);
         packet.insert("USERNAME",msg.username);
         packet.insert("IP_ADDRESS",msg.ip_address);
+        qDebug()<<"sending LOG message, uid:"<<msg.uid<<" username:"<<msg.username;
     } else
     {
         qDebug()<<"ERROR:bad message type to connect, dropping type:"<<msg.type;
