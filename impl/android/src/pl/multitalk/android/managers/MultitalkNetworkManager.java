@@ -132,7 +132,7 @@ public class MultitalkNetworkManager {
         mtx = new ReliableBroadcastMatrix(userInfo);
         
         // wysłanie UDP discovery
-        broadcastNetworkManager.sendUDPHostsDiscoveryPacket();
+        broadcastNetworkManager.sendDiscoveryPackets();
         
         // timer
         sendLogTimer = new Timer();

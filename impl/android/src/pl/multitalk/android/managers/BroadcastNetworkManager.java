@@ -6,12 +6,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import pl.multitalk.android.managers.misc.BroadcastReceiver;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.NetworkUtil;
-import pl.multitalk.android.util.NetworkUtil.NotConnectedToNetworkException;
-import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
 
 import android.content.Context;
 import android.util.Log;
@@ -26,6 +26,8 @@ public class BroadcastNetworkManager {
     private MultitalkNetworkManager multitalkNetworkManager;
     private BroadcastReceiver broadcastReceiver;
     private DatagramSocket socket;
+    private Timer discoveryPacketSendTimer;
+    
     
     /**
      * Tworzy managera połączeń broadcast-owych
@@ -48,25 +50,26 @@ public class BroadcastNetworkManager {
         }
     }
     
+
+    /**
+     * Wysyła serię pakietów UDP w celu wykrycia inych podłączonych hostów
+     */
+    public void sendDiscoveryPackets(){
+        discoveryPacketSendTimer = new Timer();
+        discoveryPacketSendTimer.schedule(new DiscoveryPacketSendTask(), 0, 1000);
+    }
+    
     
     /**
      * Wysyła pakiet UDP w celu wykrycia inych podłączonych hostów
      */
-    public void sendUDPHostsDiscoveryPacket(){
+    private void sendUDPHostsDiscoveryPacket(){
         InetAddress broadcastAddress;
         try {
-            broadcastAddress = NetworkUtil.getBroadcastInetAddress(context);
+            broadcastAddress = NetworkUtil.getInetAddressFromString("255.255.255.255");
             
         } catch (UnknownHostException e) {
             Log.e(Constants.ERROR_TAG, "UnknownHostException at BroadcastNetworkManager#discoverOtherHosts()");
-            return;
-            
-        } catch (NotConnectedToNetworkException e) {
-            Log.e(Constants.ERROR_TAG, "NotConnectedToNetworkException at BroadcastNetworkManager#discoverOtherHosts()");
-            return;
-            
-        } catch (WifiNotEnabledException e) {
-            Log.e(Constants.ERROR_TAG, "WifiNotEnabledException at BroadcastNetworkManager#discoverOtherHosts()");
             return;
             
         }
@@ -77,8 +80,6 @@ public class BroadcastNetworkManager {
             DatagramPacket packet = new DatagramPacket(Constants.DISCOVERY_PACKET_DATA.getBytes(),
                     Constants.DISCOVERY_PACKET_DATA.length(), broadcastAddress, Constants.UDP_PORT);
             socket.send(packet);
-            
-            socket.close();
             
         } catch (SocketException e){
             Log.e(Constants.ERROR_TAG, "SocketException at BroadcastNetworkManager#discoverOtherHosts()"
@@ -108,7 +109,7 @@ public class BroadcastNetworkManager {
             return;
         }
         
-        broadcastReceiver = new BroadcastReceiver(socket, this);
+        broadcastReceiver = new BroadcastReceiver(context, socket, this);
         broadcastReceiver.start();
         
         Log.d(Constants.DEBUG_TAG, "Started thread for broadcast listening");
@@ -132,5 +133,32 @@ public class BroadcastNetworkManager {
      */
     public MultitalkNetworkManager getMultitalkNetworkManager(){
         return multitalkNetworkManager;
+    }
+    
+    
+    
+    /**
+     * Zadanie wysyłania pakietów broadcast
+     */
+    class DiscoveryPacketSendTask extends TimerTask {
+
+        int count;
+        
+        public DiscoveryPacketSendTask() {
+            count = 0;
+        }
+        
+        @Override
+        public void run() {
+            ++count;
+            if(count <= 3){
+                BroadcastNetworkManager.this.sendUDPHostsDiscoveryPacket();
+                
+            } else {
+                BroadcastNetworkManager.this.discoveryPacketSendTimer.cancel();
+                
+            }
+        }
+        
     }
 }
