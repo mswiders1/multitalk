@@ -162,7 +162,6 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         }
     } else if(msg.type=="LOG")
     {
-        qDebug()<<"uid:"<<msg.uid<<" username:"<<msg.username;
         QList<UserData>::iterator i;
         for(i=users.begin();i!=users.end();++i)
         {

@@ -11,11 +11,7 @@ TcpConnection::TcpConnection(QObject *parent) :
     connect(this,SIGNAL(readyRead()),this,SLOT(dataWaiting()));;
 }
 
-TcpConnection::~TcpConnection()
-{
-    qDebug()<<"will wait for pushing out messages:"<<peerAddress()<<" "<<bytesToWrite();
-    flush();
-}
+
 
 void TcpConnection::connectionClosed()
 {
@@ -96,7 +92,6 @@ void TcpConnection::parseMessage(QByteArray& data)
         else if(msg.type=="OUT")
         {
             msg.uid=result["UID"].toString();
-
         } else if(msg.type=="LIV")
         {
             msg.uid=result["UID"].toString();
@@ -144,7 +139,6 @@ void TcpConnection::sendMessageToNetwork(Message msg)
         packet.insert("UID",msg.uid);
         packet.insert("USERNAME",msg.username);
         packet.insert("IP_ADDRESS",msg.ip_address);
-        qDebug()<<"sending LOG message, uid:"<<msg.uid<<" username:"<<msg.username;
     } else if(msg.type=="LIV")
     {
         packet.insert("TYPE",msg.type);
@@ -166,6 +160,7 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     QTextStream(&header)<<"BEGIN_MESSAGE:"<<packetArray.size()<<"\n";
     write(QByteArray(header.toAscii()));
     write(packetArray);
-    //flush();
+    if(state()==QAbstractSocket::ConnectedState)
+        flush();
     //qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
 }
