@@ -225,12 +225,67 @@ public class Serializer {
 				while (itv.hasNext())
 				{
 					uid = new UserId();
-					l = (Long)itv.next(); /////////////// <----------------- sprawdzic
+					l = (Long)itv.next(); 
 					uid.setUser_id(l.longValue());
 					uidvec.add(uid);
 				}
 				((MtxMsg)msg).setVector(uidvec);
+				System.out.print(msg);
 				return (MtxMsg) msg;
+			}
+			else if(type == "MTX")
+			{
+				((MsgMsg)msg).setType("MSG");
+				((MsgMsg)msg).setSender((String)obj.get("SENDER"));
+				((MsgMsg)msg).setReceiver((String)obj.get("RECEIVER"));
+				((MsgMsg)msg).setMsg_id(((Long)obj.get("MSG_ID")).longValue());
+				JSONArray tvec =(JSONArray)obj.get("TIME_VEC");
+				JSONArray vec =(JSONArray)obj.get("VEC");
+				Iterator<Long> itk = tvec.iterator();
+				Iterator<Long> itv = vec.iterator();
+				Long l;
+				Knowlage k;
+				UserId uid;
+				Vector<Knowlage> kvec = new Vector<Knowlage>();
+				Vector<UserId> uidvec = new Vector<UserId>();
+				while (itk.hasNext())
+				{
+					k = new Knowlage();
+					l = itk.next().longValue();
+					k.setMsg_no(l);
+					kvec.add(k);					
+				}
+				while(itv.hasNext())
+				{
+					uid = new UserId();
+					l = itv.next().longValue();
+					uid.setUser_id(l);
+					uidvec.add(uid);
+				}
+				((MsgMsg)msg).setTime_vec(kvec);
+				((MsgMsg)msg).setVec(uidvec);
+				return (MsgMsg) msg;
+				
+			}
+			else if(type == "LIV")
+			{
+				((LivMsg)msg).setType("LIV");
+				((LivMsg)msg).setUid((String)obj.get("UID"));
+				((LivMsg)msg).setIp_address((String)obj.get("IP_ADDRESS"));
+				return (LivMsg)msg;
+			}
+			else if(type == "GET")
+			{
+				((GetMsg)msg).setType("GET");
+				((GetMsg)msg).setUid((String)obj.get("UID"));
+				((GetMsg)msg).setMsg_id(((Long)obj.get("MSG_ID")).longValue());
+				return (GetMsg)msg;
+			}
+			else if(type == "OUT")
+			{
+				((OutMsg)msg).setType("OUT");
+				((OutMsg)msg).setUid((String)obj.get("UID"));				
+				return (OutMsg)msg;
 			}
 				
 			else

@@ -299,7 +299,7 @@ class MsgMsg extends Message
 	public Vector<Knowlage> getTime_vec() {
 		return time_vec;
 	}
-	public void setMac(Vector<Knowlage> time_vec) {
+	public void setTime_vec(Vector<Knowlage> time_vec) {
 		this.time_vec = time_vec;
 	}
 	public Vector<UserId> getVec() {

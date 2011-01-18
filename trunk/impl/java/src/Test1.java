@@ -11,14 +11,29 @@ public class Test1 {
 		Knowlage k = new Knowlage(1);
 		UserId u = new UserId(2);
 		Vector vk = new Vector();
+		Vector vk2 = new Vector();
+
 		vk.add(k);
+		vk.add(new Knowlage (3));
+		vk.add(new Knowlage (4));
+		vk.add(new Knowlage (5));
+		vk2 = (Vector)vk.clone();
 		Vector vu = new Vector();
 		vu.add(u);
 		MsgMsg msg = new MsgMsg("krzysiek", "olka", 1, vk, vu, "zawartosc");
 		Serializer serial =	new Serializer();		
 		serial.pack(msg);
-		System.out.println(serial.getObj().toString());
 		
+		MtxMsg mtx = new MtxMsg();
+		Vector<Vector<Knowlage>> mac = new Vector();
+		mac.add(vk);
+		mac.add(vk2);
+		mtx.setMac(mac);
+		mtx.setVector(vu);
+		serial = new Serializer();
+		serial.pack(mtx);
+		System.out.println(serial.getObj().toString());
+		serial.unpack(serial.getObj());
 		//
 		// TODO Auto-generated method stub
 		/*Vector <Contact> v = new Vector<Contact>();
