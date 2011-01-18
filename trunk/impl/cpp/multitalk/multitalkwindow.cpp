@@ -36,6 +36,7 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
 MultitalkWindow::~MultitalkWindow()
 {
     delete ui;
+    sendOutMessage();
     //delete statusBarLabel;
    // delete broadcast;
 }
@@ -179,5 +180,13 @@ void MultitalkWindow::sendLivMessage()
     msg.uid=uid;
     msg.ip_address=ipAddress;
     msg.sequence=livSequence++;
+    emit sendMessageToNetwork(msg);
+}
+
+void MultitalkWindow::sendOutMessage()
+{
+    Message msg;
+    msg.type="OUT";
+    msg.uid=uid;
     emit sendMessageToNetwork(msg);
 }

@@ -50,6 +50,7 @@ private slots:
     void clientDisconnected(QString uid);
     void sendLogMessage();
     void sendLivMessage();
+    void sendOutMessage();
 };
 
 #endif // MULTITALKWINDOW_H
