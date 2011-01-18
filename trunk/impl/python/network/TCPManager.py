@@ -11,6 +11,7 @@ class Singleton():
 class TCPManager(Singleton):
     
     def __init__(self):
+        self.__ipOfConnections = []
         self.__unmappedProtocols= []
         self.__mappedProtocols = {}
     
@@ -18,15 +19,18 @@ class TCPManager(Singleton):
         self.logMsg("dodaje polączenie %s" % protocol)
         assert(self.__unmappedProtocols.count(protocol) == 0)
         self.__unmappedProtocols.append(protocol)
+        self.__ipOfConnections.append(protocol.transport.getPeer().host)
         
     def delConnection(self,  protocol):
         self.logMsg("usuwam polączenie %s" % protocol)
         if self.__unmappedProtocols.count(protocol):
             self.__unmappedProtocols.remove(protocol)
+            self.__ipOfConnections.remove(protocol.transport.getPeer().host)
         elif self.__mappedProtocols.values().count(protocol):
             for uid in self.__mappedProtocols.keys():
                 if self.__mappedProtocols[uid] == protocol:
                     del self.__mappedProtocols[uid]
+                    self.__ipOfConnections.remove(protocol.transport.getPeer().host)
                     return
             assert 1==0,  "nie znaleziono polaczenia"
             #TODO: uzytkownik byl zalogowany wiec moze trzeba kogos powiadomic?
@@ -38,6 +42,11 @@ class TCPManager(Singleton):
         self.__unmappedProtocols.remove(protocol)
         assert(self.__mappedProtocols.has_key(uid) == False)
         self.__mappedProtocols[uid] = protocol
+        
+    def isConnectedToIp(self,  ip):
+        countOfConnections = self.__ipOfConnections.count(ip)
+        assert 0 <= countOfConnections  <= 1,  "bledna ilosc polaczen do adresu ip %s : %s" %(ip,  self.__ipOfConnections)
+        return countOfConnections > 0
         
     def getConnectionToNode(self,  uid):
         return self.__mappedProtocols[uid]

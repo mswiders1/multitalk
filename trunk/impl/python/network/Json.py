@@ -5,8 +5,6 @@ import json
 import queues
 import appVar
 
-TCP_FIRST_MSG = u'MULTITALK_5387132'
-
 def unpackHiiMsg(jsonObj,  senderIP):
     message = {}
     message['CORE_MSG_TYPE'] = queues.CORE_MSG_TYPE.HII_MESSAGE_RECEIVED
@@ -27,15 +25,25 @@ def getLogMsg():
     model = appVar.modelInstance
     id = model.getMyId()
     nick = model.getNick()
-    list = {'TYPE': u"LOG", 'UID': id,  "USERNAME":nick}
+    list = {'TYPE': u"LOG", 'UID': id,  "USERNAME":nick,  'IP_ADDRESS': appVar.modelInstance.getMyIP()}
     return json.dumps(list,  indent=4)
 
 def getOutMsg():
     list = {'TYPE': u"OUT", 'UID': appVar.modelInstance.getMyId()}
     return json.dumps(list,  indent=4)
+
+def getLivMsg():
+    list = {'TYPE': u"LIV", 'UID': appVar.modelInstance.getMyId(),  'IP_ADDRESS': appVar.modelInstance.getMyIP()}
+    return json.dumps(list,  indent=4)
     
-def getFirstTcpMsg():
-    return TCP_FIRST_MSG
+def getGetMsg(uidOfMissingMsgSender,  timeOfSend):
+    list = {'TYPE': u"GET", 'UID': uidOfMissingMsgSender,  'MSG_ID': timeOfSend}
+    return json.dumps(list,  indent=4)
+    
+def getP2pMsg():
+    list = {'TYPE': u"P2P"}
+    return json.dumps(list,  indent=4)
+    
 def getHiiMsg():
     model = appVar.modelInstance
     assert(model)

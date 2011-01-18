@@ -3,13 +3,14 @@
 """The user interface for our app"""
 
 from network import BroadcastReceiver,  BroadcastSender,  TCPClient,  TCPServer,  TCPManager
-import os,sys,traceback
+import os,sys,traceback, time
 import Queue
 import socket
 import exceptions
 import queues
 import Hash
 import appVar
+from Heartbeat import Heartbeat
 
 class Core:
     def __init__(self,  reactor):
@@ -18,6 +19,7 @@ class Core:
         self.tcpm = appVar.tcpManager
         self.model = appVar.modelInstance
         self.reactor = reactor
+        self.heartbeat = Heartbeat(self)
         return 
     
     def userInsertedNetworkAddr(self,  addr):
@@ -43,13 +45,22 @@ class Core:
                 print("Core: nie można uruchomić zerwer TCP lub wyslac rozgloszenia")
                 traceback.print_exc()
                 sys.exit()
+    
+    def handleHeartbeatTimePassed(self):
+        print "Core: wysylam heartbeat(%s)" % time.strftime("%H:%S") 
+        for connection in self.tcpm.getMappedConnections():
+            connection.sendLivMsg()
             
+    def handleLivMessage(self,  msg):
+        uid = msg['UID']
+        self.model.markNodeIsAlive(uid)
+
     def sendMessage(self,  uid,  msg):
         if not msg:
             return
         if uid:
             print u"Core: wysyłam wiadomość '%s' do %s" % (msg,  uid)
-            self.gui.messageReceived(self.model.getMyId(),  uid,  msg)#do testow
+            self.gui.messageReceived(uid, self.model.getMyId(),  msg)#do testow
         else:
             print u"Core: wysyłam wiadomość '%s' do wszystkich" % msg#do testow
             self.gui.messageReceived(self.model.getMyId(),  None,  msg)
@@ -71,7 +82,19 @@ class Core:
             self.model.addNode(nodeFromVector['UID'],  nodeFromVector['USERNAME'],  nodeFromVector['IP_ADDRESS'])
         print "Core: mapuje wezel %s na polaczenie %s" % (msg['UID'],  connection)
         self.tcpm.mapNodeToConnection(msg['UID'],  connection)
-
+        if self.model.getPreferredNodesAddr():
+            #uzytkownik podal z palca adres wiec w opoiedzi na HII wysylamy LOG
+            self.__doLog()
+            
+    def __doLog(self):
+        self.model.addMeToListOfNodes()
+        self.__sendLogMsgToAll()
+        self.heartbeat.start()
+    
+    def __doNewNetwork(self):
+        self.model.setIamFirstNode()
+        self.heartbeat.start()
+    
     def handleLogMessage(self,  msg,  connection):
         print "Core: analiza wiadomosci Log"
         self.model.logNewUser(msg['UID'],  msg['USERNAME'], None) # TODO: jaki adres ip wstawic?
@@ -85,6 +108,7 @@ class Core:
 
     def closeApp(self):
         print "Core: zamykam applikacje"
+        self.heartbeat.stop()
         self.__sendOutMsgToAll()
         return True
         
@@ -97,14 +121,14 @@ class Core:
         print "Core: koniec przeszukiwanie sieci"
         if self.model.isIamAlone():
             print "Core: jestem sam :("
-            self.model.setIamFirstNode()
+            self.__doNewNetwork()
         else:
             print "Core: znalezniono wezly - rozpoczynam logowanie"
-            self.model.addMeToListOfNodes()
-            self.__sendLogMsgToAll()
+            self.__doLog()
         #Wlączamy server broadcast aby otrzymywav informacje o koniecznosci podlaczenia
         print "Core: uruchamiam broadcast receiver"
         self.broadcastReceiver = BroadcastReceiver.startReceiver(self.reactor)
+        
         
     def __sendLogMsgToAll(self):
         assert not self.tcpm.getUnmappedConnections(),  "w chwili wyslania log msg nie moze byc niezmapowane polaczenie %s" % self.tcpm.getUnmappedConnections()
@@ -118,7 +142,8 @@ class Core:
                 
     def handleReceivedBroadcastPacket(self,  fromIP):
         print "Core: ktos chce abysmy podlaczyli sie do niego"
-        TCPClient.startTCPConnection(self.reactor,  fromIP)
+        if not self.tcpm.isConnectedToIp(fromIP):
+            TCPClient.startTCPConnection(self.reactor,  fromIP)
     
     def setGui(self,  gui):
         self.gui = gui
