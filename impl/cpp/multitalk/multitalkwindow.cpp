@@ -126,9 +126,7 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
 {
     if(messageHistory.contains(msg))
     {
-        qDebug()<<"already got this message, ignoring";
-        qDebug()<<msg.type;
-        qDebug()<<msg.uid;
+        //qDebug()<<"already got this message, ignoring";
         return;
     }
     else
