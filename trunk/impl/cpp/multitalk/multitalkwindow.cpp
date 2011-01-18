@@ -61,7 +61,8 @@ void MultitalkWindow::connectToNetwork()
         emit connectToNetworkAccepted();
 
         QTimer::singleShot(5000,this,SLOT(sendLogMessage()));
-
+        QTimer::singleShot(1000,broadcast,SLOT(sendBroadcast()));
+        QTimer::singleShot(2000,broadcast,SLOT(sendBroadcast()));
         connect(this,SIGNAL(sendMessageToNetwork(Message)),tcpServer,SIGNAL(sendMessageToNetwork(Message)));
     }
 }
