@@ -29,7 +29,10 @@ public class MessageFactory {
 
         String messageType = object.getString("TYPE");
         
-        if(messageType.equals("HII")){
+        if(messageType.equals("LIV")){
+            message = new LivMessage();
+        
+        } else if(messageType.equals("HII")){
             message = new HiMessage();
         
         } else if(messageType.equals("LOG")){
