@@ -134,7 +134,7 @@ Zawartość: Macierze wiedzy i zwykła treść wiadomości
 || *nazwa pola* || *typ* || *wartość* ||
 || TYPE || CHAR(3) || _MSG_ ||
 || SENDER || CHAR(32) || H(MAC + IP + username_) SHA-1 base 64 || 
-|| RECIVER || CHAR(32)|| H(MAC + IP + username_) SHA-1 base 64 - moze byc puste || 
+|| RECEIVER || CHAR(32)|| H(MAC + IP + username_) SHA-1 base 64 - moze byc puste || 
 || MSG_ID|| INT || zegar logiczny||
 || TIME_VEC || VECTOR || wektor wartości zegarów logicznych użytkowników ||
 || VEC || VECTOR || wektor kolejnosci ||
