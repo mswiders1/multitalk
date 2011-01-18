@@ -23,9 +23,10 @@ void TcpServer::incomingConnection(int socketDescriptor)
     clientConnection->setSocketDescriptor(socketDescriptor);
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));
     connect(clientConnection,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(disconnectedConnection(TcpConnection*)));
+    connect(this,SIGNAL(sendMessageToNetwork(Message)),clientConnection,SLOT(sendMessageToNetwork(Message)));
     connect(clientConnection,SIGNAL(receivedMessageFromNetwork(Message)),this,SIGNAL(receivedMessageFromNetwork(Message)));
     qDebug()<<"client connected:"<<clientConnection->peerAddress();
-    qDebug()<<"socket descriptor:"<<socketDescriptor;
+    //qDebug()<<"socket descriptor:"<<socketDescriptor;
 }
 
 void TcpServer::disconnectedConnection(TcpConnection *connection)
@@ -45,6 +46,7 @@ void TcpServer::connectToClient(QHostAddress address,Message msg)
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));
     connect(clientConnection,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(disconnectedConnection(TcpConnection*)));
     connect(this,SIGNAL(sendMessageToNetwork(Message)),clientConnection,SLOT(sendMessageToNetwork(Message)));
-    qDebug()<<"connect to:"<<address;
+    connect(clientConnection,SIGNAL(receivedMessageFromNetwork(Message)),this,SIGNAL(receivedMessageFromNetwork(Message)));
+    qDebug()<<"connecting to:"<<address;
 }
 

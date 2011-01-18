@@ -22,19 +22,19 @@ void TcpConnection::dataWaiting()
         if(canReadLine())
         {
             QByteArray line=readLine();
-            qDebug()<<line;
+            //qDebug()<<line;
             QString lineString(line);
             if(lineString.startsWith("BEGIN_MESSAGE:"))
             {
-                qDebug()<<"message signature ok";
+                //qDebug()<<"message signature ok";
                 QString numberOfBytesString=lineString.section(':',1,1);
                 numberOfBytesToRead=numberOfBytesString.toInt();
-                qDebug()<<"number of bytes to read:"<<numberOfBytesToRead;
+                //qDebug()<<"number of bytes to read:"<<numberOfBytesToRead;
                 headerRead=true;
             }
             else
             {
-                qDebug()<<"wrong message signature";
+                //qDebug()<<"wrong message signature";
                 numberOfBytesToRead=0;
             }
         }
@@ -45,7 +45,7 @@ void TcpConnection::dataWaiting()
         if(bytesAvailable()>=numberOfBytesToRead)
         {
             QByteArray data=read(numberOfBytesToRead);
-            qDebug()<<"data dump:"<<data<<":data dump end";
+            //qDebug()<<"data dump:"<<data<<":data dump end";
             parseMessage(data);
             headerRead=false;
             numberOfBytesToRead=0;
@@ -62,29 +62,17 @@ void TcpConnection::parseMessage(QByteArray& data)
     if(ok)
     {
         msg.type=result["TYPE"].toString();
+        qDebug()<<"received message from:"<<peerAddress()<<" type:"<<msg.type;
         if(msg.type=="HII")
         {
-            qDebug()<<"got HII message";
+            //qDebug()<<"got HII message";
             clientUid=result["UID"].toString();
-
             msg.uid=clientUid;
             msg.username=result["USERNAME"].toString();
-
-            /*
-            QVariantMap packet;
-            packet.insert("TYPE","LOG");
-            packet.insert("UID",main->uid);
-            packet.insert("USERNAME",main->nick);
-            QJson::Serializer serializer;
-            QByteArray packetArray=serializer.serialize(packet);
-            QString header;
-            QTextStream(&header)<<"BEGIN_MESSAGE:"<<packetArray.size()<<"\n";
-            write(QByteArray(header.toAscii()));
-            write(packetArray);*/
         }
         else if(msg.type=="LOG")
         {
-            qDebug()<<"got LOG message";
+            //qDebug()<<"got LOG message";
             msg.uid=clientUid;
             msg.username=result["USERNAME"].toString();
             msg.ip_address=result["IP_ADDRESS"].toString();
@@ -102,6 +90,7 @@ void TcpConnection::parseMessage(QByteArray& data)
 
 void TcpConnection::sendMessageToNetwork(Message msg)
 {
+    qDebug()<<"sending message to:"<<peerAddress()<<" type:"<<msg.type;
     QVariantMap packet;
 
     if(msg.type=="HII")
@@ -138,5 +127,5 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     QTextStream(&header)<<"BEGIN_MESSAGE:"<<packetArray.size()<<"\n";
     write(QByteArray(header.toAscii()));
     write(packetArray);
-    qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
+    //qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
 }
