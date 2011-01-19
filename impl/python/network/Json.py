@@ -78,5 +78,6 @@ def getMsgMsg(receiverUid,  content):
     vec = model.getListOfNodes()
     msgId = timeVec[vec.index(model.getMyId())]
     list = {'TYPE': u"MSG", 'SENDER': model.getMyId(),  "RECEIVER":receiverUid,  "MSG_ID":msgId,  "VEC": vec,  'TIME_VEC':timeVec,  'CONTENT':content}
-    return json.dumps(list,  indent=4)
+    result = json.dumps(list,  indent=4)
+    return result
 

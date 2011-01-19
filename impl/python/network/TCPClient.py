@@ -3,6 +3,7 @@
 from twisted.internet.protocol import Protocol, ClientFactory
 from TCPProtocol import TCPProtocol
 import TCPServer
+import appVar
 
 class TCPClient(TCPProtocol):
     
@@ -35,11 +36,14 @@ class TCPClientFactory(ClientFactory):
     
     def clientConnectionFailed(self, connector, reason):
         self.logMsg('Connection failed. Reason: %s '% reason)
+        dir(connector)
+        appVar.tcpManager.connectionFailed(connector.transport.getPeer().host)
 
     def logMsg(self,  msg):
         print "TCP-CF: %s " % msg
 
 def startTCPConnection(reactor,  addr):
+    appVar.tcpManager.tryingToConnect(addr)
     reactor.connectTCP(addr,  3554,  TCPClientFactory(TCPClient))
     
 def startReversedTCPConnection(reactor,  addr):

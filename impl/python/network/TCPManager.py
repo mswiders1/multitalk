@@ -11,6 +11,7 @@ class Singleton():
 class TCPManager(Singleton):
     
     def __init__(self):
+        self.__ipOfStartingConnections = []
         self.__ipOfConnections = []
         self.__unmappedProtocols= []
         self.__mappedProtocols = {}
@@ -43,9 +44,21 @@ class TCPManager(Singleton):
         assert(self.__mappedProtocols.has_key(uid) == False)
         self.__mappedProtocols[uid] = protocol
         
+    def isConnectionMapped(self,  protocol):
+        return self.__mappedProtocols.values().count(protocol) > 0
+        
     def isNotConnectedToIp(self,  ip):
         countOfConnections = self.__ipOfConnections.count(ip)
         return countOfConnections == 0
+        
+    def isNotConnectingToIp(self,  ip):
+        return self.__ipOfStartingConnections.count(ip) == 0
+        
+    def tryingToConnect(self,  ip):
+        self.__ipOfStartingConnections.append(ip)
+        
+    def connectionFailed(self,  ip):
+        self.__ipOfStartingConnections.remove(ip)
         
     def getConnectionToNode(self,  uid):
         return self.__mappedProtocols[uid]

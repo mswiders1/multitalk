@@ -1,69 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-4.2.dtd">
 <!-- eric4 tasks file for project SR -->
-<!-- Saved: 2011-01-18, 20:35:13 -->
+<!-- Saved: 2011-01-19, 19:24:35 -->
 <Tasks version="4.2">
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: uzytkownik byl zalogowany wiec moze trzeba kogos powiadomic?</Summary>
+    <Summary>TODO: mozliwy  forward wiadomosci!!!</Summary>
     <Description></Description>
-    <Created>2011-01-18, 17:30:35</Created>
+    <Created>2011-01-19, 15:21:28</Created>
     <Resource>
-      <Filename>network/TCPManager.py</Filename>
+      <Filename>network/TCPProtocol.py</Filename>
       <Linenumber>36</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: wysylka</Summary>
+    <Summary>TODO: uzytkownik byl zalogowany wiec moze trzeba kogos powiadomic?</Summary>
     <Description></Description>
-    <Created>2011-01-18, 19:31:01</Created>
+    <Created>2011-01-19, 15:45:12</Created>
     <Resource>
-      <Filename>core/Core.py</Filename>
-      <Linenumber>67</Linenumber>
+      <Filename>network/TCPManager.py</Filename>
+      <Linenumber>37</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: to nie jest bezpieczne (ten czas nie jest monotoniczny), ale nie chcę dodawać innych bibliotek</Summary>
     <Description></Description>
-    <Created>2011-01-18, 20:19:39</Created>
+    <Created>2011-01-19, 19:24:30</Created>
     <Resource>
       <Filename>model/Model.py</Filename>
-      <Linenumber>38</Linenumber>
+      <Linenumber>40</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: zwracać kopię?</Summary>
     <Description></Description>
-    <Created>2011-01-18, 20:19:39</Created>
+    <Created>2011-01-19, 19:24:30</Created>
     <Resource>
       <Filename>model/Model.py</Filename>
-      <Linenumber>86</Linenumber>
+      <Linenumber>90</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: ile mamy czekac? jakis timer trzeba ustawic i kogos poprosic o ponowne przeslanie brakujacej wiadomosci</Summary>
+    <Description></Description>
+    <Created>2011-01-19, 19:24:30</Created>
+    <Resource>
+      <Filename>model/Model.py</Filename>
+      <Linenumber>190</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: dodanie do macierzy zegarow</Summary>
     <Description></Description>
-    <Created>2011-01-18, 20:19:39</Created>
+    <Created>2011-01-19, 19:24:30</Created>
     <Resource>
       <Filename>model/Model.py</Filename>
-      <Linenumber>125</Linenumber>
+      <Linenumber>224</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: co z macierza</Summary>
     <Description></Description>
-    <Created>2011-01-18, 20:19:39</Created>
+    <Created>2011-01-19, 19:24:30</Created>
     <Resource>
       <Filename>model/Model.py</Filename>
-      <Linenumber>136</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: usuwac z macierzy i nodesUid?</Summary>
-    <Description></Description>
-    <Created>2011-01-18, 20:19:39</Created>
-    <Resource>
-      <Filename>model/Model.py</Filename>
-      <Linenumber>144</Linenumber>
+      <Linenumber>236</Linenumber>
     </Resource>
   </Task>
 </Tasks>
