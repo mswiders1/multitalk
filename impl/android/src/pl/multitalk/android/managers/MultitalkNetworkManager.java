@@ -235,6 +235,30 @@ public class MultitalkNetworkManager {
     
     
     /**
+     * Sprawdza czy mamy już info o użytkowniku z podanym IP
+     * @param ipAddress adres IP użytkownika
+     * @return true jeżeli mamy info o takim użytkowniku
+     */
+    private synchronized boolean containsUserWithIP(String ipAddress){
+        // zalogowani
+        for(UserInfo user : users){
+            if(ipAddress.equals(user.getIpAddress())){
+                return true;
+            }
+        }
+        
+        // niezalogowani
+        for(UserInfo user : notLoggedUsers){
+            if(ipAddress.equals(user.getIpAddress())){
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    
+    /**
      * Dodaje informację o nowym niezalogowanym użytkowniku
      * @param newUserInfo informacje o nowym niezalogowanym użytkowniku
      */
@@ -372,6 +396,12 @@ public class MultitalkNetworkManager {
                 continue;
             }
             
+            if(containsUserInfo(user) || containsUserWithIP(user.getIpAddress())){
+                // jeżeli mamy juz takiego uzytkownika na liscie zalogowanych
+                // lub mamy już info o użytkowniku pod takim adresem IP
+                continue;
+            }
+            
             MultitalkNetworkManager.this.addUserInfo(user);
             mtx.addUserWithZeroVector(clientUserInfo);
             tcpipNetworkManager.connectToClient(user);
@@ -384,12 +414,24 @@ public class MultitalkNetworkManager {
      * @param message komunikat
      */
     public void handleDiscoveryPacketReceived(DiscoveryPacketReceivedMessage message){
-        // dodajemy usera
-        MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
-        tcpipNetworkManager.connectToClient(message.getSenderInfo());
+        // sprawdzenie czy mamy już info o takim użytkowniku
+        boolean userExists = containsUserWithIP(message.getSenderInfo().getIpAddress());
         
-        // w odpowiedzi wysyłamy HiMessage
-        sendHiiMessage(message.getSenderInfo());
+        if(!userExists){
+            Log.d(Constants.DEBUG_TAG, "Pierwsza informacja o użytkowniku: "
+                    +message.getSenderInfo().getIpAddress()+", nawiązuję połączenie...");
+            // dodajemy usera
+            MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
+            tcpipNetworkManager.connectToClient(message.getSenderInfo());
+            
+            // w odpowiedzi wysyłamy HiMessage
+            sendHiiMessage(message.getSenderInfo());
+            
+        } else {
+            Log.d(Constants.DEBUG_TAG, "Już jest informacja o użytkowniku: "
+                    +message.getSenderInfo().getIpAddress()+", nie nawiązuję połączenia...");
+            
+        }
     }
     
 
@@ -403,24 +445,67 @@ public class MultitalkNetworkManager {
         UserInfo clientUserInfo = message.getUserInfo();
         clientUserInfo.setIpAddress(senderUserInfo.getIpAddress());
         
+        
+        if(userInfo.equals(clientUserInfo)){
+            // wiadomość o zalogowaniu siebie - ignorujemy
+            return;
+        }
+        
         if(userInfo.getIpAddress().equals(senderUserInfo.getIpAddress())){
-            // wiadomość o zalogowaniu siebie
-            // ignorujemy i usuwamy ewentualny wpis 
+            // wiadomość od siebie o zalogowaniu siebie
+            // ignorujemy i usuwamy połączenie ze sobą
             removeNotLoggedUserInfo(senderUserInfo);
             tcpipNetworkManager.disconnectClient(senderUserInfo);
             return;
         }
-        removeNotLoggedUserInfo(senderUserInfo);
-        addUserInfo(clientUserInfo);
-        mtx.addUserWithZeroVector(clientUserInfo);
+        
+        
+        if(containsUserInfo(clientUserInfo)){
+            // już wiemy, że ten user jest zalogowany
+            return;
+        }
+        
+        if(containsUserInfo(senderUserInfo)){
+            // informacja LOG od użytkownika zalogowanego - forward
+            
+            // albo nie mamy bezpośredniego połączenia z logującym się użytkownikiem
+            // albo mamy bezpośrednie połączenie a forward dostaliśmy wcześniej niż od logującego
+            if(!containsUserWithIP(clientUserInfo.getIpAddress())){
+                // nie mamy bezpośredniego połączenia z użytkownikiem logującym
+                // dodajemy usera i próubjemy się połączyć
+                addUserInfo(clientUserInfo);
+                mtx.addUserWithZeroVector(clientUserInfo);
+                tcpipNetworkManager.connectToClient(clientUserInfo);
+                
+            } else {
+                // mamy bezpośrednie połączenie - dostaliśmy forward wcześniej niż bezpośrednią informację
+                // olewamy, czekamy na info z bezpośredniego połączenia
+                return;
+                
+            }
+            
+        } else {
+            // informacja LOG od użytkownika niezalogowanego
+            
+            removeNotLoggedUserInfo(senderUserInfo);
+            addUserInfo(clientUserInfo);
+            tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
+            mtx.addUserWithZeroVector(clientUserInfo);
+            
+        }
+        
         
         // wysłamy MTX message
         MtxMessage mtxMessage = new MtxMessage();
         mtxMessage.setSenderInfo(userInfo);
         mtxMessage.setRecipientInfo(clientUserInfo);
         mtxMessage.setMtxPair(mtx.getMatrix());
-
         tcpipNetworkManager.sendMessage(mtxMessage);
+        
+        // forwardujemy LOG
+        LogMessage forwardLogMessage = (LogMessage) message.getClone();
+        forwardLogMessage.setSenderInfo(userInfo);
+        tcpipNetworkManager.sendMessageToAll(forwardLogMessage);
     }
     
 
@@ -438,10 +523,10 @@ public class MultitalkNetworkManager {
      * @param message komunikat
      */
     public void handleOutMessage(OutMessage message){
-//        mtx.removeUserFromMatrix(message.getUserInfo());
+        mtx.removeUserFromMatrix(message.getUserInfo());
         tcpipNetworkManager.disconnectClient(message.getUserInfo());
         removeUserInfo(message.getUserInfo());
-        addNotLoggedUserInfo(message.getUserInfo());
+//        addNotLoggedUserInfo(message.getUserInfo());
         
     }
     
@@ -536,7 +621,7 @@ public class MultitalkNetworkManager {
                     message = this.messageQueue.take();
                     
                     if(message instanceof LivMessage){
-                        Log.d(Constants.DEBUG_TAG, "received LIV message");
+                        Log.d(Constants.DEBUG_TAG, "received LIV message:\n"+message.serialize());
                         // TODO
                         continue;
                     
@@ -547,22 +632,22 @@ public class MultitalkNetworkManager {
                         continue;
                     
                     } else if(message instanceof HiMessage){
-                        Log.d(Constants.DEBUG_TAG, "received HII message");
+                        Log.d(Constants.DEBUG_TAG, "received HII message\n"+message.serialize());
                         MultitalkNetworkManager.this.handleHiMessage((HiMessage) message);                        
                         continue;
                         
                     } else if(message instanceof LogMessage){
-                        Log.d(Constants.DEBUG_TAG, "received LOG message");
+                        Log.d(Constants.DEBUG_TAG, "received LOG message\n"+message.serialize());
                         MultitalkNetworkManager.this.handleLogMessage((LogMessage) message);
                         continue;
                         
                     } else if(message instanceof MtxMessage){
-                        Log.d(Constants.DEBUG_TAG, "received MTX message");
+                        Log.d(Constants.DEBUG_TAG, "received MTX message\n"+message.serialize());
                         MultitalkNetworkManager.this.handleMtxMessage((MtxMessage) message);
                         continue;
                         
                     } else if(message instanceof OutMessage){
-                        Log.d(Constants.DEBUG_TAG, "received OUT message");
+                        Log.d(Constants.DEBUG_TAG, "received OUT message\n"+message.serialize());
                         MultitalkNetworkManager.this.handleOutMessage((OutMessage) message);
                         continue;
                         
