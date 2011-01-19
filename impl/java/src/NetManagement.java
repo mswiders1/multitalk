@@ -15,11 +15,16 @@ public class NetManagement {
 	
 	public NetManagement()
 	{
+		Broadcast broadcast = new Broadcast(this);
+		broadcast.send();
+		broadcast.receive();
 	
 		this.connections = new Vector<Connection>();
 		this.constant = new Constant();
 		received = new Vector<MessageWithContact> ();
 		send = new Vector<MessageWithContact> ();
+		
+		this.startListiningForConnections();
 	}
 	
 	/**
@@ -134,7 +139,7 @@ public class NetManagement {
 			{
 				InetAddress ia = InetAddress.getByAddress(convertStringIp2bytes(contact.getIp()));				
 				s.connect(new InetSocketAddress(ia,Constant.getPort()));
-				conn = new Connection(s,this);
+				conn = new Connection(s,this);				
 				//System.out.print("tworzy nowy connection"+ conn.getContact().getIp());
 				connections.add(conn);
 				
