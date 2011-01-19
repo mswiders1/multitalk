@@ -71,15 +71,16 @@ public class NetManagement {
 	public byte[] convertStringIp2bytes(String string_ip)
 	{
 		InetAddress ia;
-		byte []b = new byte[4];
-		StringTokenizer tk = new StringTokenizer(string_ip);
-		int i = 0;
-		while(tk.hasMoreTokens())
-		{
-			b[i] = new Integer((Integer)tk.nextElement()).byteValue();
-			i++;
+		byte []b = new byte[4];		
+		try{
+			b = InetAddress.getByName(string_ip).getAddress();
 		}
-		return b;		
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return b;
+		
 	}
 	
 	/**
@@ -127,12 +128,14 @@ public class NetManagement {
 		}
 		else
 		{
+			
 			Socket s = new Socket();
 			try
 			{
 				InetAddress ia = InetAddress.getByAddress(convertStringIp2bytes(contact.getIp()));				
 				s.connect(new InetSocketAddress(ia,Constant.getPort()));
-				conn = new Connection(s,this);				
+				conn = new Connection(s,this);
+				//System.out.print("tworzy nowy connection"+ conn.getContact().getIp());
 				connections.add(conn);
 				
 			}
@@ -209,6 +212,37 @@ public class NetManagement {
 				return;
 			}
 		}
+	}
+	public Vector<Connection> getConnections() {
+		return connections;
+	}
+
+	public void setConnections(Vector<Connection> connections) {
+		this.connections = connections;
+	}
+
+	public Constant getConstant() {
+		return constant;
+	}
+
+	public void setConstant(Constant constant) {
+		this.constant = constant;
+	}
+
+	public Vector<MessageWithContact> getReceived() {
+		return received;
+	}
+
+	public void setReceived(Vector<MessageWithContact> received) {
+		this.received = received;
+	}
+
+	public Vector<MessageWithContact> getSend() {
+		return send;
+	}
+
+	public void setSend(Vector<MessageWithContact> send) {
+		this.send = send;
 	}
 	
 
