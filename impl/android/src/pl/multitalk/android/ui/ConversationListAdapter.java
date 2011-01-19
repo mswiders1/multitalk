@@ -59,10 +59,6 @@ public class ConversationListAdapter extends ArrayAdapter<ConversationListItem> 
         TextView message = (TextView) conversationListLayout.findViewById(R.id.conversationItem_message);
         message.setText(item.getMessage());
         
-        // data
-        TextView date = (TextView) conversationListLayout.findViewById(R.id.conversationItem_date);
-        date.setText(item.getDate());
-        
         return conversationListLayout;
     }
 }

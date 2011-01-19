@@ -69,6 +69,8 @@ public class ConversationActivity extends Activity {
                 sendMessageMsg.setContent(messageText);
                 sendMessageMsg.setRecipientInfo(clientUser);
                 app.getMultitalkNetworkManager().putMessage(sendMessageMsg);
+                
+                messageInput.setText("");
             }
         });
         
@@ -135,7 +137,6 @@ public class ConversationActivity extends Activity {
                     conversationListItems.clear();
                     for(MsgMessage msg : conversation){
                       ConversationListItem item = new ConversationListItem();
-                      item.setDate("");
                       item.setUsername(msg.getMsgSender().getUsername());
                       item.setMessage(msg.getContent());
                       conversationListItems.add(item);

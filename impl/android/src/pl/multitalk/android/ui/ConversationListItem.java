@@ -14,10 +14,6 @@ public class ConversationListItem {
      * Wiadomość
      */
     private String message;
-    /**
-     * Data wysłania
-     */
-    private String date;
     
     
     /**
@@ -44,16 +40,6 @@ public class ConversationListItem {
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-
-    public String getDate() {
-        return date;
-    }
-
-
-    public void setDate(String date) {
-        this.date = date;
     }
     
     

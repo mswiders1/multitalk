@@ -27,16 +27,4 @@
         android:textStyle="normal"
         android:text="Testowa wiadomosc" />
 
-    <TextView
-        android:id="@+id/conversationItem_date"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp"
-        android:layout_marginTop="5dp"
-        android:layout_below="@id/conversationItem_message"
-        android:textSize="11sp"
-        android:textColor="#000000"
-        android:textStyle="normal"
-        android:text="Wysłano: 13-01-2011 13:05" />
-
 </RelativeLayout>
