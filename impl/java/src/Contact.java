@@ -1,7 +1,7 @@
 
 public class Contact {
 	
-	private long id;
+	private String id;
 	private String name;
 	private String ip;
 	boolean available;
@@ -9,18 +9,18 @@ public class Contact {
 	
 	public Contact()
 	{
-		id = 0;
+		id = "0";
 		name = "";
 		available = false;
 	}
 	
-	public Contact(long id, String name, boolean available)
+	public Contact(String id, String name, boolean available)
 	{
 		this.id = id;
 		this.name = name;
 		this.available = available;
 	}
-	public Contact(long id, String name, boolean available, String ip)
+	public Contact(String id, String name, boolean available, String ip)
 	{
 		this.id = id;
 		this.name = name;
@@ -28,10 +28,10 @@ public class Contact {
 		this.ip = ip;
 	}
 	
-	public long getId() {
+	public String getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	public String getName() {

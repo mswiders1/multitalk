@@ -1,9 +1,9 @@
 
 public class Constant {
 
-	private static String begin ="BEGIN_MESSAGE";
+	private static String begin ="BEGIN_MESSAGE:";
 	private static String broadcast_content = "MULTITALK_5387132";
-	private static int port = 3554;
+	private static  int port = 3554;
 	
 	public static String getBegin() {
 		return begin;

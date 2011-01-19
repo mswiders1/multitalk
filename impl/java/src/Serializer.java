@@ -5,6 +5,8 @@ import java.util.List;
 import net.sf.json.JSONArray;
 
 import net.sf.json.JSONObject;
+import net.sf.json.util.JSONTokener;
+import net.sf.*;
 
 
 
@@ -148,6 +150,18 @@ public class Serializer {
             return "ERROR";
 		}
 	}
+	
+	
+	Message unpack(String json_string)
+	{
+		Message message =new Message();
+		JSONObject json_obj = new JSONObject();
+		JSONTokener tokener = new JSONTokener(json_string);
+		json_obj = (JSONObject) tokener.nextValue();
+		
+		return unpack(json_obj);
+	}
+	
 	
 	Message unpack(JSONObject obj)
 	{	
