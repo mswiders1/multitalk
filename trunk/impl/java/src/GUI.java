@@ -93,7 +93,7 @@ class ContactsFrame extends JFrame implements ActionListener
 				 
 			 Iterator<Contact> it = this.contacts_panel.getContacts_list().iterator();
 			 Iterator<Contact> itm;
-			 long id = 0;
+			 String id = "0";
 			 while (it.hasNext())
 			 {
 				id = it.next().getId();
@@ -442,7 +442,7 @@ class ContactParamPanel extends JPanel implements ActionListener
 	     }
 	     if(((id_txt_field.getText().toString()).length()) > 0)
 	     {
-	    	 contact.setId(Long.parseLong(id_txt_field.getText().toString()));
+	    	 contact.setId(id_txt_field.getText());
 	     }
 	     
 	     new FindListFrame(contact, contacts_list,f,f2);
@@ -499,8 +499,8 @@ class FindListFrame extends JFrame implements ActionListener
 		///// found_list = global_model.findContact(c);
 		//////////////////////////////
 		////// to nizej do zakomentowania
-		found_list.add(new Contact(10,"Olka",true));
-		found_list.add(new Contact(11,"Olka2",true));
+		found_list.add(new Contact("10","Olka",true));
+		found_list.add(new Contact("11","Olka2",true));
 		
 		return found_list;
 	}
