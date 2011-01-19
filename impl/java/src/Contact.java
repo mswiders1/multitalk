@@ -56,6 +56,8 @@ public class Contact {
 		this.ip = ip;
 	}
 
+	
+	
 	public String toString() {
 		return name+ " ";
 	}

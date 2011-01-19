@@ -13,17 +13,18 @@ public class NetManagement {
 	private Vector<MessageWithContact> received;
 	private Vector<MessageWithContact> send;
 	
-	public NetManagement()
+	private Controller controller;
+	
+	public NetManagement(Controller controller)
 	{
-		Broadcast broadcast = new Broadcast(this);
-		broadcast.send();
-		broadcast.receive();
+
 	
 		this.connections = new Vector<Connection>();
 		this.constant = new Constant();
 		received = new Vector<MessageWithContact> ();
 		send = new Vector<MessageWithContact> ();
 		
+		this.controller = controller;
 		this.startListiningForConnections();
 	}
 	
@@ -34,7 +35,7 @@ public class NetManagement {
 	public void add_received(Contact c, Message m)
 	{
 		received.add( new MessageWithContact(c,m));
-		// przekazanie do kontrolera dopisac;
+		controller.messageReceived(c, m);
 	}
 	/**
 	*Executed by controller. Each time user sends new message
@@ -56,6 +57,21 @@ public class NetManagement {
 				break;
 			}
 		}
+	}
+	
+	public void add_all(Message m)
+	{
+		Iterator<Connection> it = connections.iterator();
+		Contact c;
+		Connection connection;
+		while(it.hasNext())
+		{
+			connection = it.next();
+			c = connection.getContact();			
+			connection.getUnicast().putMessage(m);
+			this.send.add(new MessageWithContact(c,m));
+			
+		}		
 	}
 	
 	public void checkIfNewUser(String ip)

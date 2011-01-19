@@ -11,7 +11,14 @@ public class GUI {
 		ContactsFrame contactsFrame = new ContactsFrame(contacts_list,me, connect_to);
 		contactsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		contactsFrame.show();
-	}	
+	}
+	
+	public GUI(Controller controller)
+	{
+		ContactsFrame contactsFrame = new ContactsFrame(controller.getContacts_for_gui() ,controller.getMe() , controller.getNeighbour());
+		contactsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		contactsFrame.show();
+	}
 	
 }
 
