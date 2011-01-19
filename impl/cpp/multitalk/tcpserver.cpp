@@ -8,17 +8,19 @@ TcpServer::TcpServer(QObject *parent) :
     QTcpServer(parent)
 {
     if(!listen(QHostAddress::Any,3554))
+    {
         qDebug()<<"unable to Listen on port 3554";
+    }
     else
     {
         qDebug()<<"listening on port 3554";
-        //connect(this,SIGNAL(newConnection()),this,SLOT(incomingConnection()));
     }
 }
 
 void TcpServer::incomingConnection(int socketDescriptor)
 {
     TcpConnection *clientConnection=new TcpConnection(this);
+    clientConnection->connectAddress=clientConnection->peerAddress();
     connectionList.append(clientConnection);
     clientConnection->setSocketDescriptor(socketDescriptor);
     connect(this,SIGNAL(sendMessageToNetwork(Message)),clientConnection,SLOT(sendMessageToNetwork(Message)));
@@ -42,8 +44,7 @@ void TcpServer::connectToClient(QHostAddress address,Message msg)
     for(i=connectionList.begin();i!=connectionList.end();i++)
     {
         TcpConnection *conn=*i;
-        qDebug()<<"peer address:"<<conn->peerAddress();
-        if(conn->peerAddress()==address)
+        if(conn->connectAddress==address)
         {
             qDebug()<<"already connected to this address:"<<address;
             return;
@@ -51,6 +52,7 @@ void TcpServer::connectToClient(QHostAddress address,Message msg)
     }
 
     TcpConnection *clientConnection=new TcpConnection(this);
+    clientConnection->connectAddress=address;
     connectionList.append(clientConnection);
     clientConnection->connectToHost(address,3554);
     connect(clientConnection,SIGNAL(receivedMessageFromNetwork(Message)),this,SIGNAL(receivedMessageFromNetwork(Message)));

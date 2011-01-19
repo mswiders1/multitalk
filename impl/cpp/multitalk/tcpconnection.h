@@ -2,6 +2,7 @@
 #define TCPCONNECTION_H
 
 #include <QTcpSocket>
+#include <QHostAddress>
 #include "message.h"
 
 class MultitalkWindow;
@@ -12,6 +13,7 @@ class TcpConnection : public QTcpSocket
 public:
     explicit TcpConnection(QObject *parent);
     QString clientUid;
+    QHostAddress connectAddress;
 private:
     bool headerRead;
     int numberOfBytesToRead;
