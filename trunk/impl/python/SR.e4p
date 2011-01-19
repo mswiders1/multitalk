@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SR -->
-<!-- Saved: 2011-01-18, 20:35:13 -->
+<!-- Saved: 2011-01-19, 19:24:35 -->
 <!-- Copyright (C) 2011 Marcin Kamionowski, soldier.kam@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
@@ -47,8 +47,9 @@
     <Source>gui/Private.py</Source>
     <Source>core/Heartbeat.py</Source>
     <Source>tests/__init__.py</Source>
-    <Source>tests/main.py</Source>
     <Source>tests/Model.py</Source>
+    <Source>tests.py</Source>
+    <Source>model/MessageCache.py</Source>
   </Sources>
   <Forms>
     <Form>qtForms/window.ui</Form>

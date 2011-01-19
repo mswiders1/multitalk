@@ -33,7 +33,7 @@ class TCPProtocol(LineReceiver):
             self.logMsg("wysyłam wiadomosc i czekam na log msg : '%s'" % msgToSend)
             self.sendPacket(msgToSend)
             self.state = WAIT_FOR_LOG
-        elif msgType == "LOG" and self.state == WAIT_FOR_LOG:
+        elif msgType == "LOG" :#TODO: mozliwy  forward wiadomosci!!!
             if appVar.coreInstance.handleLogMessage(jsonObj,  self):
                 self.state = CONNECTED
             else:
@@ -87,7 +87,7 @@ class TCPProtocol(LineReceiver):
         appVar.tcpManager.delConnection(self)
     
     def lineReceived(self, line):
-        self.logMsg("otrzymałem linie tekstu")
+        #self.logMsg("otrzymałem linie tekstu")
         if self.state == WAIT_FOR_HII_OR_P2P and line == MULTITALK_TAG:
             #ktos podlaczyl sie do nas podajac z palca IP wiec wysylamy mu HII i oczekujemy na LOG
             msgToSend = MessageParser.getFullHiiMsg()
@@ -100,7 +100,7 @@ class TCPProtocol(LineReceiver):
             
         len = MessageParser.getMessageLen(line)
         if len:
-            self.logMsg("otrzymalem naglowek - czekam na odczyt %d bajtow" % len)
+            #self.logMsg("otrzymalem naglowek - czekam na odczyt %d bajtow" % len)
             self.packetSize = len
             self.toRead = len
             #teraz chcemy odczytać wnętrze pakietu
@@ -114,7 +114,7 @@ class TCPProtocol(LineReceiver):
     def rawDataReceived(self,  data):
         self.packet += data
         if len(self.packet) >= self.packetSize:
-            self.logMsg("odczytano caly pakiet")
+            #self.logMsg("odczytano caly pakiet")
             self.setLineMode()
             #wydzielamy z pakietu to co chcielismy otrzymac
             packet = self.packet[0:self.packetSize]
@@ -125,8 +125,8 @@ class TCPProtocol(LineReceiver):
             # reszte przekazujemy do ponownej analizy
             if len(restOfData):
                 self.dataReceived(restOfData)
-        else:
-            self.logMsg("odczytano fragment pakietu %s" % len(self.packet))
+        #else:
+            #self.logMsg("odczytano fragment pakietu %s" % len(self.packet))
             
         
     def __deserializeJson(self,  packet):

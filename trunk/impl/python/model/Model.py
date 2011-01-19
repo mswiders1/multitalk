@@ -5,6 +5,7 @@ import base64
 from network.Interface import getInetAddress
 from exceptions import AssertionError
 import time
+from MessageCache import MessageCache,  DelayedMsgCache
 
 IS_ALIVE_TIME = 20
 
@@ -50,6 +51,8 @@ class Model():
         self.__nodes = {}   # mapa uid -> obiekt Node 
         self.__nodesUid = [] # lista uid aby zachowac kolejnosc
         self.__logicalTime = [] # macierz czasów logicznych
+        self.__msgCache = MessageCache()
+        self.__delayedMsgCache = DelayedMsgCache()
         
     def setPreferredNodesAddr(self,  address):
         self.__preferredNodesAddr = address
@@ -81,7 +84,7 @@ class Model():
         return self.__myId
 
     def getListOfNodes(self):
-        return list(self.__nodes.keys())
+        return list(self.__nodesUid)
         
     def getMatrix(self):
         return self.__logicalTime; #TODO: zwracać kopię?
@@ -89,12 +92,13 @@ class Model():
     def getIncrementedTimeVector(self):
         uid = self.getMyId()
         index = self.__nodesUid.index(uid)
-        currentValue = self.__logicalTime[index][index]
-        newValue = currentValue + 1
-        print "Model: nowa wartosc zegara logicznego %d" % newValue
+        vc = list(self.__logicalTime[index])
+        currentValue = vc[index]
+        newValue = currentValue + 1 # inkrementujemy nasz zegar logiczny
+        print "Model: nowa wartosc zegara logicznego %d %s" % (newValue,  vc)
         self.__logicalTime[index][index] = newValue
         self.__printMatrix(self.__logicalTime,  self.__nodesUid)
-        return self.__logicalTime[index]
+        return vc # ... a do tagowanai wiadomosci dajemy wektor taki jaki byl przed inkrementacja
         
     def __printMatrix(self,  matrix,  vector):
         str = u""
@@ -130,12 +134,77 @@ class Model():
             
         print "Wynik"
         self.__printMatrix(self.__logicalTime,  self.__nodesUid)
-     
+    
+    def __mustDelayMsg(self,  msg):
+        senderUid = msg['SENDER']
+        senderIdxInLogicalTime = self.__nodesUid.index(senderUid)# rzuci bledem jak nie bede znal tego UID-a
+        senderIdxInMsg = msg['VEC'].index(senderUid)
+        myIndex = self.__nodesUid.index(self.getMyId())
+        commonUids = set(self.__nodesUid).intersection(msg['VEC'])
+        
+        for uid in commonUids:
+            uidIndexInMsg = msg['VEC'].index(uid)
+            uidIndexInLogicalTimeMatrix = self.__nodesUid.index(uid)
+            timeInMsg = msg['TIME_VEC'][uidIndexInMsg]
+            timeInMatrix = self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix]
+            if timeInMsg > timeInMatrix: 
+                print("Model: odkładamy wiadomość - nie dostaliśmy wcześniejszej wiadomości :( (oczekujemy na %d a dostalismy %d)" %(timeInMatrix,  timeInMsg))
+                return True
+        
+        self.logMsg("przepisuje wektor macierzy czasu nadawcy")
+        for uid in commonUids:
+            uidIndexInMsg = msg['VEC'].index(uid)
+            timeInMsg = msg['TIME_VEC'][uidIndexInMsg]
+            uidIndexInLogicalTimeMatrix = self.__nodesUid.index(uid)
+            if uid == senderUid:
+                self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix] = timeInMsg + 1
+            else:
+                self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix] = timeInMsg 
+        return False
+        
     def updateLogicalTimeUsingMsgAndSendToGui(self,  msg):
+        """
+        True - trzeba forwardowac wiadomosc
+        False - mielismy te wiadomosc wiec mowimy ze nie trzeba forwardowac
+        """
         senderUid = msg['SENDER']
         receiverUid = msg['RECEIVER']
         content = msg['CONTENT']
-        self.__gui.messageReceived(senderUid, self.getNickByUID(senderUid),  receiverUid,  content)
+        
+        if self.__mustDelayMsg(msg):
+            # czekamy na inna wiadomosc
+            #TODO: ile mamy czekac? jakis timer trzeba ustawic i kogos poprosic o ponowne przeslanie brakujacej wiadomosci
+            self.logMsg("trzeba opóźnić wiadomość")
+            if self.__delayedMsgCache.isAlreadyDelayed(msg):
+                self.logMsg("miałem już taką wiadomość więc pomijam ją")
+                return False # nie przekazujemy dalej
+            else:
+                self.logMsg("opóźniam wiadomość")
+                self.__printMatrix(self.__logicalTime,  self.__nodesUid)
+                self.__delayedMsgCache.delayMsg(msg)
+                return True
+        else:
+            # sprawdzamy czy wiadomość nie była opóżniana
+            self.__printMatrix(self.__logicalTime,  self.__nodesUid)
+            if self.__delayedMsgCache.isAlreadyDelayed(msg):
+                self.logMsg("otrzymana wiadomość była w kolekcji wiadomości opóźnionych")
+                self.__delayedMsgCache.delMsg(msg)
+        
+        isKnownMsg = None
+        if self.__msgCache.isMsgOnTheList(msg):
+            isKnownMsg = True
+        else:
+            isKnownMsg = False
+            self.__msgCache.storeMsg(msg)
+            
+            
+        needForward = not isKnownMsg
+        
+        # sprawdzamy czy trzeba wyslac wiadomosc do GUI
+        if receiverUid == None or receiverUid == self.getMyId():
+            self.__gui.messageReceived(senderUid, self.getNickByUID(senderUid),  receiverUid,  content)
+            
+        return needForward
   
     def addNode(self,  uid,  username,  ip):
         #TODO: dodanie do macierzy zegarow
@@ -159,15 +228,26 @@ class Model():
             self.__gui.addNode(uid,  username)
         else:
             print "Model: juz znam wezel o id %s" % uid
+        self.__checkMatrix()
+
+    def __checkMatrix(self):
+        nodesCount = len(self.__nodesUid)
+        nodesCountInMap = len(self.__nodes.keys())
+        assert nodesCount == nodesCountInMap,   "bledna ilosc elemntow w tablicy i mapie (%d != %d)" % (nodesCount,  nodesCountInMap)
+        assert len(self.__logicalTime) == nodesCount,  "blena ilosc wierszy (%d != %d)" %(len(self.__logicalTime) ,  nodesCount)
+        for row in self.__logicalTime:
+            assert len(row) == nodesCount,  "blena ilosc kolumn (%d != %d)" %(len(row) ,  nodesCount)
 
     def removeNode(self,  uid):
         print "Model: usuwam wskazanego wezla - %s" % uid
         name = self.getNickByUID(uid)
         index = self.__nodesUid.index(uid)
         del self.__nodes[uid]
-        self.__logicalTime.remove(self.__logicalTime[index])
+        self.__logicalTime.pop(index)
         for row in self.__logicalTime:
             row.pop(index)
+        self.__nodesUid.pop(index)
+        self.__checkMatrix()
         self.__gui.delNode(uid,  name)
         
     def markNodeIsAlive(self,  uid):
@@ -192,5 +272,9 @@ class Model():
     def isIamAlone(self):
         return len(self.__nodes.values()) == 0
 
+    def logMsg(self,  msg):
+        print "Model: %s" % msg
+
     def setGui(self , gui):
         self.__gui = gui
+
