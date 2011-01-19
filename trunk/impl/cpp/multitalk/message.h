@@ -17,7 +17,7 @@ public:
     QList<QList<int> > mac;
     QList<QString> vec;
     QString sender;
-    QString reciver;
+    QString receiver;
     qint32 msg_id;
     QList<int> time_vec;
     QString content;
