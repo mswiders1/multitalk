@@ -1,13 +1,12 @@
 package pl.multitalk.android.managers.messages.internal;
 
-import pl.multitalk.android.managers.messages.BaseMessage;
 import pl.multitalk.android.managers.messages.Message;
 
 /**
  * Wewnętrzny komunikat do wysłania wiadomości do wszystkich 
  * @author Michał Kołodziejski
  */
-public class SendMessageToAllMessage extends BaseMessage {
+public class SendMessageToAllMessage extends InternalBaseMessage {
 
     private Message messageToSend;
     
@@ -18,21 +17,6 @@ public class SendMessageToAllMessage extends BaseMessage {
 
     public void setMessageToSend(Message messageToSend) {
         this.messageToSend = messageToSend;
-    }
-
-    @Override
-    public void deserialize(String jsonString) {
-    }
-
-    @Override
-    public String serialize() {
-        return null;
-    }
-
-    
-    @Override
-    public Message getClone() {
-        return null;
     }
 
 }

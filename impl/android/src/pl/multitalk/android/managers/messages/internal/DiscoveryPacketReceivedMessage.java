@@ -1,23 +1,12 @@
 package pl.multitalk.android.managers.messages.internal;
 
 import pl.multitalk.android.datatypes.UserInfo;
-import pl.multitalk.android.managers.messages.BaseMessage;
 import pl.multitalk.android.managers.messages.Message;
 
 /**
  * @author Michał Kołodziejski
  */
-public class DiscoveryPacketReceivedMessage extends BaseMessage {
-
-    @Override
-    public void deserialize(String jsonString) {
-    }
-
-    @Override
-    public String serialize() {
-        return null;
-    }
-
+public class DiscoveryPacketReceivedMessage extends InternalBaseMessage {
     
     @Override
     public Message getClone() {

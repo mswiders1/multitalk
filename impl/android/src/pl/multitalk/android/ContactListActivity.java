@@ -59,6 +59,7 @@ public class ContactListActivity extends Activity {
                 Log.d(Constants.DEBUG_TAG, "Kliknięto kontakt: "+item.getUsername());
                 
                 Intent intent = new Intent(Constants.ACTION_CONVERSATION_ACTIVITY);
+                intent.putExtra("UID", item.getUid());
                 startActivity(intent);
             }
             

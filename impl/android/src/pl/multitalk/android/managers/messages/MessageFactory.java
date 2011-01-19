@@ -32,6 +32,12 @@ public class MessageFactory {
         if(messageType.equals("LIV")){
             message = new LivMessage();
         
+        } else if(messageType.equals("MSG")){
+            message = new MsgMessage();
+        
+        } else if(messageType.equals("GET")){
+            message = new GetMessage();
+        
         } else if(messageType.equals("HII")){
             message = new HiMessage();
         
