@@ -19,6 +19,7 @@ import pl.multitalk.android.managers.messages.OutMessage;
 import pl.multitalk.android.managers.messages.P2PMessage;
 import pl.multitalk.android.managers.messages.internal.DiscoveryPacketReceivedMessage;
 import pl.multitalk.android.managers.messages.internal.FinishMessage;
+import pl.multitalk.android.managers.messages.internal.SendMessageToAllMessage;
 import pl.multitalk.android.model.ReliableBroadcastMatrix;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.DigestUtil;
@@ -32,6 +33,7 @@ import pl.multitalk.android.util.NetworkUtil.WifiNotEnabledException;
 public class MultitalkNetworkManager {
 
     private final long LOG_SEND_DELAY = 5000;
+    private final long LIV_SEND_PERIOD = 10000;
     
     private Context context;
     private BroadcastNetworkManager broadcastNetworkManager;
@@ -141,7 +143,7 @@ public class MultitalkNetworkManager {
             // bezpośrednie połączenie
             UserInfo peerUser = new UserInfo();
             peerUser.setIpAddress(peerIpAddress);
-            peerUser.setUid(String.valueOf(System.currentTimeMillis()));
+            peerUser.setUid(String.valueOf(System.currentTimeMillis()+"."+Math.random()));
             addNotLoggedUserInfo(peerUser);
             tcpipNetworkManager.connectToClient(peerUser);
             
@@ -221,6 +223,18 @@ public class MultitalkNetworkManager {
     
     
     /**
+     * Sprawdza czy użytkownik został już dodany
+     * @param user informacje o użytkowniku
+     */
+    private synchronized boolean containsUserInfo(UserInfo user){
+        if(users.contains(user)){
+            return true;
+        }
+        return false;
+    }
+    
+    
+    /**
      * Dodaje informację o nowym niezalogowanym użytkowniku
      * @param newUserInfo informacje o nowym niezalogowanym użytkowniku
      */
@@ -292,7 +306,7 @@ public class MultitalkNetworkManager {
      */
     private void startSendingLivMessage(){
         sendLivTimer = new Timer();
-        sendLivTimer.schedule(new SendLivMessageTimerTask(), 3000, 5000);
+        sendLivTimer.schedule(new SendLivMessageTimerTask(), LIV_SEND_PERIOD/2, LIV_SEND_PERIOD);
     }
     
     
@@ -341,9 +355,16 @@ public class MultitalkNetworkManager {
         clientUserInfo.setIpAddress(senderUserInfo.getIpAddress());
         
         // dodajemy i aktualizujemy w network managerze
+        boolean userExisted = containsUserInfo(clientUserInfo);
         MultitalkNetworkManager.this.addUserInfo(clientUserInfo);
         mtx.addUserWithZeroVector(clientUserInfo);
-        tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
+        if(!userExisted){
+            tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
+            
+        } else {
+            tcpipNetworkManager.disconnectClient(senderUserInfo);
+            
+        }
         
         for(UserInfo user : message.getLoggedUsers()){
             if(userInfo.equals(user) || userInfo.getIpAddress().equals(user.getIpAddress())){
@@ -382,7 +403,7 @@ public class MultitalkNetworkManager {
         UserInfo clientUserInfo = message.getUserInfo();
         clientUserInfo.setIpAddress(senderUserInfo.getIpAddress());
         
-        if(userInfo.equals(clientUserInfo) || userInfo.getIpAddress().equals(clientUserInfo.getIpAddress())){
+        if(userInfo.getIpAddress().equals(senderUserInfo.getIpAddress())){
             // wiadomość o zalogowaniu siebie
             // ignorujemy i usuwamy ewentualny wpis 
             removeNotLoggedUserInfo(senderUserInfo);
@@ -449,7 +470,11 @@ public class MultitalkNetworkManager {
             LogMessage logMessage = new LogMessage();
             logMessage.setSenderInfo(userInfo);
             logMessage.setUserInfo(userInfo);
-            tcpipNetworkManager.sendMessageToAll(logMessage);
+            
+            SendMessageToAllMessage smtaMessage = new SendMessageToAllMessage();
+            smtaMessage.setMessageToSend(logMessage);
+            putMessage(smtaMessage);
+//            tcpipNetworkManager.sendMessageToAll(logMessage);
             
             // ustawienie znacznika
             MultitalkNetworkManager.this.setLoggedIn(true);
@@ -463,13 +488,26 @@ public class MultitalkNetworkManager {
      */
     class SendLivMessageTimerTask extends TimerTask{
 
+        private int seq;
+        
+        public SendLivMessageTimerTask() {
+            seq = 0;
+        }
+        
         @Override
         public void run() {
+            ++seq;
+            
             // wysyłamy do wszystkich
             LivMessage message = new LivMessage();
             message.setSenderInfo(userInfo);
             message.setUserInfo(userInfo);
-            tcpipNetworkManager.sendMessageToAll(message);
+            message.setSeq(seq);
+            
+            SendMessageToAllMessage smtaMessage = new SendMessageToAllMessage();
+            smtaMessage.setMessageToSend(message);
+            putMessage(smtaMessage);
+//            tcpipNetworkManager.sendMessageToAll(message);
         }
         
     }
@@ -531,6 +569,12 @@ public class MultitalkNetworkManager {
                     } else if(message instanceof P2PMessage){
                         Log.d(Constants.DEBUG_TAG, "received P2P packet");
                         MultitalkNetworkManager.this.handleP2PMessage((P2PMessage) message);
+                        continue;
+                    
+                    } else if(message instanceof SendMessageToAllMessage){
+                        Log.d(Constants.DEBUG_TAG, "received SendMessageToAllMessage message");
+                        MultitalkNetworkManager.this.tcpipNetworkManager
+                            .sendMessageToAll(((SendMessageToAllMessage) message).getMessageToSend());
                         continue;
                     
                     } else if(message instanceof FinishMessage){

@@ -15,6 +15,7 @@ import pl.multitalk.android.util.Constants;
 public class LivMessage extends BaseMessage {
 
     private UserInfo userInfo;
+    private int seq;
     
     public UserInfo getUserInfo() {
         return userInfo;
@@ -23,6 +24,15 @@ public class LivMessage extends BaseMessage {
     public void setUserInfo(UserInfo userInfo) {
         this.userInfo = userInfo;
     }
+
+    public int getSeq() {
+        return seq;
+    }
+
+    public void setSeq(int seq) {
+        this.seq = seq;
+    }
+    
 
     @Override
     public void deserialize(String jsonString) {
@@ -33,6 +43,7 @@ public class LivMessage extends BaseMessage {
             userInfo = new UserInfo();
             userInfo.setUid(object.getString("UID"));
             userInfo.setIpAddress(object.getString("IP_ADDRESS"));
+            seq = object.getInt("SEQUENCE");
             
         } catch (JSONException e) {
             Log.e(Constants.ERROR_TAG, "JSONException at OutMessage#deserialize()");
@@ -48,6 +59,7 @@ public class LivMessage extends BaseMessage {
             object.put("TYPE", "LIV");
             object.put("UID", userInfo.getUid());
             object.put("IP_ADDRESS", userInfo.getIpAddress());
+            object.put("SEQUENCE", seq);
             
         } catch (JSONException e) {
             Log.e(Constants.ERROR_TAG, "JSONException at OutMessage#serialize()");
@@ -68,6 +80,7 @@ public class LivMessage extends BaseMessage {
         
         if(userInfo != null)
             cloneMessage.setUserInfo(new UserInfo(userInfo));
+        cloneMessage.setSeq(getSeq());
         
         return cloneMessage;
     }

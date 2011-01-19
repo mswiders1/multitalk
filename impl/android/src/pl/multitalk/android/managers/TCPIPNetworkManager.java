@@ -113,8 +113,8 @@ public class TCPIPNetworkManager {
         UserInfo userInfo = new UserInfo();
         userInfo.setIpAddress(socket.getInetAddress().getHostAddress());
         // fake UID - nie wiemy jak się nazywa, ale musimy go rozpoznawać...
-        userInfo.setUid(String.valueOf(System.currentTimeMillis()));
-        userInfo.setUsername(String.valueOf(System.currentTimeMillis()));
+        userInfo.setUid(String.valueOf(System.currentTimeMillis()+"."+Math.random()));
+        userInfo.setUsername(String.valueOf(System.currentTimeMillis()+"."+Math.random()));
         
         ClientConnection clientConnection = new ClientConnection(userInfo, socket, this);
         clientConnections.put(userInfo, clientConnection);
@@ -164,7 +164,8 @@ public class TCPIPNetworkManager {
             // nie ma takiego połączenia
             return;
         }
-        
+
+        Log.d(Constants.DEBUG_TAG, "Rozlaczam z klientem: "+userInfo.getIpAddress()+" ("+userInfo.getUid()+")");
         ClientConnection clientConnection = clientConnections.get(userInfo);
         clientConnection.disconnect();
         clientConnections.remove(userInfo);
@@ -176,12 +177,17 @@ public class TCPIPNetworkManager {
      * @param message wiadomość do wysłania
      */
     public void sendMessageToAll(Message message){
-        Log.d(Constants.DEBUG_TAG, "sending message to all: \n"
-                + message.serialize());
+//        Log.d(Constants.DEBUG_TAG, "sending message to all: \n"
+//                + message.serialize());
         
         for(Entry<UserInfo, ClientConnection> entry : clientConnections.entrySet()){
             Message cloneMessage = message.getClone();
             cloneMessage.setRecipientInfo(entry.getKey());
+            
+            Log.d(Constants.DEBUG_TAG, "sending message: \n"
+                    + message.serialize()
+                    +"\n to client at: "+cloneMessage.getRecipientInfo().getIpAddress()+" ("+cloneMessage.getRecipientInfo().getUid()+")");
+            
             entry.getValue().sendMessage(cloneMessage);
         }
     }
@@ -194,7 +200,7 @@ public class TCPIPNetworkManager {
     public void sendMessage(Message message){
         Log.d(Constants.DEBUG_TAG, "sending message: \n"
                 + message.serialize()
-                +"\n to client at: "+message.getRecipientInfo().getIpAddress());
+                +"\n to client at: "+message.getRecipientInfo().getIpAddress()+" ("+message.getRecipientInfo().getUid()+")");
         
         ClientConnection clientConnection = clientConnections.get(message.getRecipientInfo());
         if(clientConnection != null){
@@ -209,6 +215,8 @@ public class TCPIPNetworkManager {
      * @param newUserInfo nowe informacje
      */
     public void updateUserInfo(UserInfo oldUserInfo, UserInfo newUserInfo){
+        Log.d(Constants.DEBUG_TAG, "TCPIPNetworkManager: update user info ("+oldUserInfo.getIpAddress()+") from: "+oldUserInfo.getUid()
+                +", to: "+newUserInfo.getUid());
         ClientConnection clientConnection = clientConnections.get(oldUserInfo);
         clientConnections.remove(oldUserInfo);
         clientConnections.put(newUserInfo, clientConnection);

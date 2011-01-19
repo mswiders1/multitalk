@@ -60,8 +60,8 @@ public class ClientTCPSender extends Thread {
 
                 String messageContent = getMessageWithHeader(message.serialize());
                 
-                Log.d(Constants.DEBUG_TAG, "sending message: " + messageContent
-                        +"\n to: " + socket.getInetAddress().getHostAddress());
+//                Log.d(Constants.DEBUG_TAG, "sending message: " + messageContent
+//                        +"\n to: " + socket.getInetAddress().getHostAddress());
                 
                 socketOutput.append(messageContent);
                 socketOutput.flush();
