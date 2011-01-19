@@ -63,6 +63,11 @@ public class ReliableBroadcastMatrix {
      * @param newUser nowy użytkownik
      */
     public synchronized void addUserWithZeroVector(UserInfo newUser){
+        if(mtxUsersOrder.contains(newUser)){
+            // już jest taki user
+            return;
+        }
+        
         int usersNumber = mtxUsersOrder.size();
         
         // dodanie wektora wiedzy nowego usera o długości takiej jak wszystkich innych

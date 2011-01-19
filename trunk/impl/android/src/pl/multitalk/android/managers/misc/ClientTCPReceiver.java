@@ -76,13 +76,13 @@ public class ClientTCPReceiver extends Thread {
             
                 while(continueRead == true || ((readChars = socketReader.read(buf)) != -1)){
                     if(continueRead){
-                        Log.d(Constants.DEBUG_TAG, "Kontynuuję odczytywanie poprzedniego pakietu");
+                        // Log.d(Constants.DEBUG_TAG, "Kontynuuję odczytywanie poprzedniego pakietu");
                         continueRead = false;
                         packet = "";
                     }
                     else { // (readChars != -1)
                         packet = new String(buf, 0, readChars);
-//                        Log.d(Constants.DEBUG_TAG, "Read packet: "+packet);
+                        // Log.d(Constants.DEBUG_TAG, "Read packet: "+packet);
                         sb.append(packet);
                     }
                     
@@ -101,7 +101,7 @@ public class ClientTCPReceiver extends Thread {
                         int beginMessageFlagIdx = msgBuf.indexOf(BEGIN_MESSAGE_FLAG);
                         if(beginMessageFlagIdx == -1){
                             // za mało odczytał... jazda dalej
-                            Log.d(Constants.DEBUG_TAG, "przed 'BEGIN_MESSAGE' w nagłówku");
+                            // Log.d(Constants.DEBUG_TAG, "przed 'BEGIN_MESSAGE' w nagłówku");
                             continue;
                             
                         }
@@ -111,13 +111,13 @@ public class ClientTCPReceiver extends Thread {
                         int newLineIdx = msgBuf.indexOf("\n");
                         if(newLineIdx == -1){
                             // za mało odczytał... jazda dalej
-                            Log.d(Constants.DEBUG_TAG, "przed znakiem nowej linii w nagłówku");
+                            // Log.d(Constants.DEBUG_TAG, "przed znakiem nowej linii w nagłówku");
                             continue;
                             
                         }
                         
                         String header = msgBuf.substring(0, newLineIdx);
-//                        Log.d(Constants.DEBUG_TAG, "Nagłówek "+header);
+                        // Log.d(Constants.DEBUG_TAG, "Nagłówek "+header);
                         
                         // 14 == header.indexOf(":")
                         messageLength = Integer.valueOf(header.substring(14)).intValue();
@@ -163,7 +163,7 @@ public class ClientTCPReceiver extends Thread {
                     if(sb.toString().length() > 0){
                         // odczytaliśmy całą wiadomość, ale coś zostało i trzeba przetworzyć
                         // resztę
-                        Log.d(Constants.DEBUG_TAG, "W buforze pozostało:\n" + sb.toString());
+                        // Log.d(Constants.DEBUG_TAG, "W buforze pozostało:\n" + sb.toString());
                         continueRead = true;
                     }
                 }

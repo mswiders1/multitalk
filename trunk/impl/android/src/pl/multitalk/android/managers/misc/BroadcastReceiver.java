@@ -70,8 +70,8 @@ public class BroadcastReceiver extends Thread {
                 UserInfo newUser = new UserInfo();
                 newUser.setIpAddress(packet.getAddress().getHostAddress());
                 // fake UID - nie wiemy jak się nazywa, ale musimy go rozpoznawać...
-                newUser.setUid(String.valueOf(System.currentTimeMillis()));
-                newUser.setUsername(String.valueOf(System.currentTimeMillis()));
+                newUser.setUid(String.valueOf(System.currentTimeMillis()+"."+Math.random()));
+                newUser.setUsername(String.valueOf(System.currentTimeMillis()+"."+Math.random()));
                 
                 // podajemy dalej wiadomość
                 DiscoveryPacketReceivedMessage message = new DiscoveryPacketReceivedMessage();
