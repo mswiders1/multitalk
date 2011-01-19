@@ -47,17 +47,6 @@ public class ReliableBroadcastMatrix {
     
     
     /**
-     * Zwiększa wartość zegara logicznego użytkownika aplikacji
-     * @return nowa wartość zegara logicznego
-     */
-    public synchronized int incrementMyValue(){
-        int newValue = mtx.get(0).get(0).intValue() + 1;
-        mtx.get(0).set(0, newValue);
-        return newValue;
-    }
-    
-    
-    /**
      * Dodaje uzytkownika z zerowym wektorem wiedzy orz zerowym zegarem logicznym.
      * Do wykorzystania w przypadku nowozalogowanego użytkownika
      * @param newUser nowy użytkownik
@@ -124,12 +113,7 @@ public class ReliableBroadcastMatrix {
         List<List<Integer>> userMtx = userRBMtxPair.getMtx();
         
         // lista pozycji użytkowników w lokalnej macierzy
-        List<Integer> localUsersPos = new LinkedList<Integer>();
-        for(int i=0; i<userMtxOrder.size(); ++i){
-            UserInfo user = userMtxOrder.get(i);
-            int localUserPos = mtxUsersOrder.indexOf(user);
-            localUsersPos.add(localUserPos);
-        }
+        List<Integer> localUsersPos = getLocalUsersPos(userMtxOrder);
         
         for(int i=0; i<localUsersPos.size(); ++i){
             int localUserVecPos = localUsersPos.get(i).intValue();
@@ -161,8 +145,9 @@ public class ReliableBroadcastMatrix {
      */
     public synchronized void removeUserFromMatrix(UserInfo user){
         int userPos = mtxUsersOrder.indexOf(user);
-        if(userPos == -1)
+        if(userPos == -1){
             return;
+        }
         
         mtxUsersOrder.remove(userPos);
         for(List<Integer> vec : mtx){
@@ -170,5 +155,122 @@ public class ReliableBroadcastMatrix {
         }
         mtx.remove(userPos);
         
+    }
+    
+    
+    /**
+     * Aktualizuje wektor wiedzy użytkownika
+     * @param user użytkownik
+     * @param userVector wektor wiedzy użytkownika
+     * @param userVectorOrder wektor kolejności użytkowników w wektorze wiedzy
+     */
+    public synchronized void updateUserVector(UserInfo user, List<Integer> userVector,
+            List<UserInfo> userVectorOrder){
+        int userPos = mtxUsersOrder.indexOf(user);
+        if(userPos == -1){
+            return;
+        }
+        
+
+        // lista pozycji użytkowników w lokalnej macierzy
+        List<Integer> localUsersPos = getLocalUsersPos(userVectorOrder);
+        
+        List<Integer> localUserVector = mtx.get(userPos);
+        int currentValue;
+        int vecValue;
+        int newValue;
+        for(int i=0; i<localUsersPos.size(); ++i){
+            int localUserPos = localUsersPos.get(i).intValue();
+            if(localUserPos == -1){
+                // brak użytkownika w lokalnej macierzy
+                continue;
+            }
+            
+            currentValue = localUserVector.get(localUserPos).intValue();
+            vecValue = userVector.get(i).intValue();
+            newValue = (currentValue > vecValue) ? currentValue : vecValue;
+            
+            localUserVector.set(localUserPos, newValue);
+            
+        }
+        
+        // inkrementacja w wektorze zdalnego użytkownika
+        int nextUserValue = mtx.get(userPos).get(userPos) + 1;
+        mtx.get(userPos).set(userPos, nextUserValue);
+    
+    }
+    
+    
+    /**
+     * Zwiększa wartość zegara logicznego użytkownika
+     * @param user użytkownik
+     */
+    public synchronized void incrementUserValue(UserInfo user){
+        int userPos = mtxUsersOrder.indexOf(user);
+        if(userPos == -1){
+            return;
+        }
+        
+        // inkrementacja w wektorze zalogowanego użytkownika
+        if(!user.equals(this.user)){
+            int nextUserValue = mtx.get(0).get(userPos).intValue() + 1;
+            mtx.get(0).set(userPos, nextUserValue);
+        }
+        
+    }
+    
+    
+    /**
+     * Zwraca informację, czy uzytkownik istnieje w macierzy
+     * @param user użytkownik
+     * @return true jeżeli istnieje
+     */
+    public synchronized boolean containsUser(UserInfo user){
+        return mtxUsersOrder.contains(user);
+    }
+    
+    
+    /**
+     * Zwraca informację, czy wektor użytkownika zalogowanego jest tak samo (lub bardziej)
+     * aktualny jak wektor użytkownika zdalnego
+     * @param userVec wektor użytkownika zdalnego
+     * @param usersVecOrder wektor kolejności użytkownika zdalnego
+     * @return true jeżeli jest aktualny
+     */
+    public synchronized boolean isMyVectorUpToDate(List<Integer> userVec, List<UserInfo> usersVecOrder){
+        List<Integer> vec = mtx.get(0);
+        
+        // lista pozycji użytkowników w lokalnej macierzy
+        List<Integer> localUsersPos = getLocalUsersPos(usersVecOrder);
+        
+        for(int i=0; i<localUsersPos.size(); ++i){
+            int localUserPos = localUsersPos.get(i).intValue();
+            if(localUserPos == -1){
+                // brak użytkownika w lokalnej macierzy
+                continue;
+            }
+            
+            if(userVec.get(i).intValue() > vec.get(localUserPos)){
+                return false;
+            }
+            
+        }
+        return true;
+    }
+    
+    
+    /**
+     * Zwraca listę pozycji użytkowników w lokalnej macierzy
+     * @param userMtxOrder lista pozycji użytkowników w innej macierzy
+     * @return lista pozycji użytkowników w lokalnej macierzy
+     */
+    private List<Integer> getLocalUsersPos(List<UserInfo> userMtxOrder){
+        List<Integer> localUsersPos = new LinkedList<Integer>();
+        for(int i=0; i<userMtxOrder.size(); ++i){
+            UserInfo user = userMtxOrder.get(i);
+            int localUserPos = mtxUsersOrder.indexOf(user);
+            localUsersPos.add(localUserPos);
+        }
+        return localUsersPos;
     }
 }

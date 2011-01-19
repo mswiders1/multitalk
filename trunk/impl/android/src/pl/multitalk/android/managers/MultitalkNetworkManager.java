@@ -10,17 +10,20 @@ import java.util.concurrent.BlockingQueue;
 import android.content.Context;
 import android.util.Log;
 import pl.multitalk.android.datatypes.UserInfo;
+import pl.multitalk.android.managers.messages.GetMessage;
 import pl.multitalk.android.managers.messages.HiMessage;
 import pl.multitalk.android.managers.messages.LivMessage;
 import pl.multitalk.android.managers.messages.LogMessage;
 import pl.multitalk.android.managers.messages.Message;
+import pl.multitalk.android.managers.messages.MsgMessage;
 import pl.multitalk.android.managers.messages.MtxMessage;
 import pl.multitalk.android.managers.messages.OutMessage;
 import pl.multitalk.android.managers.messages.P2PMessage;
 import pl.multitalk.android.managers.messages.internal.DiscoveryPacketReceivedMessage;
 import pl.multitalk.android.managers.messages.internal.FinishMessage;
 import pl.multitalk.android.managers.messages.internal.SendMessageToAllMessage;
-import pl.multitalk.android.model.ReliableBroadcastMatrix;
+import pl.multitalk.android.managers.messages.internal.SendMessageToClient;
+import pl.multitalk.android.model.RBMtxPair;
 import pl.multitalk.android.util.Constants;
 import pl.multitalk.android.util.DigestUtil;
 import pl.multitalk.android.util.NetworkUtil;
@@ -56,9 +59,10 @@ public class MultitalkNetworkManager {
     private List<UserInfo> notLoggedUsers;
     
     /**
-     * Macierz wiedzy o wiedzy użytkowników
+     * Manager wiadomości
      */
-    private ReliableBroadcastMatrix mtx;
+    private MessageManager messageManager;
+    
     
     
     /**
@@ -132,8 +136,8 @@ public class MultitalkNetworkManager {
                 +" | UID (before encoding): "+sb.toString()
                 +" | UID: "+userInfo.getUid());
         
-        // nowa macierz
-        mtx = new ReliableBroadcastMatrix(userInfo);
+        // nowy manager wiadomości
+        messageManager = new MessageManager(userInfo);
         
         if(peerIpAddress == null){
             // wysłanie UDP discovery
@@ -364,6 +368,16 @@ public class MultitalkNetworkManager {
     }
     
     
+    /**
+     * Zwraca konwersację z uzytkownikiem
+     * @param user użytkownik
+     * @return lista wiadomości w porządku chronologicznym
+     */
+    public List<MsgMessage> getConversation(UserInfo user){
+        return messageManager.getConversation(user);
+    }
+    
+    
     /* *********************************************** */
     /*   handlery dla komunikatów
     /* *********************************************** */
@@ -381,7 +395,7 @@ public class MultitalkNetworkManager {
         // dodajemy i aktualizujemy w network managerze
         boolean userExisted = containsUserInfo(clientUserInfo);
         MultitalkNetworkManager.this.addUserInfo(clientUserInfo);
-        mtx.addUserWithZeroVector(clientUserInfo);
+        messageManager.addUser(clientUserInfo);
         if(!userExisted){
             tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
             
@@ -403,7 +417,7 @@ public class MultitalkNetworkManager {
             }
             
             MultitalkNetworkManager.this.addUserInfo(user);
-            mtx.addUserWithZeroVector(clientUserInfo);
+            messageManager.addUser(clientUserInfo);
             tcpipNetworkManager.connectToClient(user);
         }
     }
@@ -474,7 +488,7 @@ public class MultitalkNetworkManager {
                 // nie mamy bezpośredniego połączenia z użytkownikiem logującym
                 // dodajemy usera i próubjemy się połączyć
                 addUserInfo(clientUserInfo);
-                mtx.addUserWithZeroVector(clientUserInfo);
+                messageManager.addUser(clientUserInfo);
                 tcpipNetworkManager.connectToClient(clientUserInfo);
                 
             } else {
@@ -490,7 +504,7 @@ public class MultitalkNetworkManager {
             removeNotLoggedUserInfo(senderUserInfo);
             addUserInfo(clientUserInfo);
             tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
-            mtx.addUserWithZeroVector(clientUserInfo);
+            messageManager.addUser(clientUserInfo);
             
         }
         
@@ -499,7 +513,7 @@ public class MultitalkNetworkManager {
         MtxMessage mtxMessage = new MtxMessage();
         mtxMessage.setSenderInfo(userInfo);
         mtxMessage.setRecipientInfo(clientUserInfo);
-        mtxMessage.setMtxPair(mtx.getMatrix());
+        mtxMessage.setMtxPair(messageManager.getRBMatrix());
         tcpipNetworkManager.sendMessage(mtxMessage);
         
         // forwardujemy LOG
@@ -514,7 +528,7 @@ public class MultitalkNetworkManager {
      * @param message komunikat
      */
     public void handleMtxMessage(MtxMessage message){
-        mtx.handleUserMatrix(message.getMtxPair());
+        messageManager.handleUserRBMatrix(message.getMtxPair());
     }
     
 
@@ -523,10 +537,9 @@ public class MultitalkNetworkManager {
      * @param message komunikat
      */
     public void handleOutMessage(OutMessage message){
-        mtx.removeUserFromMatrix(message.getUserInfo());
+        messageManager.removeUser(message.getUserInfo());
         tcpipNetworkManager.disconnectClient(message.getUserInfo());
         removeUserInfo(message.getUserInfo());
-//        addNotLoggedUserInfo(message.getUserInfo());
         
     }
     
@@ -545,6 +558,58 @@ public class MultitalkNetworkManager {
     
     
     /**
+     * Obsługuje komunikat MSG
+     * @param message komunikat
+     */
+    public void handleMsgMessage(MsgMessage message){
+        if(messageManager.getMessage(message.getMsgSender(), message.getMsgId()) != null){
+            // już ją mamy
+            return;
+        }
+        messageManager.addMessage(message);
+        
+        // przesyłamy dalej
+        SendMessageToAllMessage smtaMsg = new SendMessageToAllMessage();
+        smtaMsg.setMessageToSend(message);
+        smtaMsg.setSenderInfo(userInfo);
+        putMessage(smtaMsg);
+    }
+    
+    
+    /**
+     * Obsługuje komunikat GET
+     * @param message komunikat
+     */
+    public void handleGetMessage(GetMessage message){
+        MsgMessage msgToSend = messageManager.getMessage(message.getUserInfo(), message.getMsgId());
+        msgToSend.setSenderInfo(userInfo);
+        msgToSend.setRecipientInfo(message.getSenderInfo());
+        tcpipNetworkManager.sendMessage(msgToSend);
+    }
+    
+    
+    /**
+     * Obsługuje komunikat SendMessageToClient
+     * @param message komunikat
+     */
+    public void handleSendMessageToClientMessage(SendMessageToClient message){
+        RBMtxPair mtxPair = messageManager.getRBMatrix();
+        
+        MsgMessage msgMessage = new MsgMessage();
+        msgMessage.setSenderInfo(userInfo);
+        msgMessage.setMsgSender(userInfo);
+        msgMessage.setMsgReceiver(users.get(users.indexOf(message.getRecipientInfo())));
+        msgMessage.setContent(message.getContent());
+        msgMessage.setMsgId(mtxPair.getMtx().get(0).get(0));
+        msgMessage.setTimeVec(mtxPair.getMtx().get(0));
+        msgMessage.setUsersOrder(mtxPair.getMtxUsersOrder());
+        messageManager.addMessage(msgMessage);
+        tcpipNetworkManager.sendMessageToAll(msgMessage);
+    }
+    
+    
+    
+    /**
      * Zadanie wysłania komunikatu logowania
      */
     class SendLogMessageTimerTask extends TimerTask{
@@ -559,7 +624,6 @@ public class MultitalkNetworkManager {
             SendMessageToAllMessage smtaMessage = new SendMessageToAllMessage();
             smtaMessage.setMessageToSend(logMessage);
             putMessage(smtaMessage);
-//            tcpipNetworkManager.sendMessageToAll(logMessage);
             
             // ustawienie znacznika
             MultitalkNetworkManager.this.setLoggedIn(true);
@@ -623,6 +687,21 @@ public class MultitalkNetworkManager {
                     if(message instanceof LivMessage){
                         Log.d(Constants.DEBUG_TAG, "received LIV message:\n"+message.serialize());
                         // TODO
+                        continue;
+                    
+                    } else if(message instanceof MsgMessage){
+                        Log.d(Constants.DEBUG_TAG, "received MSG message:\n"+message.serialize());
+                        MultitalkNetworkManager.this.handleMsgMessage((MsgMessage) message);
+                        continue;
+                    
+                    } else if(message instanceof GetMessage){
+                        Log.d(Constants.DEBUG_TAG, "received GET message:\n"+message.serialize());
+                        MultitalkNetworkManager.this.handleGetMessage((GetMessage) message);
+                        continue;
+                    
+                    } else if(message instanceof SendMessageToClient){
+                        Log.d(Constants.DEBUG_TAG, "received SendMessageToClient message");
+                        MultitalkNetworkManager.this.handleSendMessageToClientMessage((SendMessageToClient) message);
                         continue;
                     
                     } else if(message instanceof DiscoveryPacketReceivedMessage){
