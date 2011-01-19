@@ -58,6 +58,7 @@ class TCPManager(Singleton):
         self.__ipOfStartingConnections.append(ip)
         
     def connectionFailed(self,  ip):
+        self.logMsg("usuwam polaczenie do %s" % ip)
         self.__ipOfStartingConnections.remove(ip)
         
     def getConnectionToNode(self,  uid):
