@@ -32,11 +32,11 @@ class TCPClientFactory(ClientFactory):
         return self.protocol()
     
     def clientConnectionLost(self, connector, reason):
-        self.logMsg('Lost connection.  Reason: %s' % reason)
+        self.logMsg('utracono polaczenie. powod: %s' % reason)
+        appVar.tcpManager.connectionFailed(connector.transport.getPeer().host)
     
     def clientConnectionFailed(self, connector, reason):
-        self.logMsg('Connection failed. Reason: %s '% reason)
-        dir(connector)
+        self.logMsg('blad nawiazywania polaczenia. powod: %s '% reason)
         appVar.tcpManager.connectionFailed(connector.transport.getPeer().host)
 
     def logMsg(self,  msg):

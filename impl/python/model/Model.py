@@ -129,7 +129,7 @@ class Model():
             matRowIndex = vector.index(uid)
             for uid2 in commonNodes:
                 myColIndex = self.__nodesUid.index(uid2)
-                matColIndex = vector.index(uid)
+                matColIndex = vector.index(uid2)
                 self.__logicalTime[myRowIndex][myColIndex] = max(self.__logicalTime[myRowIndex][myColIndex],  matrix[matRowIndex][matColIndex])
             
         print "Wynik"
@@ -142,15 +142,6 @@ class Model():
         myIndex = self.__nodesUid.index(self.getMyId())
         commonUids = set(self.__nodesUid).intersection(msg['VEC'])
         
-        for uid in commonUids:
-            uidIndexInMsg = msg['VEC'].index(uid)
-            uidIndexInLogicalTimeMatrix = self.__nodesUid.index(uid)
-            timeInMsg = msg['TIME_VEC'][uidIndexInMsg]
-            timeInMatrix = self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix]
-            if timeInMsg > timeInMatrix: 
-                print("Model: odkładamy wiadomość - nie dostaliśmy wcześniejszej wiadomości :( (oczekujemy na %d a dostalismy %d)" %(timeInMatrix,  timeInMsg))
-                return True
-        
         self.logMsg("przepisuje wektor macierzy czasu nadawcy")
         for uid in commonUids:
             uidIndexInMsg = msg['VEC'].index(uid)
@@ -160,6 +151,17 @@ class Model():
                 self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix] = timeInMsg + 1
             else:
                 self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix] = timeInMsg 
+                
+        for uid in commonUids:
+            uidIndexInMsg = msg['VEC'].index(uid)
+            uidIndexInLogicalTimeMatrix = self.__nodesUid.index(uid)
+            timeInMsg = msg['TIME_VEC'][uidIndexInMsg]
+            timeInMatrix = self.__logicalTime[myIndex][uidIndexInLogicalTimeMatrix]
+            if timeInMsg > timeInMatrix: 
+                print("Model: odkładamy wiadomość - nie dostaliśmy wcześniejszej wiadomości :( (oczekujemy na %d a dostalismy %d)" %(timeInMatrix,  timeInMsg))
+                return True
+        
+        
         return False
         
     def updateLogicalTimeUsingMsgAndSendToGui(self,  msg):
@@ -186,6 +188,10 @@ class Model():
         else:
             # sprawdzamy czy wiadomość nie była opóżniana
             self.__printMatrix(self.__logicalTime,  self.__nodesUid)
+            self.logMsg("odebralem wiadomosc od %s wiec inkrementuje jego zegar w moim wektorze" % (senderUid))
+            senderUidInMyMatrix = self.__nodesUid.index(senderUid)
+            myIndexInMyMatrix = self.__nodesUid.index(self.getMyId())
+            self.__logicalTime[myIndexInMyMatrix][senderUidInMyMatrix] +=1
             if self.__delayedMsgCache.isAlreadyDelayed(msg):
                 self.logMsg("otrzymana wiadomość była w kolekcji wiadomości opóźnionych")
                 self.__delayedMsgCache.delMsg(msg)
@@ -260,10 +266,23 @@ class Model():
         assert len(self.__nodes) > 0,  "nie moge sie dodac do listy wezlow bo jest ona pusta '%s'" % self.__nodes
         self.addNode(self.getMyId(),  self.getNick(),  getInetAddress())
         
+    def __setMaxInRow(self,  uid):
+        dim = len(self.__nodesUid)
+        destinationRow = self.__nodesUid.index(uid)
+        for columnIdx in range(0,  dim):
+            maxVal =0
+            for rowIdx in range(0, dim):
+                if rowIdx != destinationRow:
+                    maxVal = max(maxVal,  self.__logicalTime[rowIdx][columnIdx])
+                else:
+                    assert self.__logicalTime[rowIdx][columnIdx] == 0,  "oczekujemy zera w wierszu do ktorego wstawimy Maxa"
+            self.__logicalTime[rowIdx][columnIdx] = maxVal
+        
     def logNewUser(self,  uid,  username,  ip):
         print "Model: logowanie uzytkownika %s = %s (%s)" % (username,  uid,  ip)
         try:
             self.addNode(uid,  username,  ip)
+            self.__setMaxInRow(uid)
             return True
         except AssertionError as err:
             print "Model: nie mozna zalogowac uzytkownika: %s" % err

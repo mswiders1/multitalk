@@ -63,10 +63,11 @@ class Core:
         else:
             print u"Core: wysyłam wiadomość '%s' do wszystkich" % msg
             self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(),  None,  msg)
-            
+        
+        msg = MessageParser.getFullMsgMsg(uid,  msg)
         for connection in self.__tcpm.getMappedConnections():
             #ale lipa - musze z tego poziomu tworzyc pakiet do wyslania    
-            connection.sendPacket(MessageParser.getFullMsgMsg(uid,  msg))
+            connection.sendPacket(msg)
         
     def handleMsgMessage(self,  msg):
         print u"Core: przesylam wiadomosc MSG do analizujy "
@@ -148,7 +149,6 @@ class Core:
         
         
     def __sendLogMsgToAll(self):
-        assert not self.__tcpm.getUnmappedConnections(),  "w chwili wyslania log msg nie moze byc niezmapowane polaczenie %s" % self.__tcpm.getUnmappedConnections()
         for connection in self.__tcpm.getMappedConnections():
             connection.sendLogMsg()
         
