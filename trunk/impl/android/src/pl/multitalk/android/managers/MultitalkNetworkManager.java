@@ -566,6 +566,10 @@ public class MultitalkNetworkManager {
             // już ją mamy
             return;
         }
+        // aktualizacja danych uzytkownika wysylajacego
+        if(containsUserInfo(message.getMsgSender())){
+            message.setMsgSender(users.get(users.indexOf(message.getMsgSender())));
+        }
         messageManager.addMessage(message);
         
         // przesyłamy dalej
