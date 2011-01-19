@@ -28,5 +28,9 @@ public class Connection {
 		this.unicast = unicast;
 	}
 	
+	public String toString()
+	{
+		return contact.getIp();
+	}
 	
 }

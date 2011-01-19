@@ -10,9 +10,16 @@ public class Test1 {
 	public static void main(String[] args) {
 		
 		
-		Broadcast b = new Broadcast(new NetManagement());
-		b.send();
-		b.receive();
+		//Broadcast b = new Broadcast(new NetManagement());
+		//b.send();
+		//b.receive();
+		NetManagement nm = new NetManagement();
+		Contact c= new Contact();
+		c.setIp("192.168.1.102");
+		System.out.println("Contact"+ c.getIp());
+		nm.startListiningForConnections();
+		nm.connectToClient(c);
+		System.out.println(nm.getConnections());
 		//b.closeSocket();
 		
 		/*
