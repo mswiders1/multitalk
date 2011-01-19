@@ -2,39 +2,38 @@
 
 """The user interface for our app"""
 
-from network import BroadcastReceiver,  BroadcastSender,  TCPClient,  TCPServer,  TCPManager
+from network import BroadcastReceiver,  BroadcastSender,  TCPClient,  TCPServer,  MessageParser
 import os,sys,traceback, time
 import Queue
 import socket
 import exceptions
 import queues
 import Hash
-import appVar
 from Heartbeat import Heartbeat
 
 class Core:
     def __init__(self,  reactor):
         print "Core: swiat jest piekny ;)"
-        appVar.tcpManager = TCPManager.TCPManager()
-        self.tcpm = appVar.tcpManager
-        self.model = appVar.modelInstance
+        self.__tcpm = None
+        self.__model = None
+        self.__gui = None
         self.reactor = reactor
         self.heartbeat = Heartbeat(self)
         return 
     
     def userInsertedNetworkAddr(self,  addr):
         print "Core: uzytkownik chce polaczyc sie z %s" % addr
-        self.model.setPreferredNodesAddr(addr)
+        self.__model.setPreferredNodesAddr(addr)
         
     def handleUserInsertedNick(self,  nick):
             #Logowanie uzytkownika
-            self.model.setNick(nick)
+            self.__model.setNick(nick)
             print ("Core: logowanie z nickiem %s" % nick)
-            self.model.setMyId(Hash.generateUserId(nick))
+            self.__model.setMyId(Hash.generateUserId(nick))
             try:
                 print "Core: tworze serwer TCP"
                 self.tcpFactory = TCPServer.startTCPServer(self.reactor)
-                netAddr = self.model.getPreferredNodesAddr()
+                netAddr = self.__model.getPreferredNodesAddr()
                 if netAddr:
                     print "Core: tworze klienta tcp do polaczenia do %s" % netAddr
                     TCPClient.startReversedTCPConnection(self.reactor,  netAddr)
@@ -48,29 +47,36 @@ class Core:
     
     def handleHeartbeatTimePassed(self):
         print "Core: wysylam heartbeat(%s)" % time.strftime("%H:%S") 
-        for connection in self.tcpm.getMappedConnections():
+        for connection in self.__tcpm.getMappedConnections():
             connection.sendLivMsg()
             
     def handleLivMessage(self,  msg):
         uid = msg['UID']
-        self.model.markNodeIsAlive(uid)
+        self.__model.markNodeIsAlive(uid)
 
     def sendMessage(self,  uid,  msg):
         if not msg:
             return
         if uid:
             print u"Core: wysyłam wiadomość '%s' do %s" % (msg,  uid)
-            self.gui.messageReceived(uid, self.model.getMyId(),  msg)#do testow
+            self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(), uid,  msg)
         else:
-            print u"Core: wysyłam wiadomość '%s' do wszystkich" % msg#do testow
-            self.gui.messageReceived(self.model.getMyId(),  None,  msg)
-        #TODO: wysylka
+            print u"Core: wysyłam wiadomość '%s' do wszystkich" % msg
+            self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(),  None,  msg)
+            
+        for connection in self.__tcpm.getMappedConnections():
+            #ale lipa - musze z tego poziomu tworzyc pakiet do wyslania    
+            connection.sendPacket(MessageParser.getFullMsgMsg(uid,  msg))
+        
+    def handleMsgMessage(self,  msg):
+        print u"Core: przesylam wiadomosc MSG do analizujy "
+        self.__model.updateLogicalTimeUsingMsgAndSendToGui(msg)
     
     def userNameByUid(self,  uid):
-        return self.model.getNickByUID(uid)
+        return self.__model.getNickByUID(uid)
         
     def isThisMyUid(self,  uid):
-        return uid == self.model.getMyId()
+        return uid == self.__model.getMyId()
     
     def setDelayPerNode(self,  uid,  delayInSec):
         print u"Core: ustawiam opóźnienie %d sekund dla klienta %s" % (delayInSec,  uid)
@@ -79,26 +85,26 @@ class Core:
         print "Core: analiza wiadomosci Hii"
         for nodeFromVector in msg['VECTOR']:
             print "Core: dodaje wezel z wiadomosci hi: '%s'" % nodeFromVector
-            self.model.addNode(nodeFromVector['UID'],  nodeFromVector['USERNAME'],  nodeFromVector['IP_ADDRESS'])
+            self.__model.addNode(nodeFromVector['UID'],  nodeFromVector['USERNAME'],  nodeFromVector['IP_ADDRESS'])
         print "Core: mapuje wezel %s na polaczenie %s" % (msg['UID'],  connection)
-        self.tcpm.mapNodeToConnection(msg['UID'],  connection)
-        if self.model.getPreferredNodesAddr():
+        self.__tcpm.mapNodeToConnection(msg['UID'],  connection)
+        if self.__model.getPreferredNodesAddr():
             #uzytkownik podal z palca adres wiec w opoiedzi na HII wysylamy LOG
             self.__doLog()
             
     def __doLog(self):
-        self.model.addMeToListOfNodes()
+        self.__model.addMeToListOfNodes()
         self.__sendLogMsgToAll()
         self.heartbeat.start()
     
     def __doNewNetwork(self):
-        self.model.setIamFirstNode()
+        self.__model.setIamFirstNode()
         self.heartbeat.start()
     
     def handleLogMessage(self,  msg,  connection):
         print "Core: analiza wiadomosci Log"
-        if self.model.logNewUser(msg['UID'],  msg['USERNAME'], msg['IP_ADDRESS']):
-            self.tcpm.mapNodeToConnection(msg['UID'],  connection) # TODO : co w przypadku gdy connection sluzylo jako proxy dla tej wiadomoscis
+        if self.__model.logNewUser(msg['UID'],  msg['USERNAME'], msg['IP_ADDRESS']):
+            self.__tcpm.mapNodeToConnection(msg['UID'],  connection) # TODO : co w przypadku gdy connection sluzylo jako proxy dla tej wiadomoscis
             connection.sendMtxMsg()
             print "Core: przesłałem MTX"
             return True
@@ -107,12 +113,12 @@ class Core:
 
     def handleMtxMessage(self,  msg):
         print "Core: analiza wiadomosci MTX"
-        
+        self.__model.addMatrix(msg['MAC'],  msg['VEC'])
 
     def handleOutMessage(self,  msg):
         print "Core: ktos sie żegna z nami :("
         uid = msg["UID"]
-        self.model.removeNode(uid)
+        self.__model.removeNode(uid)
 
     def closeApp(self):
         print "Core: zamykam applikacje"
@@ -121,13 +127,13 @@ class Core:
         return True
         
     def __sendOutMsgToAll(self):
-        for connection in self.tcpm.getMappedConnections():
+        for connection in self.__tcpm.getMappedConnections():
             connection.sendOutMsgAndCloseConnection()
         
     def __handleBroadcastEnd(self):
         #Koniec przeszukiwania
         print "Core: koniec przeszukiwanie sieci"
-        if self.model.isIamAlone():
+        if self.__model.isIamAlone():
             print "Core: jestem sam :("
             self.__doNewNetwork()
         else:
@@ -139,20 +145,26 @@ class Core:
         
         
     def __sendLogMsgToAll(self):
-        assert not self.tcpm.getUnmappedConnections(),  "w chwili wyslania log msg nie moze byc niezmapowane polaczenie %s" % self.tcpm.getUnmappedConnections()
-        for connection in self.tcpm.getMappedConnections():
+        assert not self.__tcpm.getUnmappedConnections(),  "w chwili wyslania log msg nie moze byc niezmapowane polaczenie %s" % self.__tcpm.getUnmappedConnections()
+        for connection in self.__tcpm.getMappedConnections():
             connection.sendLogMsg()
         
     def broadcastProgress(self,  progress):
-        appVar.guiInstance.setBroadcastProgress(progress)
+        self.__gui.setBroadcastProgress(progress)
         if progress == 100:
             self.__handleBroadcastEnd()
                 
     def handleReceivedBroadcastPacket(self,  fromIP):
         print "Core: ktos chce abysmy podlaczyli sie do niego"
-        if self.tcpm.isNotConnectedToIp(fromIP):
+        if self.__tcpm.isNotConnectedToIp(fromIP):
             print "Core: nie mam do niego polaczenie wiec tworze je %s" % fromIP
             TCPClient.startTCPConnection(self.reactor,  fromIP)
     
     def setGui(self,  gui):
-        self.gui = gui
+        self.__gui = gui
+
+    def setModel(self,  model):
+        self.__model = model
+        
+    def setTcpManager(self,  manager):
+        self.__tcpm = manager

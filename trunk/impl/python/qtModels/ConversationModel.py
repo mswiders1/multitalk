@@ -10,7 +10,7 @@ class ConversationModel(QAbstractTableModel):
         """
         QAbstractTableModel.__init__(self, parent, *args) 
         self.arraydata = []
-        self.headerdata = ['Date', 'Source', 'Message']
+        self.headerdata = [u'Czas', u'Autor', u'Treść']
         self.lastMsgId = 0
  
     def rowCount(self, parent): 

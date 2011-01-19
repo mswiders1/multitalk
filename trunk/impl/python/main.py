@@ -13,7 +13,7 @@ from model.Model import Model
 from qtForms.res_rc import *
 import appVar
 
-from network import qt4reactor
+from network import qt4reactor,  TCPManager
 from twisted.internet import protocol
 
 
@@ -37,11 +37,16 @@ def main():
     appVar.modelInstance = Model()
     appVar.guiInstance = Main(qtWinSettings)
     appVar.coreInstance = Core(reactor)
+    appVar.tcpManager = TCPManager.TCPManager()
+    appVar.modelInstance.setGui(appVar.guiInstance)
     appVar.coreInstance.setGui(appVar.guiInstance)
+    appVar.coreInstance.setModel(appVar.modelInstance)
+    appVar.coreInstance.setTcpManager(appVar.tcpManager)
     appVar.guiInstance.setCore(appVar.coreInstance)
     if appVar.guiInstance.showGui():
         reactor.run()
      
 if __name__ == "__main__":
-    print("Call main()")
+    print("Uruchamiam funkcję main()")
     main()
+

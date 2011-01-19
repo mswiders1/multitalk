@@ -4,7 +4,7 @@ import hashlib
 import base64
 from network.Interface import getInetAddress
 from exceptions import AssertionError
-import appVar,  time
+import time
 
 IS_ALIVE_TIME = 20
 
@@ -15,7 +15,8 @@ class Node():
         self.__uid = uid
         self.__ip = None
         self.__lastSeen = None
-
+        self.__gui = None
+        
     def getUid(self):
         return self.__uid
 
@@ -85,15 +86,57 @@ class Model():
     def getMatrix(self):
         return self.__logicalTime; #TODO: zwracać kopię?
         
-    def getIncrementedMatrix(self):
+    def getIncrementedTimeVector(self):
         uid = self.getMyId()
         index = self.__nodesUid.index(uid)
         currentValue = self.__logicalTime[index][index]
         newValue = currentValue + 1
         print "Model: nowa wartosc zegara logicznego %d" % newValue
         self.__logicalTime[index][index] = newValue
-        return self.getMatrix()
+        self.__printMatrix(self.__logicalTime,  self.__nodesUid)
+        return self.__logicalTime[index]
         
+    def __printMatrix(self,  matrix,  vector):
+        str = u""
+        counter = 0
+        for node in vector:
+            str += unicode(counter) + u":" + node +u" "
+            counter += 1
+        print str
+        
+        for row in matrix:
+            str = u""
+            for cell in row:
+                str += unicode(cell) + u" "
+            print str
+        
+    def addMatrix(self,  matrix,  vector):
+        print "Wejscie"
+        self.__printMatrix(matrix,  vector)
+        self.__printMatrix(self.__logicalTime,  self.__nodesUid)
+        
+        newNodes = set(self.__nodesUid).difference(vector)
+        if newNodes:
+            print "Model: jakies nowe wezly sa w macierzy: %s" % newNodes
+        commonNodes = set(self.__nodesUid).intersection(vector)
+        
+        for uid in commonNodes:
+            myRowIndex = self.__nodesUid.index(uid)
+            matRowIndex = vector.index(uid)
+            for uid2 in commonNodes:
+                myColIndex = self.__nodesUid.index(uid2)
+                matColIndex = vector.index(uid)
+                self.__logicalTime[myRowIndex][myColIndex] = max(self.__logicalTime[myRowIndex][myColIndex],  matrix[matRowIndex][matColIndex])
+            
+        print "Wynik"
+        self.__printMatrix(self.__logicalTime,  self.__nodesUid)
+     
+    def updateLogicalTimeUsingMsgAndSendToGui(self,  msg):
+        senderUid = msg['SENDER']
+        receiverUid = msg['RECEIVER']
+        content = msg['CONTENT']
+        self.__gui.messageReceived(senderUid, self.getNickByUID(senderUid),  receiverUid,  content)
+  
     def addNode(self,  uid,  username,  ip):
         #TODO: dodanie do macierzy zegarow
         assert(len(uid) == len(base64.b64encode(hashlib.sha1().digest())))
@@ -106,16 +149,26 @@ class Model():
             node.setIp(ip)
             self.__nodes[uid] = node
             self.__nodesUid.append(uid)
+            
             #TODO: co z macierza
-            appVar.guiInstance.addNode(uid,  username)
+            for row in self.__logicalTime:
+                row.append(0)
+            newVector = [0] * len(self.__nodesUid) # wektor z zerami
+            self.__logicalTime.append(newVector)
+            
+            self.__gui.addNode(uid,  username)
         else:
             print "Model: juz znam wezel o id %s" % uid
 
     def removeNode(self,  uid):
         print "Model: usuwam wskazanego wezla - %s" % uid
+        name = self.getNickByUID(uid)
+        index = self.__nodesUid.index(uid)
         del self.__nodes[uid]
-        #TODO: usuwac z macierzy i nodesUid? 
-        appVar.guiInstance.delNode(uid)
+        self.__logicalTime.remove(self.__logicalTime[index])
+        for row in self.__logicalTime:
+            row.pop(index)
+        self.__gui.delNode(uid,  name)
         
     def markNodeIsAlive(self,  uid):
         self.__nodes[uid].markIsAlive()
@@ -138,3 +191,6 @@ class Model():
         
     def isIamAlone(self):
         return len(self.__nodes.values()) == 0
+
+    def setGui(self , gui):
+        self.__gui = gui

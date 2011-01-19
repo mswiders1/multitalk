@@ -32,8 +32,11 @@ def getOutMsg():
     list = {'TYPE': u"OUT", 'UID': appVar.modelInstance.getMyId()}
     return json.dumps(list,  indent=4)
 
+__livSequence = 0
 def getLivMsg():
-    list = {'TYPE': u"LIV", 'UID': appVar.modelInstance.getMyId(),  'IP_ADDRESS': appVar.modelInstance.getMyIP()}
+    global __livSequence
+    __livSequence += 1
+    list = {'TYPE': u"LIV", 'UID': appVar.modelInstance.getMyId(),  'IP_ADDRESS': appVar.modelInstance.getMyIP(),  'SEQUENCE':__livSequence}
     return json.dumps(list,  indent=4)
     
 def getGetMsg(uidOfMissingMsgSender,  timeOfSend):
@@ -67,5 +70,13 @@ def getHiiMsg():
         n['IP_ADDRESS'] = model.getIPByUID(node)
         nodesWithInfo.append(n)
     list = {'TYPE': u"HII", 'UID': id,  "USERNAME":nick,  "VECTOR":nodesWithInfo}
+    return json.dumps(list,  indent=4)
+
+def getMsgMsg(receiverUid,  content):
+    model = appVar.modelInstance
+    timeVec = model.getIncrementedTimeVector()
+    vec = model.getListOfNodes()
+    msgId = timeVec[vec.index(model.getMyId())]
+    list = {'TYPE': u"MSG", 'SENDER': model.getMyId(),  "RECEIVER":receiverUid,  "MSG_ID":msgId,  "VEC": vec,  'TIME_VEC':timeVec,  'CONTENT':content}
     return json.dumps(list,  indent=4)
 

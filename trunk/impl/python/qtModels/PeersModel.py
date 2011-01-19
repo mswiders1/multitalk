@@ -10,7 +10,7 @@ class PeersModel(QAbstractTableModel):
         """
         QAbstractTableModel.__init__(self, parent, *args) 
         self.arraydata = []
-        self.headerdata = ['Name', 'UID']
+        self.headerdata = ['Nazwa', 'UID']
  
     def rowCount(self, parent): 
         return len(self.arraydata) 
