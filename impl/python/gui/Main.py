@@ -18,7 +18,7 @@ TO_ALL = None
 class Main(QtGui.QMainWindow):
     logger = None
     
-    def __init__(self,  qsettings):
+    def __init__(self,  qsettings=None):
         QtGui.QMainWindow.__init__(self)
         self.peerToWindow = {}
         self.setWindowTitle("Multitalk")
@@ -73,35 +73,44 @@ class Main(QtGui.QMainWindow):
             print "Gui: sam z sobą chcesz rozmawiać?"
         else:
             print "Gui: otwieram okno rozmowy z %s(%s)" % (uid,  name)
-            newWin = Private(self, self.core,  uid,  name)
-            newWin.show()
-            self.peerToWindow[uid] = newWin
+            self.__openPrivateWin(uid,  name)
+        
+    def __openPrivateWin(self,  uid,  name):
+        newWin = Private(self, self.core,  uid,  name)
+        newWin.show()
+        self.peerToWindow[uid] = newWin
+        return newWin
         
     def conversationWindowClosed(self,  uid):
         del self.peerToWindow[uid]
         
     def addNode(self,  uid,  name):
-        Main.logger(u"Dodano użytkownika %s (%s)" % (name,  uid))
+        Main.logger(u"Dodano użytkownika %s" % name)
         self.peersModel.addPeer(uid,  name)
         
-    def delNode(self,  uid):
-        Main.logger(u"Usunięto użytkownika %s" % (uid))
+    def delNode(self,  uid,  name):
+        Main.logger(u"Usunięto użytkownika %s" % (name))
         self.peersModel.delPeer(uid)
         if self.peerToWindow.keys().count(uid):
             print "Gui: blokuje okno rozmowy z uzytkownikiem %s " % uid
             self.peerToWindow[uid].userDisconnected()
             
-    def messageReceived(self,  uidSender,  uidReceiver,  msg):
+    def messageReceived(self,  uidSender, senderName,  uidReceiver,  msg):
         isMsgToAll = uidReceiver == None
-        Main.logger(u"Otrzymano wiadomość '%s' od %s (do wszystkich: %s)" %(msg,  uidSender,  isMsgToAll))
+        Main.logger(u"Otrzymano wiadomość '%s' od %s (do : %s)" %(msg,  uidSender,  uidReceiver))
         if isMsgToAll:
             self.conversationModel.addMessage(self.core.userNameByUid(uidSender),  msg)
-        elif self.peerToWindow.keys().count(uidSender):
-            peerWin = self.peerToWindow[uidSender]
-            peerWin.messageReceived(uidSender, msg)
         else:
+            if self.core.isThisMyUid(uidSender):
+                peerWin = self.peerToWindow[uidReceiver]
+            elif self.peerToWindow.keys().count(uidSender):
+                peerWin = self.peerToWindow[uidSender]
+            else:
                 print "Gui: brak okna dla %s " % uidSender
-        
+                peerWin = self.__openPrivateWin(uidSender,  senderName)
+            peerWin.messageReceived(uidSender, msg)
+            
+   
     def on_newMessage_returnPressed(self):
         mouseEvent = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonPress, self.ui.sendButton.pos(), QtCore.Qt.LeftButton, QtCore.Qt.LeftButton, QtCore.Qt.NoModifier )
         QtGui.QApplication.sendEvent(self.focusWidget(), mouseEvent)

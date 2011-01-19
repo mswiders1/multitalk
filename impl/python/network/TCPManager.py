@@ -16,7 +16,7 @@ class TCPManager(Singleton):
         self.__mappedProtocols = {}
     
     def newConnection(self,  protocol):
-        self.logMsg("dodaje polączenie %s" % protocol)
+        self.logMsg("dodaje polączenie %s" % protocol )
         assert(self.__unmappedProtocols.count(protocol) == 0)
         self.__unmappedProtocols.append(protocol)
         self.__ipOfConnections.append(protocol.transport.getPeer().host)
@@ -45,7 +45,6 @@ class TCPManager(Singleton):
         
     def isNotConnectedToIp(self,  ip):
         countOfConnections = self.__ipOfConnections.count(ip)
-        assert 0 <= countOfConnections  <= 1,  "bledna ilosc polaczen do adresu ip %s : %s" %(ip,  self.__ipOfConnections)
         return countOfConnections == 0
         
     def getConnectionToNode(self,  uid):

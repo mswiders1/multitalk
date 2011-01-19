@@ -42,6 +42,8 @@ class TCPProtocol(LineReceiver):
         elif msgType == 'MTX' and self.state == WAIT_FOR_MTX:
             appVar.coreInstance.handleMtxMessage(jsonObj)
             self.state = CONNECTED
+        elif msgType == 'MSG':
+            appVar.coreInstance.handleMsgMessage(jsonObj)
         elif msgType == 'OUT' and self.state == CONNECTED:
             appVar.coreInstance.handleOutMessage(jsonObj)
             self.state = DISCONNECTED
@@ -58,11 +60,6 @@ class TCPProtocol(LineReceiver):
     
     def connectionMade(self):
         self.logMsg("nowe polaczenie")
-        if not appVar.tcpManager.isNotConnectedToIp(self.transport.getPeer().host):
-            #mamy juz polaczenie do niego wiec kazemy mu spadac
-            self.logMsg("dziekuje ale mam juz takie polaczenie :)")
-            self.transport.loseConnection()
-            return
         self.transport.setTcpNoDelay(True)
         if self.state == INIT:
             appVar.tcpManager.newConnection(self)

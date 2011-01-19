@@ -47,6 +47,10 @@ def getFullGetMsg(senderOfMissinMsg,  timeOfSend):
     inner = getGetMsg(senderOfMissinMsg,  timeOfSend)
     return getMsgWithJSONInside(inner)
 
+def getFullMsgMsg(receiverUid, content):
+    inner = getMsgMsg(receiverUid, content)
+    return getMsgWithJSONInside(inner)
+
 def getFullLivMsg():
     inner = getLivMsg()
     return getMsgWithJSONInside(inner)
