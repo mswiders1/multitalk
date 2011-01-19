@@ -131,7 +131,7 @@ public class ReliableBroadcastMatrix {
             localUsersPos.add(localUserPos);
         }
         
-        for(int i=0; i<userMtxOrder.size(); ++i){
+        for(int i=0; i<localUsersPos.size(); ++i){
             int localUserVecPos = localUsersPos.get(i).intValue();
             if(localUserVecPos == -1){
                 // nie powinno się zdarzyć, ale just in case
@@ -140,7 +140,7 @@ public class ReliableBroadcastMatrix {
             
             List<Integer> vec = userMtx.get(i);
             List<Integer> localVec = mtx.get(localUserVecPos);
-            for(int j=0; j<vec.size(); ++j){
+            for(int j=0; j<localUsersPos.size(); ++j){
                 int localVecPos = localUsersPos.get(j).intValue();
                 if(localVecPos == -1){
                     // nie powinno się zdarzyć, ale just in case

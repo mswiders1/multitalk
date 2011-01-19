@@ -141,7 +141,7 @@ public class ClientTCPReceiver extends Thread {
                     
                     // wycięcie i utworzenie wiadomości
                     String messageString = bufContent.substring(0, messageLength);
-                    Log.d(Constants.DEBUG_TAG, "Odczytano wiadomość:\n" + messageString);
+//                    Log.d(Constants.DEBUG_TAG, "Odczytano wiadomość:\n" + messageString);
                     
                     Message message = null;
                     try {
