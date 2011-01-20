@@ -12,6 +12,7 @@ TcpConnection::TcpConnection(QObject *parent) :
 {
     connect(this,SIGNAL(disconnected()),this,SLOT(connectionClosed()));
     connect(this,SIGNAL(readyRead()),this,SLOT(dataWaiting()));;
+    connect(this,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(connectionError(QAbstractSocket::SocketError)));
 }
 
 
@@ -136,6 +137,10 @@ void TcpConnection::parseMessage(QByteArray& data)
                 msg.vec.append(item.toString());
             }
 
+        } else if(msg.type=="GET")
+        {
+           msg.uid=result["UID"].toString();
+           msg.msg_id=result["MSG_ID"].toInt();
         } else
         {
             qDebug()<<"WARNING:unknown message type, ignoring";
@@ -188,6 +193,14 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     {
         packet.insert("TYPE",msg.type);
         packet.insert("UID",msg.uid);
+    } else if(msg.type=="P2P")
+    {
+        packet.insert("TYPE",msg.type);
+    } else if(msg.type=="GET")
+    {
+        packet.insert("TYPE",msg.type);
+        packet.insert("UID",msg.uid);
+        packet.insert("MSG_ID",msg.msg_id);
     } else if(msg.type=="MSG")
     {
         packet.insert("TYPE",msg.type);
@@ -242,4 +255,10 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     if(state()==QAbstractSocket::ConnectedState)
         flush();
     qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
+}
+
+void TcpConnection::connectionError(QAbstractSocket::SocketError error)
+{
+    qDebug()<<"socketError:"<<error;
+    close();
 }
