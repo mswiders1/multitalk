@@ -22,6 +22,7 @@ class TCPReversedClient(TCPProtocol):
 class TCPClientFactory(ClientFactory):
     
     def __init__(self,  protocol):
+        self.addr = None
         self.protocol = protocol
     
     def startedConnecting(self, connector):
@@ -33,18 +34,20 @@ class TCPClientFactory(ClientFactory):
     
     def clientConnectionLost(self, connector, reason):
         self.logMsg('utracono polaczenie. powod: %s' % reason)
-        appVar.tcpManager.connectionFailed(connector.transport.getPeer().host)
+        appVar.tcpManager.connectionFailed(self.addr)
     
     def clientConnectionFailed(self, connector, reason):
         self.logMsg('blad nawiazywania polaczenia. powod: %s '% reason)
-        appVar.tcpManager.connectionFailed(connector.transport.getPeer().host)
+        appVar.tcpManager.connectionFailed(self.addr)
 
     def logMsg(self,  msg):
         print "TCP-CF: %s " % msg
 
 def startTCPConnection(reactor,  addr):
+    factory = TCPClientFactory(TCPClient)
+    factory.addr = addr
     appVar.tcpManager.tryingToConnect(addr)
-    reactor.connectTCP(addr,  3554,  TCPClientFactory(TCPClient))
+    reactor.connectTCP(addr,  3554,  factory)
     
 def startReversedTCPConnection(reactor,  addr):
     reactor.connectTCP(addr,  3554,  TCPClientFactory(TCPReversedClient))

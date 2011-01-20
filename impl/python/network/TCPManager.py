@@ -62,7 +62,10 @@ class TCPManager(Singleton):
         self.__ipOfStartingConnections.remove(ip)
         
     def getConnectionToNode(self,  uid):
-        return self.__mappedProtocols[uid]
+        if self.__mappedProtocols.keys().count(uid) > 0:
+            return self.__mappedProtocols[uid]
+        else:
+            return None
         
     def getUnmappedConnections(self):
         return list(self.__unmappedProtocols)

@@ -13,7 +13,7 @@ windowGeo = "windowGeometry"
 windowFlags = "windowFlags"
 splitterLeftRight = "splitterConvPeers"
 splitterUpDown = "splitterUpDown"
-TO_ALL = None
+TO_ALL = ""
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
     logger = None
@@ -96,7 +96,7 @@ class Main(QtGui.QMainWindow):
             self.peerToWindow[uid].userDisconnected()
             
     def messageReceived(self,  uidSender, senderName,  uidReceiver,  msg):
-        isMsgToAll = uidReceiver == None
+        isMsgToAll = uidReceiver == TO_ALL
         Main.logger(u"Otrzymano wiadomość '%s' od %s (do : %s)" %(msg,  uidSender,  uidReceiver))
         if isMsgToAll:
             self.conversationModel.addMessage(self.core.userNameByUid(uidSender),  msg)

@@ -19,6 +19,9 @@ class TCPProtocol(LineReceiver):
     def __init__(self):
         self.state = INIT
         self.delimiter = "\n"
+        from twisted.internet import reactor
+        self.__reactor = reactor
+        self.delay = 0
     
     def jsonReceived(self,  jsonObj):
         self.logMsg("odebralem obiekt json")
@@ -39,7 +42,7 @@ class TCPProtocol(LineReceiver):
             else:
                 self.logMsg("odrzucono logowanie - przerywam polaczenie")
                 self.transport.loseConnection()
-        elif msgType == 'MTX' and self.state == WAIT_FOR_MTX:
+        elif msgType == 'MTX':
             appVar.coreInstance.handleMtxMessage(jsonObj)
             self.state = CONNECTED
         elif msgType == 'MSG':
@@ -47,17 +50,23 @@ class TCPProtocol(LineReceiver):
         elif msgType == 'OUT' and self.state == CONNECTED:
             appVar.coreInstance.handleOutMessage(jsonObj)
             self.state = DISCONNECTED
-        elif msgType == 'LIV' and self.state == CONNECTED:
+        elif msgType == 'LIV':
             appVar.coreInstance.handleLivMessage(jsonObj)
         else:
             self.logMsg("bledny typ wiadomosci '%s' w stanie %d" % (msgType,  self.state))
             self.state = DISCONNECTED
             self.transport.loseConnection()
     
-    def sendPacket(self,  msg):
-        self.transport.write(msg)
+    def __doSendPacket(self,  msg):
+        self.transport.write(msg)   
         self.logMsg("wyslano dane ")
     
+    def sendPacket(self,  msg):
+        if self.delay > 0:
+            reactor.callLater(self.delay,  self.__doSendPacket,  msg)
+        else:
+            self.__doSendPacket(msg)
+            
     def connectionMade(self):
         self.logMsg("nowe polaczenie")
         self.transport.setTcpNoDelay(True)
