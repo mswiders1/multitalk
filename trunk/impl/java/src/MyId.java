@@ -2,6 +2,7 @@ import java.net.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.security.*;
 
 public class MyId {
 
@@ -119,6 +120,17 @@ public class MyId {
     	uid += this.findIp(inaddr);
     	uid += this.findUserName();
     	String id = Base64.encodeBytes(uid.getBytes());
+    	try
+    	{
+    	 MessageDigest hash = MessageDigest.getInstance("SHA1");
+    	 hash.update(uid.getBytes());
+    	 id = Base64.encodeBytes(hash.digest());
+    	 System.out.println("moje id:"+ id);
+    	}
+    	catch(Exception e)
+    	{
+    		e.printStackTrace();
+    	}
     	//this.id = id;
     	return id;
     	//return  uid.hashCode() > 0 ? uid.hashCode() : uid.hashCode() * -1 ;
