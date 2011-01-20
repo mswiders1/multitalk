@@ -49,12 +49,14 @@ private slots:
     void setConnectIp(QString ip);
     void setNick(QString newNick);
     void connectToAddress(QHostAddress address);
+    void connectToAddressP2P(QHostAddress address);
     void handleReceivedMessage(Message msg);
     void clientDisconnected(QString uid);
     void sendLogMessage();
     void sendLivMessage();
     void sendOutMessage();
     void sendMsgMessage(QString content,QString receiverUid);
+    void sendGetMessage(QString uid,qint32 msg_id);
     void sendMsgClicked();
     void sendMsgAllClicked();
 

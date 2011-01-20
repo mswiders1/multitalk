@@ -20,7 +20,7 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
     statusBar()->addPermanentWidget(statusBarLabel);
     broadcast=new Broadcast(this);
     connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(startListening()));
-    connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(sendBroadcast()));
+    //connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(sendBroadcast()));
     connect(broadcast,SIGNAL(gotConnectionRequest(QHostAddress)),this,SLOT(connectToAddress(QHostAddress)));
     connect(this,SIGNAL(sendMessageToNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
     connect(ui->sendMsgAll,SIGNAL(clicked()),this,SLOT(sendMsgAllClicked()));
@@ -70,8 +70,16 @@ void MultitalkWindow::connectToNetwork()
         connect(tcpServer,SIGNAL(receivedMessageFromNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
         connect(tcpServer,SIGNAL(clientDisconnected(QString)),this,SLOT(clientDisconnected(QString)));
         QTimer::singleShot(5000,this,SLOT(sendLogMessage()));
-        QTimer::singleShot(1000,broadcast,SLOT(sendBroadcast()));
-        QTimer::singleShot(2000,broadcast,SLOT(sendBroadcast()));
+        if(connectIp!="")
+        {
+            connectToAddressP2P(QHostAddress(connectIp));
+        }
+        else
+        {
+            QTimer::singleShot(0,broadcast,SLOT(sendBroadcast()));
+            QTimer::singleShot(1000,broadcast,SLOT(sendBroadcast()));
+            QTimer::singleShot(2000,broadcast,SLOT(sendBroadcast()));
+        }
         connect(this,SIGNAL(sendMessageToNetwork(Message)),tcpServer,SIGNAL(sendMessageToNetwork(Message)));
         livTimer=new QTimer(this);
         emit connectToNetworkAccepted();
@@ -103,6 +111,18 @@ void MultitalkWindow::connectToAddress(QHostAddress address)
     msg.uid=uid;
     msg.username=username;
     msg.vector=users;
+    tcpServer->connectToClient(address,msg);
+}
+
+void MultitalkWindow::connectToAddressP2P(QHostAddress address)
+{
+    if(address==QHostAddress(ipAddress))
+    {
+        qDebug()<<"not connecting to myself";
+        return;
+    }
+    Message msg;
+    msg.type="P2P";
     tcpServer->connectToClient(address,msg);
 }
 
@@ -151,7 +171,6 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         storeMessage(msg);
         if(msg.type!="HII"&&msg.type!="MTX"&&msg.type!="P2P")
             emit sendMessageToNetwork(msg);
-
     }
     qDebug()<<"Multitalkwindow got message type:"<<msg.type;
     if(msg.type=="HII")
@@ -295,6 +314,18 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
             }
         }
         qDebug()<<matrix;
+    } else if(msg.type=="GET")
+    {
+        QLinkedList<Message>::iterator msgHist;
+        for(msgHist=messageHistory.begin();msgHist!=messageHistory.end();msgHist++)
+        {
+            if(msgHist->type=="MSG"&&msgHist->uid==msg.uid&&msgHist->msg_id==msg.msg_id)
+            {
+                qDebug("found wanted message, sending to network");
+                emit sendMessageToNetwork(*msgHist);
+                break;
+            }
+        }
     } else if(msg.type=="MSG")
     {
         int userPos=-1;
@@ -336,7 +367,11 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
             if(matrix[myPos][userPos]>msg.msg_id)
                 qDebug()<<"already know of this message giving up";
             else
-                qDebug()<<"don't have previous messages giving up";
+            {
+                qDebug()<<"don't have previous messages sending GET message, removing current message";
+                messageHistory.removeOne(msg);
+                sendGetMessage(uid,matrix[myPos][userPos]);
+            }
             return;
         }
 
@@ -434,6 +469,15 @@ void MultitalkWindow::sendMsgMessage(QString content,QString receiverUid)
             userPos=i;
     }
     ui->log->appendPlainText("TO:"+users[userPos].username+" MESSAGE:"+msg.content);
+    emit sendMessageToNetwork(msg);
+}
+
+void MultitalkWindow::sendGetMessage(QString uid,qint32 msg_id)
+{
+    Message msg;
+    msg.type="MSG";
+    msg.uid=uid;
+    msg.msg_id=msg_id;
     emit sendMessageToNetwork(msg);
 }
 

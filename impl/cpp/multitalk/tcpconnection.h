@@ -24,6 +24,7 @@ signals:
 public slots:
     void connectionClosed();
     void sendMessageToNetwork(Message msg);
+    void connectionError(QAbstractSocket::SocketError error);
 private slots:
     void dataWaiting();
 
