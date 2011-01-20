@@ -299,9 +299,13 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
 
 
         qDebug()<<matrix;
-        if(msg.receiver==uid||msg.receiver=="")
-            ui->log->appendPlainText("FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
+        if(msg.receiver==uid)
+            ui->log->appendPlainText("TO:"+username+" FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
+        if(msg.receiver=="")
+            ui->log->appendPlainText("TO:ALL FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
+
     }
+
 }
 
 void MultitalkWindow::storeMessage(Message msg)
