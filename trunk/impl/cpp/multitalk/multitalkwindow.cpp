@@ -7,6 +7,7 @@
 #include "userdata.h"
 #include <QTimer>
 
+
 MultitalkWindow::MultitalkWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MultitalkWindow)
