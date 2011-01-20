@@ -10,7 +10,7 @@ public class Test1 {
 	public static void main(String[] args) {
 		
 		Controller c = new Controller();
-		c.LogIn();
+		//c.LogIn();
 		//System.out.println("connectiony: "+ c.getNet_management().getConnections());
 		//System.out.println("podlaczeni:" + c.getNet_management().getConnections());
 		
