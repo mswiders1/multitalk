@@ -91,6 +91,8 @@ void TcpConnection::parseMessage(QByteArray& data)
             msg.uid=result["UID"].toString();
             msg.username=result["USERNAME"].toString();
             msg.ip_address=result["IP_ADDRESS"].toString();
+            if(QHostAddress(msg.ip_address)==peerAddress())
+                msg.peerAddress=peerAddress();
         }
         else if(msg.type=="OUT")
         {
@@ -121,6 +123,18 @@ void TcpConnection::parseMessage(QByteArray& data)
             msg.peerAddress=peerAddress();
         } else if(msg.type=="MTX")
         {
+            foreach(QVariant item,result["MAC"].toList())
+            {
+                QList<int> list;
+                foreach(QVariant item2,item.toList())
+                    list.append(item2.toInt());
+                msg.mac.append(list);
+            }
+
+            foreach(QVariant item,result["VEC"].toList())
+            {
+                msg.vec.append(item.toString());
+            }
 
         } else
         {
@@ -190,6 +204,27 @@ void TcpConnection::sendMessageToNetwork(Message msg)
             vec.append(msg.vec[i]);
         packet.insert("VEC",vec);
         packet.insert("CONTENT",msg.content);
+    } else if(msg.type=="MTX")
+    {
+        packet.insert("TYPE",msg.type);
+
+        QVariantList mac;
+        for(int i=0;i<msg.mac.size();i++)
+        {
+            QVariantList macIn;
+            for(int i2=0;i2<msg.mac.size();i2++)
+            {
+                macIn.append(msg.mac[i][i2]);
+            }
+            mac.append(macIn);
+        }
+        packet.insert("MAC",mac);
+
+        QVariantList vec;
+        for(int i=0;i<msg.vec.size();i++)
+            vec.append(msg.vec[i]);
+        packet.insert("VEC",vec);
+
     } else
     {
         qDebug()<<"ERROR:bad message type to send, dropping type:"<<msg.type;

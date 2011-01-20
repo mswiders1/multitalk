@@ -148,7 +148,7 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
     else
     {
         storeMessage(msg);
-        if(msg.type!="HII")
+        if(msg.type!="HII"&&msg.type!="MTX"&&msg.type!="P2P")
             emit sendMessageToNetwork(msg);
 
     }
@@ -221,6 +221,18 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         if(msgHist!=messageHistory.end())
             messageHistory.removeOne(*msgHist);
 
+        if(msg.peerAddress==QHostAddress(msg.ip_address))
+        {
+            Message reply;
+            reply.peerAddress=msg.peerAddress;
+            reply.type="MTX";
+            reply.mac=matrix;
+            for(int i=0;i<users.size();i++)
+                reply.vec.append(users[i].uid);
+
+            tcpServer->sendMessageToPeer(reply);
+        }
+
     } else if(msg.type=="OUT")
     {
         clientDisconnected(msg.uid);
@@ -234,7 +246,54 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         reply.uid=uid;
         reply.username=username;
         reply.vector=users;
+        reply.peerAddress=msg.peerAddress;
         tcpServer->sendMessageToPeer(reply);
+    } else if(msg.type=="MTX")
+    {
+        qDebug()<<matrix;
+        for(int i=0;i<matrix.size();i++)
+        {
+            int posOfCurrentUserj=-1;
+            for(int j=0;j<msg.vec.size();j++)
+                if(msg.vec[j]==users[i].uid)
+                    posOfCurrentUserj=j;
+            if(posOfCurrentUserj!=-1)
+                for(int i2=0;i2<matrix[i].size();i2++)
+                {
+                    int posOfCurrentUserj2=-1;
+                    for(int j2=0;j2<msg.vec.size();j2++)
+                    {
+                        if(msg.vec[j2]==users[i2].uid)
+                            posOfCurrentUserj2=j2;
+                    }
+                    if(posOfCurrentUserj2!=-1)
+                        if(matrix[i][i2]<msg.mac[posOfCurrentUserj][posOfCurrentUserj2])
+                            matrix[i][i2]=msg.mac[posOfCurrentUserj][posOfCurrentUserj2];
+                }
+        }
+
+        int myPos=-1;
+        for(int i=0;i<users.size();i++)
+        {
+            if(users[i].uid==uid)
+                myPos=i;
+        }
+
+        if(myPos==-1)
+        {
+            qDebug()<<"not found myself in users list, giving up";
+            return;
+        }
+
+        for(int i=0;i<matrix.size();i++)
+        {
+            for(int i2=0;i2<matrix[i].size();i2++)
+            {
+                if(matrix[myPos][i2]<matrix[i][i2])
+                    matrix[myPos][i2]=matrix[i][i2];
+            }
+        }
+        qDebug()<<matrix;
     } else if(msg.type=="MSG")
     {
         int userPos=-1;
@@ -295,15 +354,11 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
             }
         }
 
-
-
-
         qDebug()<<matrix;
         if(msg.receiver==uid)
             ui->log->appendPlainText("TO:"+username+" FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
         if(msg.receiver=="")
             ui->log->appendPlainText("TO:ALL FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
-
     }
 
 }
