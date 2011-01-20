@@ -62,7 +62,7 @@ class Core:
             self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(), uid,  msg)
         else:
             print u"Core: wysyłam wiadomość '%s' do wszystkich" % msg
-            self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(),  None,  msg)
+            self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(),  "",  msg)
         
         msg = MessageParser.getFullMsgMsg(uid,  msg)
         for connection in self.__tcpm.getMappedConnections():
@@ -81,6 +81,9 @@ class Core:
     
     def setDelayPerNode(self,  uid,  delayInSec):
         print u"Core: ustawiam opóźnienie %d sekund dla klienta %s" % (delayInSec,  uid)
+        connection = self.__tcpm.getConnectionToNode(uid)
+        if connection:
+            connection.delay = delayInSec
             
     def handleHiiMessage(self,  msg,  connection):
         print "Core: analiza wiadomosci Hii"

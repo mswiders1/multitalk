@@ -147,10 +147,11 @@ class Model():
             uidIndexInMsg = msg['VEC'].index(uid)
             timeInMsg = msg['TIME_VEC'][uidIndexInMsg]
             uidIndexInLogicalTimeMatrix = self.__nodesUid.index(uid)
+            currentValue = self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix]
+            isSender = 0
             if uid == senderUid:
-                self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix] = timeInMsg + 1
-            else:
-                self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix] = timeInMsg 
+                isSender = 1
+            self.__logicalTime[senderIdxInLogicalTime][uidIndexInLogicalTimeMatrix] = max(currentValue, timeInMsg + isSender)
                 
         for uid in commonUids:
             uidIndexInMsg = msg['VEC'].index(uid)
@@ -172,6 +173,10 @@ class Model():
         senderUid = msg['SENDER']
         receiverUid = msg['RECEIVER']
         content = msg['CONTENT']
+        
+        if senderUid == self.getMyId():
+            #to maja wiadomosc wiec ignoruje 
+            return False
         
         if self.__mustDelayMsg(msg):
             # czekamy na inna wiadomosc
@@ -207,7 +212,7 @@ class Model():
         needForward = not isKnownMsg
         
         # sprawdzamy czy trzeba wyslac wiadomosc do GUI
-        if receiverUid == None or receiverUid == self.getMyId():
+        if receiverUid == "" or receiverUid == self.getMyId():
             self.__gui.messageReceived(senderUid, self.getNickByUID(senderUid),  receiverUid,  content)
             
         return needForward
@@ -272,10 +277,7 @@ class Model():
         for columnIdx in range(0,  dim):
             maxVal =0
             for rowIdx in range(0, dim):
-                if rowIdx != destinationRow:
-                    maxVal = max(maxVal,  self.__logicalTime[rowIdx][columnIdx])
-                else:
-                    assert self.__logicalTime[rowIdx][columnIdx] == 0,  "oczekujemy zera w wierszu do ktorego wstawimy Maxa"
+                maxVal = max(maxVal,  self.__logicalTime[rowIdx][columnIdx])
             self.__logicalTime[rowIdx][columnIdx] = maxVal
         
     def logNewUser(self,  uid,  username,  ip):

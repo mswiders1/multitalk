@@ -77,6 +77,8 @@ def getMsgMsg(receiverUid,  content):
     timeVec = model.getIncrementedTimeVector()
     vec = model.getListOfNodes()
     msgId = timeVec[vec.index(model.getMyId())]
+    if not receiverUid:
+        receiverUid = ""
     list = {'TYPE': u"MSG", 'SENDER': model.getMyId(),  "RECEIVER":receiverUid,  "MSG_ID":msgId,  "VEC": vec,  'TIME_VEC':timeVec,  'CONTENT':content}
     result = json.dumps(list,  indent=4)
     return result
