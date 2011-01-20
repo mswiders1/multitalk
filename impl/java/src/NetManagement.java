@@ -1,4 +1,6 @@
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -11,8 +13,8 @@ public class NetManagement {
 	private Vector<Connection> not_yet_logged_in;
 	private Constant constant;
 	
-	private Vector<MessageWithContact> received;
-	private Vector<MessageWithContact> send;
+	private BlockingQueue<MessageWithContact> received;
+	private BlockingQueue<MessageWithContact> send;
 	
 	private Controller controller;
 	
@@ -24,8 +26,8 @@ public class NetManagement {
 		this.not_yet_logged_in = new Vector<Connection>();
 		
 		this.constant = new Constant();
-		received = new Vector<MessageWithContact> ();
-		send = new Vector<MessageWithContact> ();
+		received = new ArrayBlockingQueue<MessageWithContact> (10000);
+		send = new ArrayBlockingQueue<MessageWithContact> (10000);
 		
 		this.controller = controller;
 		this.startListiningForConnections();
@@ -35,10 +37,12 @@ public class NetManagement {
 	 * Executed by Unicast Msg Listener. each time new message comes 
 	 * 
 	 */
-	public void add_received(Contact c, Message m)
+	synchronized public void add_received(Contact c, Message m)
 	{
+		
 		received.add( new MessageWithContact(c,m));
 		controller.messageReceived(c, m);
+		System.out.println("net management dostal wiadomosc: "+ m);
 	}
 	/**
 	*Executed by controller. Each time user sends new message
@@ -225,7 +229,7 @@ public class NetManagement {
 				conn.getContact().setIp(contact.getIp());
 				System.out.print("tworzy nowy connection"+ conn.getContact().getIp());
 				connections.add(conn);
-				this.controller.messageSendHii(conn.getContact());
+				this.controller.messageSendLog();
 				
 			}
 			catch (Exception e)
@@ -319,19 +323,19 @@ public class NetManagement {
 		this.constant = constant;
 	}
 
-	public Vector<MessageWithContact> getReceived() {
+	public BlockingQueue<MessageWithContact> getReceived() {
 		return received;
 	}
 
-	public void setReceived(Vector<MessageWithContact> received) {
+	public void setReceived(BlockingQueue<MessageWithContact> received) {
 		this.received = received;
 	}
 
-	public Vector<MessageWithContact> getSend() {
+	public BlockingQueue<MessageWithContact> getSend() {
 		return send;
 	}
 
-	public void setSend(Vector<MessageWithContact> send) {
+	public void setSend(BlockingQueue<MessageWithContact> send) {
 		this.send = send;
 	}
 

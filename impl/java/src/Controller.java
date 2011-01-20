@@ -23,7 +23,7 @@ public class Controller {
 		
 	}
 	
-	public void addToConnections(Vector<UserVector> uvec )
+	synchronized public void addToConnections(Vector<UserVector> uvec )
 	{		
 		Iterator<Connection> it = net_management.getConnections().iterator();
 		Iterator<UserVector> ituv;
@@ -53,16 +53,20 @@ public class Controller {
 		}
 	}
 	
-	public void messageReceived(Contact contact, Message message)
+	synchronized public void messageReceived(Contact contact, Message message)
 	{
+		System.out.println("przyszla wiadomosc do kontorlera:"+ message.getType());
+		
 		String type = message.getType().toUpperCase();
 		if(type == "P2P")
 		{
-			net_management.connectToClient(contact);
+			//net_management.connectToClient(contact);
 			messageSendHii(contact);
 		}
 		else if(type == "HII")
 		{
+			System.out.println("dostal Hiii msg ");
+			
 			Vector<UserVector> uv = ((HiiMsg)message).getVector();
 			addToConnections(uv);
 			messageSendLog();
@@ -101,11 +105,12 @@ public class Controller {
 	
 	public void messageSendLog()
 	{
+		System.out.println("Wysyla wiadomosc log z kontrollera");
 		LogMsg logmsg = new LogMsg();
 		logmsg.setUid(me.getId());
 		logmsg.setUsename(me.getName());
 		logmsg.setIp_address(me.getIp());
-		
+		System.out.println("Wysyla hi do:" + net_management.getConnections().size() );
 		net_management.add_all(logmsg);
 	}
 	

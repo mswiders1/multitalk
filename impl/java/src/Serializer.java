@@ -22,6 +22,9 @@ public class Serializer {
 		this.msg = msg;
 		try{
 			String type = msg.getType();
+			
+			
+			
 			obj = new JSONObject();
 			if (type.toUpperCase()=="P2P")
 			{
@@ -165,19 +168,20 @@ public class Serializer {
 	
 	Message unpack(JSONObject obj)
 	{	
-		this.msg = new Message();
+		//this.msg = new Message();
 		this.obj = obj;
+		System.out.println("deserializacja wiadomosci: "+ obj.get("TYPE"));
 		try{
 			this.obj = obj;
 			String type = (String) obj.get("TYPE");
 			System.out.print("type: "+ type);
-			if(type.toUpperCase() == "P2P" )
-			{
-				msg.setType("Ptp");
+			if(type.equals("P2P" ))
+			{	this.msg = new P2pMsg();
+				msg.setType("PTP");
 				return (P2pMsg) msg;
 			}
-			else if(type == "HII")
-			{
+			else if(type.equals("HII"))
+			{	this.msg = new HiiMsg();
 				((HiiMsg)msg).setType("HII");
 				((HiiMsg)msg).setUid((String)obj.get("UID"));
 				((HiiMsg)msg).setUsername((String)obj.get("USERNAME"));
@@ -199,16 +203,16 @@ public class Serializer {
 				((HiiMsg)msg).setVector(vuv);
 				return (HiiMsg)msg;
 			}
-			else if(type == "LOG")
-			{
+			else if(type.equals("LOG"))
+			{	this.msg = new LogMsg();
 				((LogMsg)msg).setType("LOG");
 				((LogMsg)msg).setUid((String)obj.get("UID"));
 				((LogMsg)msg).setUsename((String)obj.get("USERNAME"));
 				((LogMsg)msg).setIp_address((String)obj.get("IP_ADDRESS"));
 				return (LogMsg)msg;
 			}
-			else if(type == "MTX")
-			{
+			else if(type.equals("MTX"))
+			{	this.msg = new MtxMsg();
 				((MtxMsg)msg).setType("MTX");
 				JSONArray jmatrix, jrow, jvec;
 				Vector<Vector<Knowlage>>  kmac= new Vector ();
@@ -247,8 +251,9 @@ public class Serializer {
 				System.out.print(msg);
 				return (MtxMsg) msg;
 			}
-			else if(type == "MTX")
+			else if(type.equals("MSG"))				
 			{
+				this.msg = new MsgMsg();
 				((MsgMsg)msg).setType("MSG");
 				((MsgMsg)msg).setSender((String)obj.get("SENDER"));
 				((MsgMsg)msg).setReceiver((String)obj.get("RECEIVER"));
@@ -281,29 +286,32 @@ public class Serializer {
 				return (MsgMsg) msg;
 				
 			}
-			else if(type == "LIV")
+			else if(type.equals("LIV"))
 			{
+				this.msg = new LivMsg();
 				((LivMsg)msg).setType("LIV");
 				((LivMsg)msg).setUid((String)obj.get("UID"));
 				((LivMsg)msg).setIp_address((String)obj.get("IP_ADDRESS"));
 				return (LivMsg)msg;
 			}
-			else if(type == "GET")
+			else if(type.equals("GET"))
 			{
+				this.msg = new LivMsg();
 				((GetMsg)msg).setType("GET");
 				((GetMsg)msg).setUid((String)obj.get("UID"));
 				((GetMsg)msg).setMsg_id(((Long)obj.get("MSG_ID")).longValue());
 				return (GetMsg)msg;
 			}
-			else if(type == "OUT")
+			else if(type.equals("OUT"))
 			{
+				this.msg = new OutMsg();
 				((OutMsg)msg).setType("OUT");
 				((OutMsg)msg).setUid((String)obj.get("UID"));				
 				return (OutMsg)msg;
 			}
 				
 			else
-			{
+			{	this.msg = new Message();
 				msg.setType("ERR");
 			}
 				return msg;

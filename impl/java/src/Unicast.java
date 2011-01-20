@@ -200,11 +200,13 @@ public class Unicast {
 	                    Message message = null;
 	                    try {
 	                    	Serializer serial = new Serializer();
+	                    	System.out.println("wczytal ze strumienia: "+ messageString);
 	                    	message = serial.unpack(messageString);
 	                        //message = MessageFactory.fromJSON(messageString);
 	                        if(message != null){
 	                            // znana wiadomość - przekazujemy
 	                          //  passMessage(message);
+	                        	System.out.println("Pobiera ze strumienia wiadomosc: "+message);
 	                        	Unicast.this.receivebox.put(message);
 	                        }
 	                        
@@ -244,7 +246,7 @@ public class Unicast {
 				while(true)
 				{
 					Message msg = receivebox.take();
-					System.out.println("wiadomosc w ReceiveBoxListener" + msg);
+					System.out.println("wiadomosc w ReceiveBoxListener" + msg.getType());
 					Unicast.this.net_management.add_received(Unicast.this.connection.getContact(), msg);
 				}
 			}
