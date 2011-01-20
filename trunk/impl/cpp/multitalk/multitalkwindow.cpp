@@ -12,6 +12,8 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
     ui(new Ui::MultitalkWindow)
 {
     ui->setupUi(this);
+    ui->sendMsg->setEnabled(false);
+    ui->sendMsgAll->setEnabled(false);
     statusBarLabel=new QLabel(this);
     statusBarLabel->setText("Not Connected");
     statusBar()->addPermanentWidget(statusBarLabel);
@@ -20,6 +22,8 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
     connect(this,SIGNAL(connectToNetworkAccepted()),broadcast,SLOT(sendBroadcast()));
     connect(broadcast,SIGNAL(gotConnectionRequest(QHostAddress)),this,SLOT(connectToAddress(QHostAddress)));
     connect(this,SIGNAL(sendMessageToNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
+    connect(ui->sendMsgAll,SIGNAL(clicked()),this,SLOT(sendMsgAllClicked()));
+    connect(ui->sendMsg,SIGNAL(clicked()),this,SLOT(sendMsgClicked()));
     QList<QNetworkInterface> interfaces=QNetworkInterface::allInterfaces();
     QList<QNetworkInterface>::const_iterator i;
     for(i=interfaces.constBegin();i!=interfaces.constEnd();++i)
@@ -36,8 +40,8 @@ MultitalkWindow::MultitalkWindow(QWidget *parent) :
 
 MultitalkWindow::~MultitalkWindow()
 {
-    delete ui;
     sendOutMessage();
+    delete ui;
     //delete statusBarLabel;
    // delete broadcast;
 }
@@ -55,6 +59,8 @@ void MultitalkWindow::connectToNetwork()
     {
         if(tcpServer!=NULL)
         {
+            ui->sendMsg->setEnabled(false);
+            ui->sendMsgAll->setEnabled(false);
             sendOutMessage();
             delete tcpServer;
         }
@@ -67,11 +73,7 @@ void MultitalkWindow::connectToNetwork()
         QTimer::singleShot(2000,broadcast,SLOT(sendBroadcast()));
         connect(this,SIGNAL(sendMessageToNetwork(Message)),tcpServer,SIGNAL(sendMessageToNetwork(Message)));
         livTimer=new QTimer(this);
-
         emit connectToNetworkAccepted();
-
-
-
     }
 }
 
@@ -121,6 +123,9 @@ void MultitalkWindow::clientDisconnected(QString uid)
         if(item!=0)
             delete item;
         users.removeAt(pos);
+        matrix.removeAt(pos);
+        for(int i=0;i<matrix.size();i++)
+            matrix[i].removeAt(pos);
     }
 }
 
@@ -156,6 +161,14 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
                 QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
                 newItem->setText(remoteList->username);
                 users.append(*remoteList);
+                for(int i=0;i<matrix.size();i++)
+                {
+                    matrix[i].append(0);
+                }
+                QList<int> newVector;
+                for(int i=0;i<users.size();i++)
+                    newVector.append(0);
+                matrix.append(newVector);
             }
         }
     } else if(msg.type=="LOG")
@@ -176,6 +189,16 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
             userData.username=msg.username;
             userData.ip=msg.ip_address;
             users.append(userData);
+            for(int i=0;i<matrix.size();i++)
+            {
+                matrix[i].append(0);
+            }
+            QList<int> newVector;
+            for(int i=0;i<users.size();i++)
+                newVector.append(0);
+            matrix.append(newVector);
+            qDebug()<<"MATRIX:";
+            qDebug()<<matrix;
         }
         else
             qDebug()<<"client already exists";
@@ -185,9 +208,62 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
     } else if(msg.type=="LIV")
     {
         qDebug()<<"client alive:"<<msg.uid;
+    } else if(msg.type=="MSG")
+    {
+        int userPos;
+        for(int i=0;i<users.size();i++)
+        {
+            if(users[i].uid==msg.sender)
+                userPos=i;
+        }
+
+        int myPos;
+        for(int i=0;i<users.size();i++)
+        {
+            if(users[i].uid==uid)
+                myPos=i;
+        }
+
+        qDebug()<<matrix;
+
+
+
+        if(matrix[myPos][userPos]==msg.msg_id)
+        {
+            matrix[myPos][userPos]++;
+        }
+        else
+        {
+            if(matrix[myPos][userPos]>msg.msg_id)
+                qDebug()<<"already know of this message giving up";
+            else
+                qDebug()<<"don't have previous messages giving up";
+            return;
+        }
+
+        for(int i=0;i<matrix[userPos].size();i++)
+        {
+            int posOfCurrentUser=-1;
+            qDebug()<<msg.vec;
+            qDebug()<<users.size();
+            for(int i2=0;i2<msg.vec.size();i2++)
+                if(msg.vec[i2]==users[i].uid)
+                    posOfCurrentUser=i2;
+            if(posOfCurrentUser!=-1)
+            {
+                if(msg.time_vec[posOfCurrentUser]>matrix[userPos][i])
+                    matrix[userPos][i]=msg.time_vec[posOfCurrentUser];
+            }
+        }
+
+
+
+
+        qDebug()<<matrix;
+        if(msg.receiver==uid||msg.receiver=="")
+            ui->log->appendPlainText("FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
     }
 }
-
 
 void MultitalkWindow::storeMessage(Message msg)
 {
@@ -208,6 +284,8 @@ void MultitalkWindow::sendLogMessage()
 
     livTimer->setInterval(10000);
     livTimer->start();
+    ui->sendMsg->setEnabled(true);
+    ui->sendMsgAll->setEnabled(true);
     connect(livTimer,SIGNAL(timeout()),this,SLOT(sendLivMessage()));
 }
 
@@ -229,4 +307,45 @@ void MultitalkWindow::sendOutMessage()
     msg.uid=uid;
     //storeMessage(msg);
     emit sendMessageToNetwork(msg);
+}
+
+void MultitalkWindow::sendMsgMessage(QString content,QString receiverUid)
+{
+    Message msg;
+    msg.type="MSG";
+    msg.sender=uid;
+    msg.receiver=receiverUid;
+
+    int myPos;
+    for(int i=0;i<users.size();i++)
+    {
+        msg.vec.append(users[i].uid);
+        if(users[i].uid==uid)
+            myPos=i;
+    }
+
+    msg.time_vec=matrix[myPos];
+    msg.msg_id=matrix[myPos][myPos];
+    msg.content=content;
+
+    int userPos;
+    for(int i=0;i<users.size();i++)
+    {
+        if(users[i].uid==msg.receiver)
+            userPos=i;
+    }
+    ui->log->appendPlainText("TO:"+users[userPos].username+" MESSAGE:"+msg.content);
+    emit sendMessageToNetwork(msg);
+}
+
+void MultitalkWindow::sendMsgAllClicked()
+{
+    sendMsgMessage(ui->message->text(),"");
+}
+
+void MultitalkWindow::sendMsgClicked()
+{
+    int selectedItem=ui->listWidget->currentRow();
+    if(selectedItem!=-1)
+        sendMsgMessage(ui->message->text(),users.at(selectedItem).uid);
 }

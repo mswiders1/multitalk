@@ -10,8 +10,6 @@
 #include "userdata.h"
 #include "message.h"
 
-
-
 namespace Ui {
     class MultitalkWindow;
 }
@@ -28,6 +26,8 @@ public:
     QString newUid;
     QList<UserData> users;
     QLinkedList<Message> messageHistory;
+    QList<QList<int> > matrix;
+
 private:
     Ui::MultitalkWindow *ui;
     QLabel* statusBarLabel;
@@ -54,6 +54,9 @@ private slots:
     void sendLogMessage();
     void sendLivMessage();
     void sendOutMessage();
+    void sendMsgMessage(QString content,QString receiverUid);
+    void sendMsgClicked();
+    void sendMsgAllClicked();
 
 };
 
