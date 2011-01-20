@@ -36,6 +36,7 @@ void TcpServer::disconnectedConnection(TcpConnection *connection)
     qDebug()<<"removing disconnected connection";
     emit clientDisconnected(connection->clientUid);
     connectionList.removeOne(connection);
+    delete connection;
 }
 
 void TcpServer::connectToClient(QHostAddress address,Message msg)

@@ -261,4 +261,5 @@ void TcpConnection::connectionError(QAbstractSocket::SocketError error)
 {
     qDebug()<<"socketError:"<<error;
     close();
+    emit connectionDisconnected(this);
 }
