@@ -13,6 +13,7 @@ TcpConnection::TcpConnection(QObject *parent) :
     connect(this,SIGNAL(disconnected()),this,SLOT(connectionClosed()));
     connect(this,SIGNAL(readyRead()),this,SLOT(dataWaiting()));;
     connect(this,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(connectionError(QAbstractSocket::SocketError)));
+    connect(this,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(deleteLater()));
 }
 
 
@@ -260,6 +261,5 @@ void TcpConnection::sendMessageToNetwork(Message msg)
 void TcpConnection::connectionError(QAbstractSocket::SocketError error)
 {
     qDebug()<<"socketError:"<<error;
-    close();
     emit connectionDisconnected(this);
 }
