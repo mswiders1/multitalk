@@ -394,6 +394,7 @@ public class MultitalkNetworkManager {
         
         // dodajemy i aktualizujemy w network managerze
         boolean userExisted = containsUserInfo(clientUserInfo);
+        MultitalkNetworkManager.this.removeNotLoggedUserInfo(senderUserInfo);
         MultitalkNetworkManager.this.addUserInfo(clientUserInfo);
         messageManager.addUser(clientUserInfo);
         if(!userExisted){
@@ -602,7 +603,7 @@ public class MultitalkNetworkManager {
         MsgMessage msgMessage = new MsgMessage();
         msgMessage.setSenderInfo(userInfo);
         msgMessage.setMsgSender(userInfo);
-        msgMessage.setMsgReceiver(users.get(users.indexOf(message.getRecipientInfo())));
+        msgMessage.setMsgReceiver(message.getRecipientInfo());
         msgMessage.setContent(message.getContent());
         msgMessage.setMsgId(mtxPair.getMtx().get(0).get(0));
         msgMessage.setTimeVec(mtxPair.getMtx().get(0));

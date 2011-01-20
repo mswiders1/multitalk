@@ -91,6 +91,12 @@ public class ContactListActivity extends Activity {
     private void refreshContactList(){
         List<UserInfo> users = app.getMultitalkNetworkManager().getUsers();
         contactListItems.clear();
+        
+        // konferencja
+        UserInfo conferenceUser = new UserInfo("", getString(R.string.user_conferentionUser), "");
+        contactListItems.add(conferenceUser);
+        
+        // prawdziwi
         for(UserInfo user : users){
             contactListItems.add(user);
         }
