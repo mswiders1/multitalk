@@ -180,7 +180,8 @@ public class MessageManager {
         List<MsgMessage> conversation = new ArrayList<MsgMessage>();
         for(MsgMessage msg : acceptedMessages){
             if(msg.getMsgSender().equals(userInfo) && msg.getMsgReceiver().equals(client)
-                    || msg.getMsgSender().equals(client) && msg.getMsgReceiver().equals(userInfo)){
+                    || msg.getMsgSender().equals(client) && msg.getMsgReceiver().equals(userInfo)
+                    || "".equals(client.getUid()) && "".equals(msg.getMsgReceiver().getUid())){
                 conversation.add(msg);
             }
         }
