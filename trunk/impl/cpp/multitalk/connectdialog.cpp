@@ -7,6 +7,7 @@ ConnectDialog::ConnectDialog(QWidget *parent) :
     ui(new Ui::ConnectDialog)
 {
     ui->setupUi(this);
+    ui->nickLineEdit->setText("maciek");
     connect(ui->buttonBox,SIGNAL(accepted()),this,SLOT(okClicked()));
 }
 

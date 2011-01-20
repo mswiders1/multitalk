@@ -192,6 +192,7 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
             {
                 QListWidgetItem *newItem= new QListWidgetItem(ui->listWidget);
                 newItem->setText(remoteList->username);
+                ui->listWidget->setCurrentItem(newItem);
                 users.append(*remoteList);
                 for(int i=0;i<matrix.size();i++)
                 {
