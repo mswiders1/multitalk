@@ -67,12 +67,14 @@ void TcpServer::connectToClient(QHostAddress address,Message msg)
 
 void TcpServer::sendMessageToPeer(Message msg)
 {
+    qDebug()<<"sending message to peer:"<<msg.peerAddress<<" type:"<<msg.type;
     QList<TcpConnection*>::iterator i;
     for(i=connectionList.begin();i!=connectionList.end();i++)
     {
         TcpConnection *conn=*i;
         if(conn->connectAddress==msg.peerAddress)
         {
+            qDebug()<<"found connection to peer";
             conn->sendMessageToNetwork(msg);
             return;
         }
