@@ -105,12 +105,12 @@ public class MyId {
     	return mac;
     }
     
-    private String findUserName()
+    public String findUserName()
     {
     	return System.getProperty("user.name");
     }
 	
-    public int findId()
+    public String findId()
     {
     	String uid = "";
     	this.findNIC();
@@ -118,6 +118,9 @@ public class MyId {
     	uid += this.findMac(nic);
     	uid += this.findIp(inaddr);
     	uid += this.findUserName();
-    	return  uid.hashCode() > 0 ? uid.hashCode() : uid.hashCode() * -1 ;
+    	String id = Base64.encodeBytes(uid.getBytes());
+    	//this.id = id;
+    	return id;
+    	//return  uid.hashCode() > 0 ? uid.hashCode() : uid.hashCode() * -1 ;
     }
 }

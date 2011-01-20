@@ -11,6 +11,8 @@ public class Test1 {
 		
 		Controller c = new Controller();
 		c.LogIn();
+		//System.out.println("connectiony: "+ c.getNet_management().getConnections());
+		//System.out.println("podlaczeni:" + c.getNet_management().getConnections());
 		
 		//Broadcast b = new Broadcast(new NetManagement());
 		//b.send();

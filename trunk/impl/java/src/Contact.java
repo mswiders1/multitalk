@@ -55,10 +55,9 @@ public class Contact {
 	public void setIp(String ip) {
 		this.ip = ip;
 	}
-
 	
 	
 	public String toString() {
-		return name+ " ";
+		return "Contact: [name="+name+ " ip= "+ip+" id=" + id+"]";
 	}
 }
