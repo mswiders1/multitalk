@@ -9,11 +9,12 @@ public class GUI {
 	
 	public GUI(Controller controller)
 	{
+		this.controller = controller;
 		ContactsFrame contactsFrame = new ContactsFrame(controller.getContacts_for_gui() ,controller.getMe() , controller.getNeighbour(),controller);
 		contactsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		contactsFrame.show();
+		contactsFrame.show();		
 	}
-	
+	Controller controller;
 	
 	
 }
@@ -54,6 +55,7 @@ class ContactsFrame extends JFrame implements ActionListener
 		Container contentPane = getContentPane();		
 		contentPane.add(contacts_panel);	
 		this.controller = controller;
+		
 	}
 	
 	public void actionPerformed(ActionEvent e)
@@ -154,7 +156,7 @@ class ContactsPanel extends JPanel
 			
 		j_contacts_list = new JList(model);
 		add(j_contacts_list);
-
+		
 	}
 	
 	public void refresh()
@@ -236,6 +238,7 @@ class TalkFrame extends JFrame
 		Container contentPane = getContentPane();		
 		contentPane.add(talk_panel);
 		this.controller = controller;
+		
 	}
 	
 	private static final int WIDTH = 500;
@@ -269,7 +272,8 @@ class TalkPanel extends JPanel implements ActionListener
 {
 	TalkPanel(Collection<Contact> interlocutors_list, Controller controller)
 	{
-		this.setBackground(Color.LIGHT_GRAY);		
+		this.setBackground(Color.LIGHT_GRAY);
+		this.controller = controller;
 		
 		this.interlocutors_list = interlocutors_list;
 		
@@ -295,6 +299,7 @@ class TalkPanel extends JPanel implements ActionListener
 	public void actionPerformed(ActionEvent e)
 	{
 		String message;
+		
 		if(e.getSource() == j_btn_send)
 		{
 			message = j_write_area.getText();
@@ -302,8 +307,8 @@ class TalkPanel extends JPanel implements ActionListener
 			j_text_area.append(message+"\n");
 			j_write_area.setText("");
 			
-			//this.controller.messageFromGUI(this.getInterlocutors_list(), message);
-			this.controller.getNet_management();
+			this.controller.messageFromGUI(this.getInterlocutors_list(), message);
+			//this.controller.getNet_management();
 		}
 	}
 		
