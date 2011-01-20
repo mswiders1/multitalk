@@ -6,10 +6,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import android.util.Log;
+
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.messages.MsgMessage;
 import pl.multitalk.android.model.RBMtxPair;
 import pl.multitalk.android.model.ReliableBroadcastMatrix;
+import pl.multitalk.android.util.Constants;
 
 /**
  * Manager wiadomości
@@ -132,6 +135,8 @@ public class MessageManager {
             checkAndMoveWaitingMessages();
             
         } else {
+            Log.d(Constants.DEBUG_TAG, "[MessageManager] Adding message to waiting"
+                    +" (to: \""+message.getMsgReceiver().getUid()+"\", msgId: "+message.getMsgId());
             waitingMessages.addLast(message);
             waitingUserMessages.get(message.getMsgSender()).add(message);
             
@@ -216,6 +221,8 @@ public class MessageManager {
     
     
     private void acceptMessage(MsgMessage message){
+        Log.d(Constants.DEBUG_TAG, "[MessageManager] Adding message to accepted"
+                    +" (to: \""+message.getMsgReceiver().getUid()+"\", msgId: "+message.getMsgId());
         acceptedMessages.addLast(message);
         acceptedUserMessages.get(message.getMsgSender()).add(message);
         mtx.incrementUserValue(message.getMsgSender());
