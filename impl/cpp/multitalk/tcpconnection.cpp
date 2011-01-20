@@ -211,13 +211,16 @@ void TcpConnection::sendMessageToNetwork(Message msg)
         QVariantList mac;
         for(int i=0;i<msg.mac.size();i++)
         {
+            QVariant v;
             QVariantList macIn;
             for(int i2=0;i2<msg.mac.size();i2++)
             {
                 macIn.append(msg.mac[i][i2]);
             }
-            mac.append(macIn);
+            v=macIn;
+            mac.append(v);
         }
+        qDebug()<<mac;
         packet.insert("MAC",mac);
 
         QVariantList vec;
