@@ -4,6 +4,9 @@
 #include "message.h"
 #include <QHostAddress>
 
+Q_DECLARE_METATYPE(QList<int>)
+
+
 TcpConnection::TcpConnection(QObject *parent) :
     QTcpSocket(parent), headerRead(false)
 {
@@ -97,6 +100,22 @@ void TcpConnection::parseMessage(QByteArray& data)
             msg.uid=result["UID"].toString();
             msg.ip_address=result["IP_ADDRESS"].toString();
             msg.sequence=result["SEQUENCE"].toLongLong();
+        } else if(msg.type=="MSG")
+        {
+            msg.sender=result["SENDER"].toString();
+            if(result.contains("RECEIVER"))
+                msg.receiver=result["RECEIVER"].toString();
+            msg.msg_id=result["MSG_ID"].toInt();
+            foreach(QVariant item,result["TIME_VEC"].toList())
+            {
+                msg.time_vec.append(item.toInt());
+            }
+
+            foreach(QVariant item,result["VEC"].toList())
+            {
+                msg.vec.append(item.toString());
+            }
+            msg.content=result["CONTENT"].toString();
         } else
         {
             qDebug()<<"WARNING:unknown message type, ignoring";
@@ -149,6 +168,22 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     {
         packet.insert("TYPE",msg.type);
         packet.insert("UID",msg.uid);
+    } else if(msg.type=="MSG")
+    {
+        packet.insert("TYPE",msg.type);
+        packet.insert("SENDER",msg.sender);
+        //if(msg.receiver!="")
+            packet.insert("RECEIVER",msg.receiver);
+        packet.insert("MSG_ID",msg.msg_id);
+        QVariantList time_vec;
+        for(int i=0;i<msg.time_vec.size();i++)
+            time_vec.append(msg.time_vec[i]);
+        packet.insert("TIME_VEC",time_vec);
+        QVariantList vec;
+        for(int i=0;i<msg.vec.size();i++)
+            vec.append(msg.vec[i]);
+        packet.insert("VEC",vec);
+        packet.insert("CONTENT",msg.content);
     } else
     {
         qDebug()<<"ERROR:bad message type to send, dropping type:"<<msg.type;
@@ -162,5 +197,5 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     write(packetArray);
     if(state()==QAbstractSocket::ConnectedState)
         flush();
-    //qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
+    qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
 }
