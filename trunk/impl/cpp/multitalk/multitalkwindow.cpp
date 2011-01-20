@@ -210,18 +210,30 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         qDebug()<<"client alive:"<<msg.uid;
     } else if(msg.type=="MSG")
     {
-        int userPos;
+        int userPos=-1;
         for(int i=0;i<users.size();i++)
         {
             if(users[i].uid==msg.sender)
                 userPos=i;
         }
 
-        int myPos;
+        int myPos=-1;
         for(int i=0;i<users.size();i++)
         {
             if(users[i].uid==uid)
                 myPos=i;
+        }
+
+        if(myPos==-1)
+        {
+            qDebug()<<"not found myself in users list, giving up";
+            return;
+        }
+
+        if(userPos==-1)
+        {
+            qDebug()<<"not found sender in users list, giving up";
+            return;
         }
 
         qDebug()<<matrix;
