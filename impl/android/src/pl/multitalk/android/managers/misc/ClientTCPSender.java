@@ -96,7 +96,7 @@ public class ClientTCPSender extends Thread {
     private String getMessageWithHeader(String messageContent){
         StringBuffer sb = new StringBuffer();
         sb.append(Constants.BEGIN_MESSAGE_HEADER);
-        sb.append(messageContent.length());
+        sb.append(messageContent.getBytes().length);
         sb.append("\n");
         sb.append(messageContent);
         return sb.toString();

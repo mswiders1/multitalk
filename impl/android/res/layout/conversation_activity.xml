@@ -36,7 +36,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@id/conversation_bottomBar_sendButton"
-            android:minLines="2"
+            android:minLines="1"
             android:maxLines="3"
             android:scrollbars="vertical"
             android:inputType="textMultiLine|textCapSentences" />
