@@ -159,16 +159,25 @@ public class MessageManager {
      * @return wiadomość, lub null jeżeli nie ma takiej wiadomości
      */
     public synchronized MsgMessage getMessage(UserInfo sender, int msgId){
-        // zaakceptowane
-        for(MsgMessage msg : acceptedUserMessages.get(sender)){
-            if(msg.getMsgId() == msgId){
-                return msg;
+        List<MsgMessage> acceptedMessages = acceptedUserMessages.get(sender);
+        
+        if(acceptedMessages != null){
+            // zaakceptowane
+            for(MsgMessage msg : acceptedMessages){
+                if(msg.getMsgId() == msgId){
+                    return msg;
+                }
             }
         }
-        // oczekujące
-        for(MsgMessage msg : waitingUserMessages.get(sender)){
-            if(msg.getMsgId() == msgId){
-                return msg;
+        
+
+        List<MsgMessage> waitingMessages = waitingUserMessages.get(sender);
+        if(waitingMessages != null){
+            // oczekujące
+            for(MsgMessage msg : waitingMessages){
+                if(msg.getMsgId() == msgId){
+                    return msg;
+                }
             }
         }
         // nie ma
