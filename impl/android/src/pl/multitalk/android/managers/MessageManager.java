@@ -78,7 +78,7 @@ public class MessageManager {
             return;
         }
         
-        mtx.addUserWithZeroVector(user);
+        mtx.addUser(user);
         acceptedUserMessages.put(user, new LinkedList<MsgMessage>());
         waitingUserMessages.put(user, new LinkedList<MsgMessage>());
     }

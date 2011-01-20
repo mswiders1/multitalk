@@ -47,33 +47,34 @@ public class ReliableBroadcastMatrix {
     
     
     /**
-     * Dodaje uzytkownika z zerowym wektorem wiedzy orz zerowym zegarem logicznym.
+     * Dodaje uzytkownika z zerowym zerowym zegarem logicznym.
      * Do wykorzystania w przypadku nowozalogowanego użytkownika
      * @param newUser nowy użytkownik
      */
-    public synchronized void addUserWithZeroVector(UserInfo newUser){
+    public synchronized void addUser(UserInfo newUser){
         if(mtxUsersOrder.contains(newUser)){
             // już jest taki user
             return;
         }
-        
-        int usersNumber = mtxUsersOrder.size();
-        
-        // dodanie wektora wiedzy nowego usera o długości takiej jak wszystkich innych
-        List<Integer> newUserKnowledgeVector = new ArrayList<Integer>();
-        for(int i=0; i<usersNumber; ++i){
-            newUserKnowledgeVector.add(0);
-        }
-        mtx.add(newUserKnowledgeVector);
-        
-        // dodanie usera
-        mtxUsersOrder.add(newUser);
-        ++usersNumber;
-        
+
         // dodanie info o zegarze usera
         for(List<Integer> userVec : mtx){
             userVec.add(0);
         }
+        
+        // dodanie usera
+        mtxUsersOrder.add(newUser);
+        int usersNumber = mtxUsersOrder.size();
+        
+        // dodanie wektora wiedzy nowego usera o długości takiej jak wszystkich innych
+        List<Integer> myVec = mtx.get(0);
+        List<Integer> newUserKnowledgeVector = new ArrayList<Integer>();
+        for(int i=0; i<usersNumber; ++i){
+            newUserKnowledgeVector.add(myVec.get(i));
+        }
+        mtx.add(newUserKnowledgeVector);
+        
+        
     }
     
     
