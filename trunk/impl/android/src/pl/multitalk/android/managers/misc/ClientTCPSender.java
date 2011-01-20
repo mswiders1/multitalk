@@ -54,6 +54,7 @@ public class ClientTCPSender extends Thread {
                 
                 // czy koniec?
                 if(message instanceof FinishMessage){
+                    Log.d(Constants.DEBUG_TAG, "zamykam ClientTCPSender");
                     finish = true;
                     continue;
                 }
