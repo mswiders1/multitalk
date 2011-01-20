@@ -14,11 +14,13 @@ public class Controller {
 		MyId my_id = new MyId();
 		my_id.findId();
 		contacts_for_gui = new Vector<Contact>();
+		contacts_for_gui.add(new Contact("12345","kontakt",true,"192.168.1.1"));
 		me = new Contact(my_id.findId(),"krzysiek",true, my_id.findIp(my_id.getInaddr()));
 		neighbour = new Contact(my_id.getId(),"neighbour",true, my_id.findIp(my_id.getInaddr()));
 		
-		gui = new GUI(this);
 		net_management = new NetManagement(this);
+		gui = new GUI(this);
+		
 	}
 	
 	public void addToConnections(Vector<UserVector> uvec )
@@ -134,7 +136,16 @@ public class Controller {
 	}
 	
 	
+	////////////////////////////////////////////////////////////////
+	/////// Commucication with GUI ////////////////////////////////
+	///////////////////////////////////////////////////////////////
 	
+	public void messageFromGUI(Collection<Contact> from_list, String text)
+	{
+		Vector<Contact> from = new Vector<Contact>(from_list);
+		System.out.println("wiadomosc z GUI: "+text);
+		return;
+	}
 	
 	
 	

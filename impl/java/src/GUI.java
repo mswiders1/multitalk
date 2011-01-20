@@ -6,25 +6,21 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 public class GUI {
-	public GUI(Collection<Contact> contacts_list, Contact me, Contact connect_to)
+	
+	public GUI(Controller controller)
 	{
-		ContactsFrame contactsFrame = new ContactsFrame(contacts_list,me, connect_to);
+		ContactsFrame contactsFrame = new ContactsFrame(controller.getContacts_for_gui() ,controller.getMe() , controller.getNeighbour(),controller);
 		contactsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		contactsFrame.show();
 	}
 	
-	public GUI(Controller controller)
-	{
-		ContactsFrame contactsFrame = new ContactsFrame(controller.getContacts_for_gui() ,controller.getMe() , controller.getNeighbour());
-		contactsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		contactsFrame.show();
-	}
+	
 	
 }
 
 class ContactsFrame extends JFrame implements ActionListener
 {
-	public ContactsFrame(Collection<Contact> contacts_list, Contact me, Contact connect_to)
+	public ContactsFrame(Collection<Contact> contacts_list, Contact me, Contact connect_to, Controller controller)
 	{
 		setTitle("Mutitalk-Kontakty");
 		setSize(WIDTH,HEIGHT);
@@ -54,9 +50,10 @@ class ContactsFrame extends JFrame implements ActionListener
 		menuBar.add(menuMessages);
 		menuBar.add(menuFind);
 			
-		contacts_panel = new ContactsPanel(contacts_list);
+		contacts_panel = new ContactsPanel(contacts_list, controller);
 		Container contentPane = getContentPane();		
-		contentPane.add(contacts_panel);		
+		contentPane.add(contacts_panel);	
+		this.controller = controller;
 	}
 	
 	public void actionPerformed(ActionEvent e)
@@ -70,7 +67,7 @@ class ContactsFrame extends JFrame implements ActionListener
 			System.out.println("Wcisnieto menu user settings");
 			//System.out.println("Na liscie:" + this.contacts_list);
 			//this.refresh();
-			new SettingsFrame (me, connect_to);
+			new SettingsFrame (me, connect_to, controller);
 		}
 		else if (e.getSource() == talkMessagesMenu )
 		{
@@ -83,7 +80,7 @@ class ContactsFrame extends JFrame implements ActionListener
 				 names +=((Contact)(obj_marked[i]));
 			 }
 			 System.out.println("Wybrano " + marked);
-			 new TalkFrame(marked);
+			 new TalkFrame(marked,controller);
 		}
 		else if (e.getSource() == deleteMessagesMenu )
 		{
@@ -119,7 +116,7 @@ class ContactsFrame extends JFrame implements ActionListener
 		else if (e.getSource() == findContactMenu )
 		{
 			System.out.println("Wcisnieto menu find");
-			new FindParamFrame(contacts_list,this);
+			new FindParamFrame(contacts_list,this, controller);
 		}
 			
 	}
@@ -137,13 +134,14 @@ class ContactsFrame extends JFrame implements ActionListener
 	private Collection<Contact> contacts_list;
 	private static final int WIDTH = 300;
 	private static final int HEIGHT = 600;	
-	
+	private Controller controller;
 }
 
 class ContactsPanel extends JPanel
 {
-	ContactsPanel (Collection<Contact> contacts_list)
+	ContactsPanel (Collection<Contact> contacts_list,Controller controller)
 	{
+		this.controller = controller;
 		model = new DefaultListModel();
 		this.contacts_list = contacts_list;
 		Iterator<Contact> it = this.contacts_list.iterator();
@@ -180,6 +178,7 @@ class ContactsPanel extends JPanel
 	private JList j_contacts_list;
 	private Collection<Contact> contacts_list;
 	DefaultListModel model;
+	private Controller controller;
 	
 	
 	public JList getJ_contacts_list() {
@@ -193,6 +192,14 @@ class ContactsPanel extends JPanel
 	}
 	public void setContacts_list(Collection<Contact> contactsList) {
 		contacts_list = contactsList;
+	}
+
+	public Controller getController() {
+		return controller;
+	}
+
+	public void setController(Controller controller) {
+		this.controller = controller;
 	}
 	
 	
@@ -213,7 +220,7 @@ class MenuAction extends AbstractAction
 
 class TalkFrame extends JFrame
 {
-	public TalkFrame(Collection<Contact> interlocutors_list)
+	public TalkFrame(Collection<Contact> interlocutors_list, Controller controller)
 	{
 		Iterator<Contact> it = 	interlocutors_list.iterator();
 		String names="";
@@ -225,20 +232,42 @@ class TalkFrame extends JFrame
 		setSize(WIDTH,HEIGHT);	
 		show();
 		
-		talk_panel = new TalkPanel(interlocutors_list);
+		talk_panel = new TalkPanel(interlocutors_list,controller);
 		Container contentPane = getContentPane();		
-		contentPane.add(talk_panel);	
+		contentPane.add(talk_panel);
+		this.controller = controller;
 	}
 	
 	private static final int WIDTH = 500;
 	private static final int HEIGHT = 500;
 	private TalkPanel talk_panel;	
 	private Vector<Contact> interlocutors_list;
+	private Controller controller;
+	public TalkPanel getTalk_panel() {
+		return talk_panel;
+	}
+	public void setTalk_panel(TalkPanel talkPanel) {
+		talk_panel = talkPanel;
+	}
+	public Vector<Contact> getInterlocutors_list() {
+		return interlocutors_list;
+	}
+	public void setInterlocutors_list(Vector<Contact> interlocutorsList) {
+		interlocutors_list = interlocutorsList;
+	}
+	public Controller getController() {
+		return controller;
+	}
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+	
+	
 }
 
 class TalkPanel extends JPanel implements ActionListener
 {
-	TalkPanel(Collection<Contact> interlocutors_list)
+	TalkPanel(Collection<Contact> interlocutors_list, Controller controller)
 	{
 		this.setBackground(Color.LIGHT_GRAY);		
 		
@@ -273,7 +302,8 @@ class TalkPanel extends JPanel implements ActionListener
 			j_text_area.append(message+"\n");
 			j_write_area.setText("");
 			
-		
+			//this.controller.messageFromGUI(this.getInterlocutors_list(), message);
+			this.controller.getNet_management();
 		}
 	}
 		
@@ -281,13 +311,32 @@ class TalkPanel extends JPanel implements ActionListener
 	private JButton j_btn_send; 
 	private JTextArea j_write_area;
 	private JTextArea j_text_area;
+	private Controller controller;
+	
+	public Collection<Contact> getInterlocutors_list() {
+		return interlocutors_list;
+	}
+
+	public void setInterlocutors_list(Collection<Contact> interlocutorsList) {
+		interlocutors_list = interlocutorsList;
+	}
+
+	public Controller getController() {
+		return controller;
+	}
+
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+	
 }
 
 class SettingsFrame extends JFrame
 {
-	public SettingsFrame(Contact c, Contact connect_to)
+	public SettingsFrame(Contact c, Contact connect_to, Controller controller)
 	{
-		settings_panel = new SettingsPanel(c,this, connect_to);
+		this.controller = controller;
+		settings_panel = new SettingsPanel(c,this, connect_to, controller);
 		setTitle("Settings");
 		setSize(WIDTH,HEIGHT);
 		
@@ -300,12 +349,28 @@ class SettingsFrame extends JFrame
 	private static final int WIDTH = 400;
 	private static final int HEIGHT = 400;
 	private SettingsPanel settings_panel;
+	private Controller controller;
+	
+	public SettingsPanel getSettings_panel() {
+		return settings_panel;
+	}
+	public void setSettings_panel(SettingsPanel settingsPanel) {
+		settings_panel = settingsPanel;
+	}
+	public Controller getController() {
+		return controller;
+	}
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+		
 }
 
 class SettingsPanel extends JPanel implements ActionListener
 {
-	public SettingsPanel(Contact c, SettingsFrame f, Contact connect_to)
+	public SettingsPanel(Contact c, SettingsFrame f, Contact connect_to, Controller controller)
 	{
+		this.controller = controller;
 		me_contact = c;
 		this.connect_to = connect_to; 
 		this.f = f;
@@ -373,15 +438,66 @@ class SettingsPanel extends JPanel implements ActionListener
 	private Contact me_contact, connect_to;
 	private JTextField name_txt_field, ip_txt_field;
 	private SettingsFrame f;
+	private Controller controller;
+	public Contact getMe_contact() {
+		return me_contact;
+	}
+
+	public void setMe_contact(Contact meContact) {
+		me_contact = meContact;
+	}
+
+	public Contact getConnect_to() {
+		return connect_to;
+	}
+
+	public void setConnect_to(Contact connectTo) {
+		connect_to = connectTo;
+	}
+
+	public JTextField getName_txt_field() {
+		return name_txt_field;
+	}
+
+	public void setName_txt_field(JTextField nameTxtField) {
+		name_txt_field = nameTxtField;
+	}
+
+	public JTextField getIp_txt_field() {
+		return ip_txt_field;
+	}
+
+	public void setIp_txt_field(JTextField ipTxtField) {
+		ip_txt_field = ipTxtField;
+	}
+
+	public SettingsFrame getF() {
+		return f;
+	}
+
+	public void setF(SettingsFrame f) {
+		this.f = f;
+	}
+
+	public Controller getController() {
+		return controller;
+	}
+
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+	
+	
 }
 
 class FindParamFrame extends JFrame
 {
-	public FindParamFrame(Collection<Contact> contacts_list,ContactsFrame f)
+	public FindParamFrame(Collection<Contact> contacts_list,ContactsFrame f, Controller controller)
 	{
-		find_contact_param_panel = new ContactParamPanel(contacts_list,f,this);
+		find_contact_param_panel = new ContactParamPanel(contacts_list,f,this, controller);
 		setTitle("Find Contact");
 		setSize(WIDTH,HEIGHT);
+		this.controller = controller;
 		
 		
 		Container find_contact_param_pane = getContentPane();		
@@ -392,13 +508,30 @@ class FindParamFrame extends JFrame
 	private static final int WIDTH = 400;
 	private static final int HEIGHT = 400;
 	private ContactParamPanel find_contact_param_panel;
+	private Controller controller;
+	public ContactParamPanel getFind_contact_param_panel() {
+		return find_contact_param_panel;
+	}
+	public void setFind_contact_param_panel(ContactParamPanel findContactParamPanel) {
+		find_contact_param_panel = findContactParamPanel;
+	}
+	public Controller getController() {
+		return controller;
+	}
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+	
+	
+	
 }
 
 class ContactParamPanel extends JPanel implements ActionListener
 {
-	public ContactParamPanel(Collection<Contact> contacts_list, ContactsFrame f, FindParamFrame f2)
+	public ContactParamPanel(Collection<Contact> contacts_list, ContactsFrame f, FindParamFrame f2, Controller controller)
 	{
-		
+	
+	this.controller = controller;	
 	this.setBackground(Color.LIGHT_GRAY);
 	this.contact = new Contact();
 	this.contacts_list = contacts_list;
@@ -452,7 +585,7 @@ class ContactParamPanel extends JPanel implements ActionListener
 	    	 contact.setId(id_txt_field.getText());
 	     }
 	     
-	     new FindListFrame(contact, contacts_list,f,f2);
+	     new FindListFrame(contact, contacts_list,f,f2,controller);
 	     f2.setVisible(false);
 	     
     	 System.out.println(contact);
@@ -463,13 +596,71 @@ class ContactParamPanel extends JPanel implements ActionListener
 	private JTextField name_txt_field, id_txt_field;
 	private ContactsFrame f;
 	private FindParamFrame f2;
+	private Controller controller;
+	public Contact getContact() {
+		return contact;
+	}
+
+	public void setContact(Contact contact) {
+		this.contact = contact;
+	}
+
+	public Collection<Contact> getContacts_list() {
+		return contacts_list;
+	}
+
+	public void setContacts_list(Collection<Contact> contactsList) {
+		contacts_list = contactsList;
+	}
+
+	public JTextField getName_txt_field() {
+		return name_txt_field;
+	}
+
+	public void setName_txt_field(JTextField nameTxtField) {
+		name_txt_field = nameTxtField;
+	}
+
+	public JTextField getId_txt_field() {
+		return id_txt_field;
+	}
+
+	public void setId_txt_field(JTextField idTxtField) {
+		id_txt_field = idTxtField;
+	}
+
+	public ContactsFrame getF() {
+		return f;
+	}
+
+	public void setF(ContactsFrame f) {
+		this.f = f;
+	}
+
+	public FindParamFrame getF2() {
+		return f2;
+	}
+
+	public void setF2(FindParamFrame f2) {
+		this.f2 = f2;
+	}
+
+	public Controller getController() {
+		return controller;
+	}
+
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+	
+	
 }
 
 class FindListFrame extends JFrame implements ActionListener
 {
-	public FindListFrame(Contact c, Collection<Contact> contacts_list, ContactsFrame f, FindParamFrame f2)
+	public FindListFrame(Contact c, Collection<Contact> contacts_list, ContactsFrame f, FindParamFrame f2, Controller controller)
 	{
-	
+		this.controller = controller;
 		setTitle("Results of contacts search");
 		setSize(WIDTH,HEIGHT);
 		this.contacts_list = contacts_list;
@@ -486,7 +677,7 @@ class FindListFrame extends JFrame implements ActionListener
 		setJMenuBar(menuBar);		
 		menuBar.add(menuAdd);
 			
-		find_list_panel = new FindListPanel(this.search(c));
+		find_list_panel = new FindListPanel(this.search(c),controller);
 		
 		Container contentPane = getContentPane();		
 		contentPane.add(find_list_panel);	
@@ -547,12 +738,64 @@ class FindListFrame extends JFrame implements ActionListener
 	private Collection<Contact> contacts_list;
 	private ContactsFrame f;
 	private FindParamFrame f2;
+	private Controller controller;
+	
+	public FindListPanel getFind_list_panel() {
+		return find_list_panel;
+	}
+
+	public void setFind_list_panel(FindListPanel findListPanel) {
+		find_list_panel = findListPanel;
+	}
+
+	public JMenuItem getAddMenu() {
+		return addMenu;
+	}
+
+	public void setAddMenu(JMenuItem addMenu) {
+		this.addMenu = addMenu;
+	}
+
+	public Collection<Contact> getContacts_list() {
+		return contacts_list;
+	}
+
+	public void setContacts_list(Collection<Contact> contactsList) {
+		contacts_list = contactsList;
+	}
+
+	public ContactsFrame getF() {
+		return f;
+	}
+
+	public void setF(ContactsFrame f) {
+		this.f = f;
+	}
+
+	public FindParamFrame getF2() {
+		return f2;
+	}
+
+	public void setF2(FindParamFrame f2) {
+		this.f2 = f2;
+	}
+
+	public Controller getController() {
+		return controller;
+	}
+
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+	
+	
 }
 
 class FindListPanel extends JPanel
 {
-	public FindListPanel(Collection<Contact> found_list)
+	public FindListPanel(Collection<Contact> found_list, Controller controller)
 	{
+		this.controller = controller;
 		this.found_list = found_list;
 		j_found_list = new JList((Vector<Contact>) found_list);
 		add(j_found_list);
@@ -561,6 +804,8 @@ class FindListPanel extends JPanel
 		
 	private JList j_found_list;
 	private Collection<Contact> found_list;
+	private Controller controller;
+	
 	public JList getJ_found_list() {
 		return j_found_list;
 	}
@@ -572,6 +817,12 @@ class FindListPanel extends JPanel
 	}
 	public void setFound_list(Collection<Contact> foundList) {
 		found_list = foundList;
+	}
+	public Controller getController() {
+		return controller;
+	}
+	public void setController(Controller controller) {
+		this.controller = controller;
 	}
 	
 }
