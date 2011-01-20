@@ -225,6 +225,16 @@ public class TCPIPNetworkManager {
     
     
     /**
+     * Zwraca informację, czy ma połączenie do klienta
+     * @param user klient
+     * @return true jeżeli ma połączenie
+     */
+    public boolean hasConnection(UserInfo user){
+        return clientConnections.containsKey(user);
+    }
+    
+    
+    /**
      * Nasłuchiwacz połączeń od innych klientów
      */
     class ClientConnectionsListener implements Runnable {

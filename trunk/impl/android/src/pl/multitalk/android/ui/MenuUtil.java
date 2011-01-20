@@ -25,6 +25,7 @@ public class MenuUtil {
         
         Intent logoutIntent = new Intent(Constants.ACTION_START_ACTIVITY);
         logoutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        logoutIntent.putExtra("logout", true);
         
         menu.add(0, MENU_ITEM_CONTACT_LIST_ID, Menu.NONE, R.string.menu_contact_list_item)
             .setIntent(contactListIntent);

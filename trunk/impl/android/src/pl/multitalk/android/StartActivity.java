@@ -149,10 +149,12 @@ public class StartActivity extends Activity {
     
     @Override
     protected void onNewIntent(Intent intent) {
-        // logout
-        app.getMultitalkNetworkManager().destroy();
-        finish();
-        Process.killProcess(Process.myPid());
+        if(intent.getBooleanExtra("logout", false)){
+            // logout
+            app.getMultitalkNetworkManager().destroy();
+            finish();
+            Process.killProcess(Process.myPid());
+        }
     }
     
     
