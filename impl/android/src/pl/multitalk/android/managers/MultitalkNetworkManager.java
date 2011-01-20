@@ -1,7 +1,11 @@
 package pl.multitalk.android.managers;
 
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -43,6 +47,7 @@ public class MultitalkNetworkManager {
     private TCPIPNetworkManager tcpipNetworkManager;
     private Timer sendLogTimer;
     private Timer sendLivTimer;
+    private Timer removeDeadClientsTimer;
     private BlockingQueue<Message> messageQueue = null;
     private MessageDispatcher messageDispatcher;
     
@@ -62,7 +67,7 @@ public class MultitalkNetworkManager {
      * Manager wiadomości
      */
     private MessageManager messageManager;
-    
+    private Map<UserInfo, LivMessage> lastReceivedLivMessages;
     
     
     /**
@@ -138,6 +143,7 @@ public class MultitalkNetworkManager {
         
         // nowy manager wiadomości
         messageManager = new MessageManager(userInfo);
+        lastReceivedLivMessages = new HashMap<UserInfo, LivMessage>();
         
         if(peerIpAddress == null){
             // wysłanie UDP discovery
@@ -169,6 +175,7 @@ public class MultitalkNetworkManager {
      */
     public void logout(){
         stopSendingLivMessage();
+        stopRemovingDeadClients();
         
         if(isLoggedIn){
             // wysłanie OUT message
@@ -239,6 +246,31 @@ public class MultitalkNetworkManager {
     
     
     /**
+     * Zwraca pełne informacje o zalogowanym użytkowniku
+     * @param user użytkownik
+     * @return pełne dane o zalogowanym użytkowniku
+     */
+    private synchronized UserInfo getUserInfo(UserInfo user){
+        if(containsUserInfo(user)){
+            return users.get(users.indexOf(user));
+        }
+        return null;
+    }
+    
+    
+    /**
+     * Sprawdza czy użytkownik został już dodany
+     * @param user informacje o użytkowniku
+     */
+    private synchronized boolean containsNotLoggedUserInfo(UserInfo user){
+        if(notLoggedUsers.contains(user)){
+            return true;
+        }
+        return false;
+    }
+    
+    
+    /**
      * Sprawdza czy mamy już info o użytkowniku z podanym IP
      * @param ipAddress adres IP użytkownika
      * @return true jeżeli mamy info o takim użytkowniku
@@ -285,6 +317,19 @@ public class MultitalkNetworkManager {
     
     
     /**
+     * Zwraca informację o niezalogowanym użytkowniku
+     * @param user informacje o niezalogowanym użytkowniku do usunięcia
+     * @return zwraca informacje o niezalogowanym użytkowniku
+     */
+    private synchronized UserInfo getNotLoggedUserInfo(UserInfo user){
+        if(notLoggedUsers.contains(user)){
+            return notLoggedUsers.get(notLoggedUsers.indexOf(user));
+        }
+        return null;
+    }
+    
+    
+    /**
      * Zwraca informację, czy zalogowano do sieci
      * @return true jeżeli zalogowano do sieci, false w przeciwnym przypadku
      */
@@ -303,6 +348,7 @@ public class MultitalkNetworkManager {
         // rozpoczęcie nasłuchiwania po broadcast-cie
         broadcastNetworkManager.startBroadcastListening();
         startSendingLivMessage();
+        startRemoveingDeadClients();
     }
     
     
@@ -347,6 +393,25 @@ public class MultitalkNetworkManager {
         }
     }
     
+    
+    /**
+     * Rozpoczyna usuwanie martwych klientów
+     */
+    private void startRemoveingDeadClients(){
+        removeDeadClientsTimer = new Timer();
+        removeDeadClientsTimer.schedule(new RemoveDeadClientsTimerTask(), 10000, 10000);
+    }
+    
+    
+    /**
+     * Kończy usuwanie martwych klientów
+     */
+    private void stopRemovingDeadClients(){
+        if(removeDeadClientsTimer != null){
+            removeDeadClientsTimer.cancel();
+            removeDeadClientsTimer = null;
+        }
+    }
     
     /**
      * Wysyła HII message do użytkownika
@@ -613,6 +678,61 @@ public class MultitalkNetworkManager {
     }
     
     
+    /**
+     * Obsługuje komunikat LIV
+     * @param message komunikat
+     */
+    public void handleLivMessage(LivMessage message){
+        UserInfo msgUserInfo = message.getUserInfo();
+        
+        if(msgUserInfo.equals(userInfo)){
+            // pomijam siebie samego
+            return;
+        }
+        
+        if(!containsUserInfo(msgUserInfo)){
+            // info od niezalogowanego lub niewiadomo kogo
+            if(containsNotLoggedUserInfo(msgUserInfo)){
+                // mamy go w niezalogowanych
+                if(!tcpipNetworkManager.hasConnection(msgUserInfo)){
+                    // nie mamy do niego połączenia - był rozłączony po LIV timeout
+                    // łączymy i oznaczamy jako zalogowany
+                    
+                    Log.d(Constants.DEBUG_TAG, "LIV message od martwego klienta - wskrzeszam"
+                            +" ("+msgUserInfo.getUid()+")");
+                    
+                    UserInfo user = getNotLoggedUserInfo(msgUserInfo);
+                    removeNotLoggedUserInfo(msgUserInfo);
+                    addUserInfo(user);
+                    tcpipNetworkManager.connectToClient(user);
+                }
+            }
+        }
+        
+        SendMessageToAllMessage smtaMessage = null;
+        
+        message.setReceiveDateToNow();
+        synchronized (lastReceivedLivMessages) {
+            LivMessage lastLiv = lastReceivedLivMessages.get(msgUserInfo);
+            if(lastLiv != null){
+                if(lastLiv.getSeq() < message.getSeq()){
+                    // najnowszy LIV - przesyłamy dalej
+                    smtaMessage = new SendMessageToAllMessage();
+                    smtaMessage.setMessageToSend(message);
+                    smtaMessage.setSenderInfo(userInfo);
+                }
+            }
+            
+            lastReceivedLivMessages.remove(msgUserInfo);
+            lastReceivedLivMessages.put(msgUserInfo, message);
+        }
+        
+        // forward
+        if(smtaMessage != null){
+            putMessage(smtaMessage);
+        }
+    }
+    
     
     /**
      * Zadanie wysłania komunikatu logowania
@@ -650,20 +770,52 @@ public class MultitalkNetworkManager {
         
         @Override
         public void run() {
-            ++seq;
-            
-            // wysyłamy do wszystkich
-            LivMessage message = new LivMessage();
-            message.setSenderInfo(userInfo);
-            message.setUserInfo(userInfo);
-            message.setSeq(seq);
-            
-            SendMessageToAllMessage smtaMessage = new SendMessageToAllMessage();
-            smtaMessage.setMessageToSend(message);
-            putMessage(smtaMessage);
-//            tcpipNetworkManager.sendMessageToAll(message);
+            if(isLoggedIn()){
+                ++seq;
+                
+                // wysyłamy do wszystkich
+                LivMessage message = new LivMessage();
+                message.setSenderInfo(userInfo);
+                message.setUserInfo(userInfo);
+                message.setSeq(seq);
+                
+                SendMessageToAllMessage smtaMessage = new SendMessageToAllMessage();
+                smtaMessage.setMessageToSend(message);
+                putMessage(smtaMessage);
+            }
         }
         
+    }
+    
+    
+    /**
+     * Zadanie usuwania klientów, od których nie otrzymujemy komunikatów LIV
+     */
+    class RemoveDeadClientsTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            GregorianCalendar lastValidDate = new GregorianCalendar();
+            lastValidDate.setTimeInMillis(System.currentTimeMillis());
+            lastValidDate.add(GregorianCalendar.SECOND, -30);
+            
+            synchronized (lastReceivedLivMessages) {
+                Iterator<LivMessage> it = lastReceivedLivMessages.values().iterator();
+                while(it.hasNext()){
+                    LivMessage msg = it.next();
+                    if(msg.getReceiveDate().before(lastValidDate)){
+                        // klient umarł - przenosimy do niezalogowanych i rozłączamy
+
+                        Log.d(Constants.DEBUG_TAG, "Klient umarł ("+msg.getUserInfo().getUid()+"), usuwam");
+                        
+                        tcpipNetworkManager.disconnectClient(msg.getUserInfo());
+                        UserInfo user = getUserInfo(msg.getUserInfo());
+                        removeUserInfo(msg.getUserInfo());
+                        it.remove();
+                        addNotLoggedUserInfo(user);
+                    }
+                }
+            }
+        }
     }
     
     
@@ -691,7 +843,7 @@ public class MultitalkNetworkManager {
                     
                     if(message instanceof LivMessage){
                         Log.d(Constants.DEBUG_TAG, "received LIV message:\n"+message.serialize());
-                        // TODO
+                        MultitalkNetworkManager.this.handleLivMessage((LivMessage) message);
                         continue;
                     
                     } else if(message instanceof MsgMessage){

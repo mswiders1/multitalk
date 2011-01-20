@@ -118,11 +118,17 @@ public class MessageManager {
     
     
     /**
-     * Dodaje wiadomość i zwraca informację, czy lista wiadomości nadawcy jest kompletna
+     * Dodaje wiadomość i zwraca informację, czy wiadomość została dodana do listy aktualnych
      * @param message wiadomość
-     * @return informację, czy lista wiadomości nadawcy jest kompletna
+     * @return informację, czy wiadomość została dodana do listy aktualnych
      */
     public synchronized boolean addMessage(MsgMessage message){
+        if(!mtx.containsUser(message.getMsgSender())){
+            // nie mamy takiego użytkownika - ignorujemy
+            return true;
+        }
+        
+        
         boolean acceptMsg = mtx.isMyVectorUpToDate(message.getTimeVec(), message.getUsersOrder());
 
         mtx.updateUserVector(message.getMsgSender(), message.getTimeVec(), message.getUsersOrder());

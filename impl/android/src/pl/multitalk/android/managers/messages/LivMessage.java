@@ -1,5 +1,7 @@
 package pl.multitalk.android.managers.messages;
 
+import java.util.GregorianCalendar;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -16,6 +18,7 @@ public class LivMessage extends BaseMessage {
 
     private UserInfo userInfo;
     private int seq;
+    private GregorianCalendar receiveDate;
     
     public UserInfo getUserInfo() {
         return userInfo;
@@ -33,6 +36,19 @@ public class LivMessage extends BaseMessage {
         this.seq = seq;
     }
     
+
+    public GregorianCalendar getReceiveDate() {
+        return receiveDate;
+    }
+
+    public void setReceiveDate(GregorianCalendar receiveDate) {
+        this.receiveDate = receiveDate;
+    }
+    
+    public void setReceiveDateToNow(){
+        this.receiveDate = new GregorianCalendar();
+        this.receiveDate.setTimeInMillis(System.currentTimeMillis());
+    }
 
     @Override
     public void deserialize(String jsonString) {
@@ -81,6 +97,11 @@ public class LivMessage extends BaseMessage {
         if(userInfo != null)
             cloneMessage.setUserInfo(new UserInfo(userInfo));
         cloneMessage.setSeq(getSeq());
+        if(receiveDate != null){
+            GregorianCalendar cloneReceiveDate = new GregorianCalendar();
+            cloneReceiveDate.setTimeInMillis(receiveDate.getTimeInMillis());
+            cloneMessage.setReceiveDate(cloneReceiveDate);
+        }
         
         return cloneMessage;
     }
