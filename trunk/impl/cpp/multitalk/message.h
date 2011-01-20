@@ -4,6 +4,7 @@
 
 #include <QString>
 #include <QList>
+#include <QHostAddress>
 
 class Message
 {
@@ -22,6 +23,7 @@ public:
     QList<int> time_vec;
     QString content;
     qlonglong sequence;
+    QHostAddress peerAddress;
 
     bool operator==(Message const& a);
 };

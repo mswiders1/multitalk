@@ -127,13 +127,22 @@ void MultitalkWindow::clientDisconnected(QString uid)
         for(int i=0;i<matrix.size();i++)
             matrix[i].removeAt(pos);
     }
+
+    QLinkedList<Message>::iterator msg;
+    for(msg=messageHistory.begin();msg!=messageHistory.end();msg++)
+    {
+        if(msg->uid==uid&&msg->type=="LOG")
+            break;
+    }
+    if(msg!=messageHistory.end())
+        messageHistory.removeOne(*msg);
 }
 
 void MultitalkWindow::handleReceivedMessage(Message msg)
 {
     if(messageHistory.contains(msg))
     {
-        //qDebug()<<"already got this message, ignoring";
+        qDebug()<<"already got this message, ignoring";
         return;
     }
     else
@@ -202,12 +211,30 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         }
         else
             qDebug()<<"client already exists";
+
+        QLinkedList<Message>::iterator msgHist;
+        for(msgHist=messageHistory.begin();msgHist!=messageHistory.end();msgHist++)
+        {
+            if(msgHist->uid==msg.uid&&msgHist->type=="OUT")
+                break;
+        }
+        if(msgHist!=messageHistory.end())
+            messageHistory.removeOne(*msgHist);
+
     } else if(msg.type=="OUT")
     {
         clientDisconnected(msg.uid);
     } else if(msg.type=="LIV")
     {
         qDebug()<<"client alive:"<<msg.uid;
+    } else if(msg.type=="P2P")
+    {
+        Message reply;
+        reply.type="HII";
+        reply.uid=uid;
+        reply.username=username;
+        reply.vector=users;
+        tcpServer->sendMessageToPeer(reply);
     } else if(msg.type=="MSG")
     {
         int userPos=-1;
