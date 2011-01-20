@@ -20,9 +20,9 @@ TcpServer::TcpServer(QObject *parent) :
 void TcpServer::incomingConnection(int socketDescriptor)
 {
     TcpConnection *clientConnection=new TcpConnection(this);
-    clientConnection->connectAddress=clientConnection->peerAddress();
     connectionList.append(clientConnection);
     clientConnection->setSocketDescriptor(socketDescriptor);
+    clientConnection->connectAddress=clientConnection->peerAddress();
     connect(this,SIGNAL(sendMessageToNetwork(Message)),clientConnection,SLOT(sendMessageToNetwork(Message)));
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));
     connect(clientConnection,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(disconnectedConnection(TcpConnection*)));
@@ -36,7 +36,6 @@ void TcpServer::disconnectedConnection(TcpConnection *connection)
     qDebug()<<"removing disconnected connection";
     emit clientDisconnected(connection->clientUid);
     connectionList.removeOne(connection);
-    delete connection;
 }
 
 void TcpServer::connectToClient(QHostAddress address,Message msg)
@@ -72,6 +71,7 @@ void TcpServer::sendMessageToPeer(Message msg)
     for(i=connectionList.begin();i!=connectionList.end();i++)
     {
         TcpConnection *conn=*i;
+        qDebug()<<"peer address:"<<conn->connectAddress;
         if(conn->connectAddress==msg.peerAddress)
         {
             qDebug()<<"found connection to peer";
