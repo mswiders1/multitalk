@@ -20,9 +20,20 @@ TcpServer::TcpServer(QObject *parent) :
 void TcpServer::incomingConnection(int socketDescriptor)
 {
     TcpConnection *clientConnection=new TcpConnection(this);
-    connectionList.append(clientConnection);
     clientConnection->setSocketDescriptor(socketDescriptor);
     clientConnection->connectAddress=clientConnection->peerAddress();
+    QList<TcpConnection*>::iterator i;
+    for(i=connectionList.begin();i!=connectionList.end();i++)
+    {
+        TcpConnection *conn=*i;
+        if(conn->connectAddress==clientConnection->connectAddress)
+        {
+            qDebug()<<"incoming connection already connected to this address closing:"<<clientConnection->connectAddress;
+            conn->close();
+            return;
+        }
+    }
+    connectionList.append(clientConnection);
     connect(this,SIGNAL(sendMessageToNetwork(Message)),clientConnection,SLOT(sendMessageToNetwork(Message)));
     connect(clientConnection, SIGNAL(disconnected()),clientConnection, SLOT(deleteLater()));
     connect(clientConnection,SIGNAL(connectionDisconnected(TcpConnection*)),this,SLOT(disconnectedConnection(TcpConnection*)));

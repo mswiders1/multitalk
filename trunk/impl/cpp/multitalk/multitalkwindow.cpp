@@ -65,6 +65,9 @@ void MultitalkWindow::connectToNetwork()
             sendOutMessage();
             delete tcpServer;
         }
+        users.clear();
+        matrix.clear();
+        ui->listWidget->clear();
         uid=newUid;
         tcpServer=new TcpServer(this);
         connect(tcpServer,SIGNAL(receivedMessageFromNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
@@ -198,6 +201,7 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
                 for(int i=0;i<users.size();i++)
                     newVector.append(0);
                 matrix.append(newVector);
+                connectToAddressP2P(QHostAddress(remoteList->ip));
             }
         }
     } else if(msg.type=="LOG")
