@@ -14,7 +14,7 @@ public class Controller {
 		MyId my_id = new MyId();
 		my_id.findId();
 		contacts_for_gui = new Vector<Contact>();
-		me = new Contact(my_id.getId(),"krzysiek",true, my_id.findIp(my_id.getInaddr()));
+		me = new Contact(my_id.findId(),"krzysiek",true, my_id.findIp(my_id.getInaddr()));
 		neighbour = new Contact(my_id.getId(),"neighbour",true, my_id.findIp(my_id.getInaddr()));
 		
 		gui = new GUI(this);
@@ -76,6 +76,7 @@ public class Controller {
 	
 	public void messageSendHii(Contact c_)
 	{
+		System.out.print("wysyla Hii");
 		HiiMsg hiimsg = new HiiMsg();
 		hiimsg.setUid(me.getId());
 		hiimsg.setUsername(me.getName());
@@ -89,9 +90,11 @@ public class Controller {
 			contact = connection.getContact();
 			uvec.add(new UserVector(contact.getIp(),contact.getId(), contact.getName()));
 		}
-		hiimsg.setVector(uvec);
 		
-		net_management.add_send(c_, hiimsg);		
+		hiimsg.setVector(uvec);
+		uvec.add(new UserVector(me.getIp(),me.getId(), me.getName()));
+		net_management.add_send_not_yet_logged_in(c_, hiimsg);
+		System.out.println("Przeslal Hii");
 	}
 	
 	public void messageSendLog()
@@ -111,9 +114,9 @@ public class Controller {
 		broadcast.send();
 		broadcast.receive();
 		//wait for anwsers and send p2p msg to all who answered
-		LogInTimer = new Timer();
-		System.out.println("Bedzie wysylal p2p");
-		LogInTimer.schedule(new LogInTTask() , 0, 5000);
+		//LogInTimer = new Timer();
+		//System.out.println("Bedzie wysylal HII");
+		//LogInTimer.schedule(new LogInTTask() , 0, 5000);
 		
 	}
 	
@@ -121,8 +124,11 @@ public class Controller {
 	{
 		public void run()
 		{
-			Controller.this.messageSendP2P();
-			System.out.println("Wysyla p2p");
+			//Iterator<Connection> it = Controller.this.getNet_management().getConnections().iterator();
+			//Connection connection;
+			//while (it.hasNext())
+			//Controller.this.messageSendHii();
+			System.out.println("Wysyla HII");
 			Controller.this.LogInTimer.cancel();
 		}
 	}

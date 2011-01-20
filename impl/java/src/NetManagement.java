@@ -8,6 +8,7 @@ public class NetManagement {
 
 	
 	private Vector<Connection> connections;
+	private Vector<Connection> not_yet_logged_in;
 	private Constant constant;
 	
 	private Vector<MessageWithContact> received;
@@ -20,6 +21,8 @@ public class NetManagement {
 
 	
 		this.connections = new Vector<Connection>();
+		this.not_yet_logged_in = new Vector<Connection>();
+		
 		this.constant = new Constant();
 		received = new Vector<MessageWithContact> ();
 		send = new Vector<MessageWithContact> ();
@@ -41,8 +44,29 @@ public class NetManagement {
 	*Executed by controller. Each time user sends new message
 	*
 	*/
+	
+	public void add_send_not_yet_logged_in(Contact c_, Message m_)
+	{
+		Iterator<Connection> it = this.not_yet_logged_in.iterator();
+		Contact c;
+		Connection connection;
+		while(it.hasNext())
+		{
+			connection = it.next();
+			c = connection.getContact();
+			if(c.getIp().equals(c_.getIp()))
+			{
+				connection.getUnicast().putMessage(m_);
+				this.send.add(new MessageWithContact(c,m_));
+				break;							
+			}
+		}
+	}
+	
+	
 	public void add_send(Contact c_, Message m_)
 	{
+		System.out.println("Wysyla wiadomosc do:"+ c_+ "wiadomosc:" + m_);
 		Iterator<Connection> it = connections.iterator();
 		Contact c;
 		Connection connection;
@@ -50,7 +74,7 @@ public class NetManagement {
 		{
 			connection = it.next();
 			c = connection.getContact();
-			if (c.getIp()== c_.getIp() || c.getId() == c_.getId())
+			if (c.getIp().equals(c_.getIp()) || c.getId().equals(c_.getId()))
 			{
 				connection.getUnicast().putMessage(m_);
 				this.send.add(new MessageWithContact(c,m_));
@@ -77,8 +101,49 @@ public class NetManagement {
 	public void checkIfNewUser(String ip)
 	{
 		Contact contact = new Contact();
+		Connection connection;
 		contact.setIp(ip);
-		connectToClient(contact);
+		System.out.println("check if new user:" + contact);
+		Iterator<Connection> it = this.not_yet_logged_in.iterator();
+		Boolean add = true;
+		String tmp_ip;
+		while(it.hasNext())
+		{
+			System.out.println("Jest na liscie not_yet_logged_in");
+			connection = it.next();
+			tmp_ip = connection.getContact().getIp();
+			if (tmp_ip.equals(ip))
+			{				
+				System.out.println("Nie doda do liaty not logged_in bo juz tam jest");
+				add = false;
+				break;				
+			}
+		}
+		if (add)
+		{
+
+			Socket s = new Socket();
+			try
+			{
+				InetAddress ia = InetAddress.getByAddress(convertStringIp2bytes(contact.getIp()));				
+				s.connect(new InetSocketAddress(ia,Constant.getPort()));
+				Connection conn = new Connection(s,this);
+				conn.getContact().setIp(contact.getIp());
+				System.out.print("tworzy nowy not_yet_logged_in "+ conn.getContact().getIp());
+				not_yet_logged_in.add(conn);
+				this.controller.messageSendHii(conn.getContact());
+				
+			}
+			catch (Exception e)
+			{
+				System.out.println("Blad przy tworzneiu socketu");
+				e.printStackTrace();
+			}
+			System.out.println("dodano nowe connection: not yet logged in: "+ not_yet_logged_in);
+			
+			return;
+		}
+		System.out.println("Nie dodano nowego connectiona' bo juz istnieje polaczenie z tym kontaktem");
 	}
 	
 	
@@ -146,6 +211,7 @@ public class NetManagement {
 		if (exists)
 		{
 			;// do nothing, use existing
+			System.out.println("ConnectToClient-Nie dodaje nowgo connectiona bo juz istnieje");
 		}
 		else
 		{
@@ -155,13 +221,16 @@ public class NetManagement {
 			{
 				InetAddress ia = InetAddress.getByAddress(convertStringIp2bytes(contact.getIp()));				
 				s.connect(new InetSocketAddress(ia,Constant.getPort()));
-				conn = new Connection(s,this);				
-				//System.out.print("tworzy nowy connection"+ conn.getContact().getIp());
+				conn = new Connection(s,this);
+				conn.getContact().setIp(contact.getIp());
+				System.out.print("tworzy nowy connection"+ conn.getContact().getIp());
 				connections.add(conn);
+				this.controller.messageSendHii(conn.getContact());
 				
 			}
 			catch (Exception e)
 			{
+				System.out.println("Blad przy tworzneiu socketu");
 				e.printStackTrace();
 			}
 
@@ -265,6 +334,23 @@ public class NetManagement {
 	public void setSend(Vector<MessageWithContact> send) {
 		this.send = send;
 	}
+
+	public Vector<Connection> getNot_yet_logged_in() {
+		return not_yet_logged_in;
+	}
+
+	public void setNot_yet_logged_in(Vector<Connection> notYetLoggedIn) {
+		not_yet_logged_in = notYetLoggedIn;
+	}
+
+	public Controller getController() {
+		return controller;
+	}
+
+	public void setController(Controller controller) {
+		this.controller = controller;
+	}
+	
 	
 
 }

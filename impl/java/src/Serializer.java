@@ -32,7 +32,7 @@ public class Serializer {
 				JSONArray jarray = new JSONArray();
 				obj.put("TYPE", "HII");
 				obj.put("UID",((HiiMsg)msg).getUid());
-				obj.put("USERNAME", ((HiiMsg)msg).getUid());
+				obj.put("USERNAME", ((HiiMsg)msg).getUsername());
 				
 				Iterator<UserVector>  it = ((HiiMsg)msg).getVector().iterator();
 				UserVector uv;
@@ -303,6 +303,9 @@ public class Serializer {
 			}
 				
 			else
+			{
+				msg.setType("ERR");
+			}
 				return msg;
 			
 		}

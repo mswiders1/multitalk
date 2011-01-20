@@ -6,6 +6,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.net.Socket;
 
 
 public class Broadcast {
@@ -31,6 +32,16 @@ public class Broadcast {
 			}
 			
 		socket.setBroadcast(true);
+		
+		// dodawanie siebie do listy Connectionow:
+		/*
+		MyId my_id = new MyId();
+		my_id.findId();
+		my_id.findIp(my_id.getInaddr());
+		Contact contact = new Contact(my_id.findId(),my_id.findUserName(),true,my_id.findIp(my_id.getInaddr()));
+		Connection connection = new Connection(new Socket(),this.net_management);
+		connection.setContact(contact);
+		this.net_management.getConnections().add(connection);*/
 		}
 		catch(Exception e)
 		{
@@ -141,9 +152,11 @@ public class Broadcast {
 					if(received_packet.getAddress().equals(my_id.getInaddr()))
 	                {   System.out.println("Dostalem pakiet od samego siebie");
 						continue; }
+					
 					System.out.println("Watek BroadcastListenera");
 					
 					Broadcast.this.net_management.checkIfNewUser(received_packet.getAddress().getHostAddress());
+					System.out.print("broadcast listener dostal pakiet");
 				}
 				catch(Exception e)
 				{

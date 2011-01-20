@@ -244,6 +244,7 @@ public class Unicast {
 				while(true)
 				{
 					Message msg = receivebox.take();
+					System.out.println("wiadomosc w ReceiveBoxListener" + msg);
 					Unicast.this.net_management.add_received(Unicast.this.connection.getContact(), msg);
 				}
 			}
