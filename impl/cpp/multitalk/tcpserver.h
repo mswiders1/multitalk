@@ -12,6 +12,7 @@ class TcpServer : public QTcpServer
 public:
     explicit TcpServer(QObject *parent);
     void connectToClient(QHostAddress address,Message msg);
+    void sendMessageToPeer(Message msg);
 private:
     QList<TcpConnection*> connectionList;
 signals:
@@ -24,5 +25,7 @@ private slots:
     void incomingConnection(int socketDescriptor);
     void disconnectedConnection(TcpConnection* connection);
 };
+
+
 
 #endif // TCPSERVER_H

@@ -116,6 +116,10 @@ void TcpConnection::parseMessage(QByteArray& data)
                 msg.vec.append(item.toString());
             }
             msg.content=result["CONTENT"].toString();
+        } else if(msg.type=="P2P")
+        {
+            msg.type="P2P";
+            msg.peerAddress=peerAddress();
         } else
         {
             qDebug()<<"WARNING:unknown message type, ignoring";
