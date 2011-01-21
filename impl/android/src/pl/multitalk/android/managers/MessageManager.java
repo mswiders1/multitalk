@@ -128,6 +128,11 @@ public class MessageManager {
             return true;
         }
         
+        if(acceptedMessages.contains(message) || waitingMessages.contains(message)){
+            // mamy już tę wiadomość
+            return true;
+        }
+        
         
         boolean acceptMsg = mtx.isMyVectorUpToDate(message.getTimeVec(), message.getUsersOrder());
 
