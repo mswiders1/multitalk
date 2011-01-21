@@ -275,12 +275,17 @@ public class MultitalkNetworkManager {
      * @param ipAddress adres IP użytkownika
      * @return true jeżeli mamy info o takim użytkowniku
      */
-    private synchronized boolean containsUserWithIP(String ipAddress){
+    private synchronized boolean containsUserWithIP(String ipAddress, boolean onlyLoggedUsers){
         // zalogowani
         for(UserInfo user : users){
             if(ipAddress.equals(user.getIpAddress())){
                 return true;
             }
+        }
+        
+        if (onlyLoggedUsers){
+            // nie ma
+            return false;
         }
         
         // niezalogowani
@@ -490,7 +495,7 @@ public class MultitalkNetworkManager {
                 continue;
             }
             
-            if(containsUserInfo(user) || containsUserWithIP(user.getIpAddress())){
+            if(containsUserInfo(user) || containsUserWithIP(user.getIpAddress(), false)){
                 // jeżeli mamy juz takiego uzytkownika na liscie zalogowanych
                 // lub mamy już info o użytkowniku pod takim adresem IP
                 continue;
@@ -515,14 +520,20 @@ public class MultitalkNetworkManager {
      */
     public void handleDiscoveryPacketReceived(DiscoveryPacketReceivedMessage message){
         // sprawdzenie czy mamy już info o takim użytkowniku
-        boolean userExists = containsUserWithIP(message.getSenderInfo().getIpAddress());
+        boolean userExists = containsUserWithIP(message.getSenderInfo().getIpAddress(), false);
+        boolean loggedUserExists = containsUserWithIP(message.getSenderInfo().getIpAddress(), true); 
         
-        if(userExists){
+        if(userExists && loggedUserExists){
             // rozłączamy
             Log.d(Constants.DEBUG_TAG, "Użytkownik istniał, rozłączam stare połączenie");
             tcpipNetworkManager.disconnectClient(message.getSenderInfo());
             removeUserInfo(message.getSenderInfo());
             messageManager.removeUser(message.getSenderInfo());
+            
+        } else if(userExists && !loggedUserExists){
+            // mamy połączenie z niezalogowanym - ignorujemy (wielokrotny broadcast)
+            Log.d(Constants.DEBUG_TAG, "mamy połączenie z niezalogowanym - ignorujemy (wielokrotny broadcast)");
+            return;
             
         } else{
             Log.d(Constants.DEBUG_TAG, "Pierwsza informacja o użytkowniku: "
@@ -576,7 +587,7 @@ public class MultitalkNetworkManager {
             
             // albo nie mamy bezpośredniego połączenia z logującym się użytkownikiem
             // albo mamy bezpośrednie połączenie a forward dostaliśmy wcześniej niż od logującego
-            if(!containsUserWithIP(clientUserInfo.getIpAddress())){
+            if(!containsUserWithIP(clientUserInfo.getIpAddress(), false)){
                 // nie mamy bezpośredniego połączenia z użytkownikiem logującym
                 // dodajemy usera
                 Log.d(Constants.DEBUG_TAG, "nie mamy bezpośredniego połączenia z użytkownikiem logującym - dodajemy usera");
