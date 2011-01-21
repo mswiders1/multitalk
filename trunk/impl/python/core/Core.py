@@ -68,10 +68,10 @@ class Core:
         if not msg:
             return
         if uid:
-            print u"Core: wysyłam wiadomość '%s' do %s" % (msg,  uid)
+            print "Core: wysyłam wiadomość '%s' do %s" % (msg,  uid)
             self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(), uid,  msg)
         else:
-            print u"Core: wysyłam wiadomość '%s' do wszystkich" % msg
+            print "Core: wysyłam wiadomość '%s' do wszystkich" % msg
             self.__gui.messageReceived(self.__model.getMyId(), self.__model.getNick(),  "",  msg)
         
         msg = MessageParser.getFullMsgMsg(uid,  msg)
@@ -80,7 +80,7 @@ class Core:
             connection.sendPacket(msg)
         
     def handleMsgMessage(self,  msg):
-        print u"Core: przesylam wiadomosc MSG do analizujy "
+        print "Core: przesylam wiadomosc MSG do analizujy "
         if self.__model.updateLogicalTimeUsingMsgAndSendToGui(msg):
             for connection in self.__tcpm.getMappedConnections():
                 connection.sendPacket(msg) 
@@ -92,7 +92,7 @@ class Core:
         return uid == self.__model.getMyId()
     
     def setDelayPerNode(self,  uid,  delayInSec):
-        print u"Core: ustawiam opóźnienie %d sekund dla klienta %s" % (delayInSec,  uid)
+        print "Core: ustawiam opóźnienie %d sekund dla klienta %s" % (delayInSec,  uid)
         connection = self.__tcpm.getConnectionToNode(uid)
         if connection:
             connection.delay = delayInSec
@@ -103,19 +103,23 @@ class Core:
             print "Core: dodaje wezel z wiadomosci hi: '%s'" % nodeFromVector
             self.__model.addNode(nodeFromVector['UID'],  nodeFromVector['USERNAME'],  nodeFromVector['IP_ADDRESS'])
         print "Core: mapuje wezel %s na polaczenie %s" % (msg['UID'],  connection)
-        self.__tcpm.mapNodeToConnection(msg['UID'],  connection)
+        if not self.__tcpm.mapNodeToConnection(msg['UID'],  connection):
+            print "Core: zamykam polaczenie bo już mam takie polaczenie"
+            connection.transport.loseConnection()
+            return
         if self.__model.getPreferredNodesAddr():
             #uzytkownik podal z palca adres wiec w opoiedzi na HII wysylamy LOG
             self.__doLog()
-        #for uid in self.__model.getListOfNodes():
-        #    if not uid in self.__tcpm.getNodesWithConnections():
+        for uid in self.__model.getListOfNodes():
+            if not uid in self.__tcpm.getNodesWithConnections():
+                TCPClient.startReversedTCPConnection(self.__reactor,  self.__model.getIPByUID(uid))
                 
             
     def __doLog(self):
         self.__model.addMeToListOfNodes()
         self.__sendLogMsgToAll()
-        self.heartbeat.start()
-        self.__broadcastStarted = True
+        #self.heartbeat.start()
+        #self.__broadcastStarted = True
     
     def __doNewNetwork(self):
         self.__model.setIamFirstNode()
@@ -129,13 +133,17 @@ class Core:
             print "Core: otrzymano wlasny LOG msg"
             return True
         if self.__model.logNewUser(msg['UID'],  msg['USERNAME'], msg['IP_ADDRESS']):
+            directConnection = False
             if not self.__tcpm.isConnectionMapped(connection):
+                # wiadomosc otrzymano za posrednictwem niezmapowanego polaczenias
+                directConnection = True
                 self.__tcpm.mapNodeToConnection(msg['UID'],  connection) # TODO : co w przypadku gdy connection sluzylo jako proxy dla tej wiadomoscis
             else:
                 print "Core: polaczenie jest juz zmapowane wiec pakiet byl forwardowany"
             connection.sendMtxMsg()
             print "Core: przesłałem MTX"
-            self.__doMsgForward(msg)
+            if directConnection:
+                self.__doMsgForward(msg)
             return True
         else:
             return False
@@ -169,12 +177,11 @@ class Core:
 
     def closeApp(self):
         print "Core: zamykam applikacje"
+        self.__sendOutMsgToAll()
         if self.__lookForDeadStarted:
             self.__lookForDead.stop()
         if self.__broadcastStarted:
             self.heartbeat.stop()
-        self.__sendOutMsgToAll()
-        self.__reactor.stop()
         return True
         
     def __sendOutMsgToAll(self):

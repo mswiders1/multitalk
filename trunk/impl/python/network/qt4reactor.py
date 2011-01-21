@@ -136,6 +136,7 @@ class QTReactor(posixbase.PosixReactorBase):
         if not self.running:
             self.running = 1
             self.qApp.exit_loop()
+            print "Koniec"
             return
         self.runUntilCurrent()
 

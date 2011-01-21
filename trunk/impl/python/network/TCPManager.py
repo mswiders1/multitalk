@@ -40,9 +40,13 @@ class TCPManager(Singleton):
         
     def mapNodeToConnection(self,  uid,  protocol):
         self.logMsg("mapuje wezel %s na polaczenie %s" % (uid,  protocol))
+        if uid in self.__mappedProtocols:
+            self.logMsg("wezel %s jest juz zmapowany" % uid)
+            return False
         self.__unmappedProtocols.remove(protocol)
         assert(self.__mappedProtocols.has_key(uid) == False)
         self.__mappedProtocols[uid] = protocol
+        return True
         
     def isConnectionMapped(self,  protocol):
         return self.__mappedProtocols.values().count(protocol) > 0
