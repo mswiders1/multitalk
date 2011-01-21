@@ -62,12 +62,14 @@ void MultitalkWindow::connectToNetwork()
         {
             ui->sendMsg->setEnabled(false);
             ui->sendMsgAll->setEnabled(false);
+            statusBarLabel->setText("Not Connected");
             sendOutMessage();
             delete tcpServer;
         }
         users.clear();
         matrix.clear();
         ui->listWidget->clear();
+        messageHistory.clear();
         uid=newUid;
         tcpServer=new TcpServer(this);
         connect(tcpServer,SIGNAL(receivedMessageFromNetwork(Message)),this,SLOT(handleReceivedMessage(Message)));
@@ -166,16 +168,27 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
 {
     if(messageHistory.contains(msg))
     {
-        qDebug()<<"already got this message, ignoring";
+        if(msg.type!="LIV")
+            qDebug()<<"already got this message, ignoring type:"<<msg.type;
         return;
     }
     else
     {
-        storeMessage(msg);
         if(msg.type!="HII"&&msg.type!="MTX"&&msg.type!="P2P")
-            emit sendMessageToNetwork(msg);
+        {
+            storeMessage(msg);
+            if((msg.type=="LOG"||msg.type=="LIV")&&msg.uid==uid)
+            {
+                qDebug()<<"not resending message - message from myself";
+            }
+            else
+            {
+                emit sendMessageToNetwork(msg);
+            }
+        }
     }
-    qDebug()<<"Multitalkwindow got message type:"<<msg.type;
+    if(msg.type!="LIV")
+        qDebug()<<"Multitalkwindow got message type:"<<msg.type;
     if(msg.type=="HII")
     {
         QList<UserData>::iterator myList;
@@ -222,14 +235,31 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
             userData.uid=msg.uid;
             userData.username=msg.username;
             userData.ip=msg.ip_address;
+            int myPos=-1;
+            for(int i=0;i<users.size();i++)
+            {
+                if(users[i].uid==uid)
+                    myPos=i;
+            }
             users.append(userData);
+
             for(int i=0;i<matrix.size();i++)
             {
                 matrix[i].append(0);
             }
+
             QList<int> newVector;
+
+
             for(int i=0;i<users.size();i++)
-                newVector.append(0);
+            {
+                if(myPos!=-1)
+                    newVector.append(matrix[myPos][i]);
+                else
+                    newVector.append(0);
+            }
+
+
             matrix.append(newVector);
             qDebug()<<"MATRIX:";
             qDebug()<<matrix;
@@ -263,7 +293,7 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         clientDisconnected(msg.uid);
     } else if(msg.type=="LIV")
     {
-        qDebug()<<"client alive:"<<msg.uid;
+        //qDebug()<<"client alive:"<<msg.uid;
     } else if(msg.type=="P2P")
     {
         Message reply;
@@ -374,12 +404,22 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
             else
             {
                 qDebug()<<"don't have previous messages sending GET message, removing current message";
+                QLinkedList<Message>::iterator msgWait;
+                for(msgWait=messageWaiting.begin();msgWait!=messageWaiting.end();msgWait++)
+                {
+                    if(msgWait->sender==msg.sender&&matrix[myPos][userPos]==msgWait->msg_id)
+                    {
+                        handleReceivedMessage(*msgWait);
+                    }
+                }
                 messageHistory.removeOne(msg);
-                sendGetMessage(uid,matrix[myPos][userPos]);
+                messageWaiting.append(msg);
+                sendGetMessage(msg.sender,matrix[myPos][userPos]);
             }
             return;
         }
-
+        if(userPos!=myPos)
+            matrix[userPos][userPos]++;
         for(int i=0;i<matrix[userPos].size();i++)
         {
             int posOfCurrentUser=-1;
@@ -396,10 +436,20 @@ void MultitalkWindow::handleReceivedMessage(Message msg)
         }
 
         qDebug()<<matrix;
-        if(msg.receiver==uid)
-            ui->log->appendPlainText("TO:"+username+" FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
         if(msg.receiver=="")
-            ui->log->appendPlainText("TO:ALL FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
+            ui->log->appendPlainText("TO ALL FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
+        else if(msg.receiver==uid)
+            ui->log->appendPlainText("TO:"+username+" FROM:"+users[userPos].username+" MESSAGE:"+msg.content);
+
+        QLinkedList<Message>::iterator msgWait;
+        for(msgWait=messageWaiting.begin();msgWait!=messageWaiting.end();msgWait++)
+        {
+            if(msgWait->sender==msg.sender&&matrix[myPos][userPos]==msgWait->msg_id)
+            {
+                handleReceivedMessage(*msgWait);
+                messageHistory.removeOne(msg);
+            }
+        }
     }
 
 }
@@ -425,6 +475,7 @@ void MultitalkWindow::sendLogMessage()
     livTimer->start();
     ui->sendMsg->setEnabled(true);
     ui->sendMsgAll->setEnabled(true);
+    statusBarLabel->setText("Connected");
     connect(livTimer,SIGNAL(timeout()),this,SLOT(sendLivMessage()));
 }
 
@@ -455,7 +506,7 @@ void MultitalkWindow::sendMsgMessage(QString content,QString receiverUid)
     msg.sender=uid;
     msg.receiver=receiverUid;
 
-    int myPos;
+    int myPos=-1;
     for(int i=0;i<users.size();i++)
     {
         msg.vec.append(users[i].uid);
@@ -467,22 +518,26 @@ void MultitalkWindow::sendMsgMessage(QString content,QString receiverUid)
     msg.msg_id=matrix[myPos][myPos];
     msg.content=content;
 
-    int userPos;
+    int userPos=-1;
     for(int i=0;i<users.size();i++)
     {
         if(users[i].uid==msg.receiver)
             userPos=i;
     }
-    ui->log->appendPlainText("TO:"+users[userPos].username+" MESSAGE:"+msg.content);
+    if(userPos==-1)
+        ui->log->appendPlainText("TO ALL MESSAGE:"+msg.content);
+    else
+        ui->log->appendPlainText("TO:"+users[userPos].username+" MESSAGE:"+msg.content);
     emit sendMessageToNetwork(msg);
 }
 
 void MultitalkWindow::sendGetMessage(QString uid,qint32 msg_id)
 {
     Message msg;
-    msg.type="MSG";
+    msg.type="GET";
     msg.uid=uid;
     msg.msg_id=msg_id;
+    storeMessage(msg);
     emit sendMessageToNetwork(msg);
 }
 

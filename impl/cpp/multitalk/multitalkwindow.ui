@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MultitalkWindow</string>
+   <string>Multitalk</string>
   </property>
   <property name="statusTip">
    <string/>
@@ -56,7 +56,7 @@
       <x>390</x>
       <y>220</y>
       <width>211</width>
-      <height>27</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
