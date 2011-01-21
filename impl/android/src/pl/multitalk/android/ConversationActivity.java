@@ -7,6 +7,7 @@ import java.util.TimerTask;
 
 import pl.multitalk.android.datatypes.UserInfo;
 import pl.multitalk.android.managers.messages.MsgMessage;
+import pl.multitalk.android.managers.messages.internal.SendMessageDelayed;
 import pl.multitalk.android.managers.messages.internal.SendMessageToClient;
 import pl.multitalk.android.model.MultitalkApplication;
 import pl.multitalk.android.ui.ConversationListAdapter;
@@ -20,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -34,6 +36,8 @@ public class ConversationActivity extends Activity {
     private List<ConversationListItem> conversationListItems;
     private ConversationListAdapter conversationAdapter;
     private EditText messageInput;
+    private EditText delayInput;
+    private CheckBox delayedCheckbox;
     private Handler handler = new Handler();
     private Timer updateConversationTimer;
     
@@ -55,6 +59,8 @@ public class ConversationActivity extends Activity {
         conversationListView.setAdapter(conversationAdapter);
         
         messageInput = (EditText) findViewById(R.id.conversation_bottomBar_messageInput);
+        delayedCheckbox = (CheckBox) findViewById(R.id.conversation_bottomBar_sendDelayedCheckbox);
+        delayInput = (EditText) findViewById(R.id.conversation_bottomBar_delayInput);
         
         Button sendButton = (Button) findViewById(R.id.conversation_bottomBar_sendButton);
         sendButton.setOnClickListener(new OnClickListener() {
@@ -68,7 +74,18 @@ public class ConversationActivity extends Activity {
                 SendMessageToClient sendMessageMsg = new SendMessageToClient();
                 sendMessageMsg.setContent(messageText);
                 sendMessageMsg.setRecipientInfo(clientUser);
-                app.getMultitalkNetworkManager().putMessage(sendMessageMsg);
+                
+                if(!delayedCheckbox.isChecked()){
+                    app.getMultitalkNetworkManager().putMessage(sendMessageMsg);
+                    
+                } else {
+                    int delay = Integer.valueOf(delayInput.getText().toString());
+                    SendMessageDelayed delayedMsg = new SendMessageDelayed();
+                    delayedMsg.setMsgToSend(sendMessageMsg);
+                    delayedMsg.setDelay(delay);
+                    app.getMultitalkNetworkManager().putMessage(delayedMsg);
+                    
+                }
                 
                 messageInput.setText("");
             }

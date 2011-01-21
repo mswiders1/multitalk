@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
+            android:layout_alignParentTop="true"
             android:text="@string/conversation_bottomBar_sendButton" />
     
         <EditText
@@ -40,7 +40,26 @@
             android:maxLines="3"
             android:scrollbars="vertical"
             android:inputType="textMultiLine|textCapSentences" />
-            
+        
+        <CheckBox
+            android:id="@+id/conversation_bottomBar_sendDelayedCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/conversation_bottomBar_messageInput"
+            android:text="@string/conversation_bottomBar_sendDelayedCheckbox" />
+    
+        <EditText
+            android:id="@+id/conversation_bottomBar_delayInput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/conversation_bottomBar_sendDelayedCheckbox"
+            android:layout_alignBaseline="@id/conversation_bottomBar_sendDelayedCheckbox"
+            android:layout_marginLeft="10dp"
+            android:minLines="1"
+            android:maxLines="1"
+            android:inputType="number"
+            android:width="100dp"
+            android:text="10000" />
     </RelativeLayout>
     
 </RelativeLayout>

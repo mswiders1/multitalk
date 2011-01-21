@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -173,6 +174,30 @@ public class TCPIPNetworkManager {
     
     
     /**
+     * Rozłącza się z użytkownikiem o podanym IP
+     * @param userInfo użytkownik
+     */
+    public synchronized void disconnectClientWithIP(UserInfo userInfo){
+        if(userInfo.getIpAddress() == null){
+            return;
+        }
+
+        Iterator<UserInfo> it = clientConnections.keySet().iterator();
+        while(it.hasNext()){
+            UserInfo clientUser = it.next();
+            
+            if(clientUser.getIpAddress().equals(userInfo.getIpAddress())){
+                Log.d(Constants.DEBUG_TAG, "Rozlaczam z klientem: "+clientUser.getIpAddress()+" ("+clientUser.getUid()+")");
+                ClientConnection clientConnection = clientConnections.get(clientUser);
+                clientConnection.disconnect();
+                
+                it.remove();
+            }
+        }
+    }
+    
+    
+    /**
      * Wysyła wiadomość do wszystkich klientów
      * @param message wiadomość do wysłania
      */
@@ -221,9 +246,11 @@ public class TCPIPNetworkManager {
         Log.d(Constants.DEBUG_TAG, "TCPIPNetworkManager: update user info ("+oldUserInfo.getIpAddress()+") from: "+oldUserInfo.getUid()
                 +", to: "+newUserInfo.getUid());
         ClientConnection clientConnection = clientConnections.get(oldUserInfo);
-        clientConnections.remove(oldUserInfo);
-        clientConnections.put(newUserInfo, clientConnection);
-        clientConnection.updateUserInfo(newUserInfo);
+        if(clientConnection != null){
+            clientConnections.remove(oldUserInfo);
+            clientConnections.put(newUserInfo, clientConnection);
+            clientConnection.updateUserInfo(newUserInfo);
+        }
     }
     
     
