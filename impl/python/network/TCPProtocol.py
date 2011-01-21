@@ -11,7 +11,6 @@ WAIT_FOR_HII_OR_P2P = 3
 WAIT_FOR_LOG = 4
 WAIT_FOR_MTX = 5
 CONNECTED = 6
-DISCONNECTED = 7
 MULTITALK_TAG = 'MULTITALK_5387132'
 
 class TCPProtocol(LineReceiver):
@@ -47,9 +46,8 @@ class TCPProtocol(LineReceiver):
             self.state = CONNECTED
         elif msgType == 'MSG':
             appVar.coreInstance.handleMsgMessage(jsonObj)
-        elif msgType == 'OUT' and self.state == CONNECTED:
+        elif msgType == 'OUT':
             appVar.coreInstance.handleOutMessage(jsonObj)
-            self.state = DISCONNECTED
         elif msgType == 'LIV':
             appVar.coreInstance.handleLivMessage(jsonObj)
         else:
@@ -59,11 +57,14 @@ class TCPProtocol(LineReceiver):
     
     def __doSendPacket(self,  msg):
         self.transport.write(msg)   
-        self.logMsg("wyslano dane ")
+        self.logMsg("wyslano dane %s" % msg)
     
     def sendPacket(self,  msg):
+        if msg.__class__ == {}.__class__:
+            jsonTxt = json.dumps(msg)
+            msg = MessageParser.getMsgWithJSONInside(jsonTxt)
         if self.delay > 0:
-            reactor.callLater(self.delay,  self.__doSendPacket,  msg)
+            self.__reactor.callLater(self.delay,  self.__doSendPacket,  msg)
         else:
             self.__doSendPacket(msg)
             
@@ -158,7 +159,7 @@ class TCPProtocol(LineReceiver):
     
     def sendOutMsgAndCloseConnection(self):
         msgToSend = MessageParser.getFullOutMsg()
-        self.logMsg("wysylam out msg '%s'" % msgToSend)
+        self.logMsg("wysylam out msg do %s" % self.transport.getPeer().host)
         self.sendPacket(msgToSend)
         self.transport.loseConnection()
         
@@ -167,5 +168,5 @@ class TCPProtocol(LineReceiver):
         self.sendPacket(msgToSend)
         
     def logMsg(self,  msg):
-        print "TCP: %s (%s)" %(msg,  self.transport.getPeer())
+        print "TCP: %s (%s)" %(msg,  self.transport.getPeer().host)
 
