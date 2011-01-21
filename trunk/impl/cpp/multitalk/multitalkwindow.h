@@ -26,6 +26,7 @@ public:
     QString newUid;
     QList<UserData> users;
     QLinkedList<Message> messageHistory;
+    QLinkedList<Message> messageWaiting;
     QList<QList<int> > matrix;
 
 private:

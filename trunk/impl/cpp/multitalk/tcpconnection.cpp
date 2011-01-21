@@ -70,7 +70,8 @@ void TcpConnection::parseMessage(QByteArray& data)
     if(ok)
     {
         msg.type=result["TYPE"].toString();
-        qDebug()<<"received message from:"<<peerAddress()<<" type:"<<msg.type;
+        if(msg.type!="LIV")
+            qDebug()<<"received message from:"<<peerAddress()<<" type:"<<msg.type;
         if(msg.type=="HII")
         {
             //qDebug()<<"got HII message";
@@ -94,7 +95,10 @@ void TcpConnection::parseMessage(QByteArray& data)
             msg.username=result["USERNAME"].toString();
             msg.ip_address=result["IP_ADDRESS"].toString();
             if(QHostAddress(msg.ip_address)==peerAddress())
+            {
+                clientUid=msg.uid;
                 msg.peerAddress=peerAddress();
+            }
         }
         else if(msg.type=="OUT")
         {
@@ -158,7 +162,8 @@ void TcpConnection::parseMessage(QByteArray& data)
 
 void TcpConnection::sendMessageToNetwork(Message msg)
 {
-    qDebug()<<"sending message to:"<<peerAddress()<<" type:"<<msg.type;
+    if(msg.type!="LIV")
+        qDebug()<<"sending message to:"<<peerAddress()<<" type:"<<msg.type;
     QVariantMap packet;
 
     if(msg.type=="HII")
@@ -255,7 +260,8 @@ void TcpConnection::sendMessageToNetwork(Message msg)
     write(packetArray);
     if(state()==QAbstractSocket::ConnectedState)
         flush();
-    qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
+    if(msg.type!="LIV")
+        qDebug()<<"data dump send:"<<packetArray<<":data dump send end";
 }
 
 void TcpConnection::connectionError(QAbstractSocket::SocketError error)
