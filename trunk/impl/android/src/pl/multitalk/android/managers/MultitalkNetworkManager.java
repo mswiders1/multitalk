@@ -25,6 +25,7 @@ import pl.multitalk.android.managers.messages.OutMessage;
 import pl.multitalk.android.managers.messages.P2PMessage;
 import pl.multitalk.android.managers.messages.internal.DiscoveryPacketReceivedMessage;
 import pl.multitalk.android.managers.messages.internal.FinishMessage;
+import pl.multitalk.android.managers.messages.internal.SendMessageDelayed;
 import pl.multitalk.android.managers.messages.internal.SendMessageToAllMessage;
 import pl.multitalk.android.managers.messages.internal.SendMessageToClient;
 import pl.multitalk.android.model.RBMtxPair;
@@ -526,9 +527,8 @@ public class MultitalkNetworkManager {
         if(userExists && loggedUserExists){
             // rozłączamy
             Log.d(Constants.DEBUG_TAG, "Użytkownik istniał, rozłączam stare połączenie");
-            tcpipNetworkManager.disconnectClient(message.getSenderInfo());
-            removeUserInfo(message.getSenderInfo());
-            messageManager.removeUser(message.getSenderInfo());
+            tcpipNetworkManager.disconnectClientWithIP(message.getSenderInfo());
+            // nie usuwam macierzy - może to być ten sam user co stary
             
         } else if(userExists && !loggedUserExists){
             // mamy połączenie z niezalogowanym - ignorujemy (wielokrotny broadcast)
@@ -539,6 +539,7 @@ public class MultitalkNetworkManager {
             Log.d(Constants.DEBUG_TAG, "Pierwsza informacja o użytkowniku: "
                     +message.getSenderInfo().getIpAddress()+", nawiązuję połączenie...");
         }
+        
         // dodajemy usera
         MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
         tcpipNetworkManager.connectToClient(message.getSenderInfo());
@@ -578,6 +579,20 @@ public class MultitalkNetworkManager {
         if(containsUserInfo(clientUserInfo)){
             // już wiemy, że ten user jest zalogowany
             Log.d(Constants.DEBUG_TAG, "wiadomość o użytkowniku, który jest już zalogowany");
+            
+            if(clientUserInfo.getIpAddress().equals(senderUserInfo.getIpAddress())){
+                Log.d(Constants.DEBUG_TAG, "wiadomość od tego samego użytkownika - ponowny login");
+
+                removeNotLoggedUserInfo(senderUserInfo);
+                tcpipNetworkManager.updateUserInfo(senderUserInfo, clientUserInfo);
+                
+                // wysłamy MTX message
+                MtxMessage mtxMessage = new MtxMessage();
+                mtxMessage.setSenderInfo(userInfo);
+                mtxMessage.setRecipientInfo(clientUserInfo);
+                mtxMessage.setMtxPair(messageManager.getRBMatrix());
+                tcpipNetworkManager.sendMessage(mtxMessage);
+            }
             return;
         }
         
@@ -726,6 +741,25 @@ public class MultitalkNetworkManager {
     }
     
     
+    public void handleSendDelayedMessage(SendMessageDelayed messageDelayed){
+        SendMessageToClient message = messageDelayed.getMsgToSend();
+        RBMtxPair mtxPair = messageManager.getRBMatrix();
+        
+        MsgMessage msgMessage = new MsgMessage();
+        msgMessage.setSenderInfo(userInfo);
+        msgMessage.setMsgSender(userInfo);
+        msgMessage.setMsgReceiver(message.getRecipientInfo());
+        msgMessage.setContent(message.getContent());
+        msgMessage.setMsgId(mtxPair.getMtx().get(0).get(0));
+        msgMessage.setTimeVec(mtxPair.getMtx().get(0));
+        msgMessage.setUsersOrder(mtxPair.getMtxUsersOrder());
+        messageManager.addMessage(msgMessage);
+        
+        Thread sendDelayedTh = new SendMessageDelayedThread(msgMessage, messageDelayed.getDelay());
+        sendDelayedTh.start();
+        
+    }
+    
     /**
      * Obsługuje komunikat LIV
      * @param message komunikat
@@ -867,6 +901,27 @@ public class MultitalkNetworkManager {
     }
     
     
+    class SendMessageDelayedThread extends Thread{
+        private MsgMessage message;
+        private int delay;
+        
+        public SendMessageDelayedThread(MsgMessage message, int delay) {
+            this.message = message;
+            this.delay = delay;
+        }
+        
+        @Override
+        public void run() {
+            try {
+                sleep(delay);
+            } catch (InterruptedException e) {
+                Log.e(Constants.ERROR_TAG, "InterruptedException at SendMessageDelayedThread");
+                return;
+            }
+            MultitalkNetworkManager.this.tcpipNetworkManager.sendMessageToAll(message);
+        }
+    }
+    
     
     /**
      * Wątek przetwarzający komunikaty od klientów
@@ -944,6 +999,11 @@ public class MultitalkNetworkManager {
                         Log.d(Constants.DEBUG_TAG, "received SendMessageToAllMessage message");
                         MultitalkNetworkManager.this.tcpipNetworkManager
                             .sendMessageToAll(((SendMessageToAllMessage) message).getMessageToSend());
+                        continue;
+                    
+                    } else if(message instanceof SendMessageDelayed){
+                        Log.d(Constants.DEBUG_TAG, "received SendMessageDelayed message");
+                        MultitalkNetworkManager.this.handleSendDelayedMessage((SendMessageDelayed) message);
                         continue;
                     
                     } else if(message instanceof FinishMessage){
