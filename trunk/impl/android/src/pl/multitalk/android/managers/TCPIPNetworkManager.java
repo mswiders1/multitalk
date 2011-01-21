@@ -61,7 +61,7 @@ public class TCPIPNetworkManager {
     /**
      * Rozpoczyna nasłuchiwanie połączeń od innych uzytkowników
      */
-    public void startListeningForConnections(){
+    public synchronized void startListeningForConnections(){
         try {
             connectionsListener = new ClientConnectionsListener(NetworkUtil.getIPaddressAsInetAddress(context),
                     Constants.TCP_PORT, this);
@@ -86,7 +86,7 @@ public class TCPIPNetworkManager {
     /**
      * Kończy nasłuchiwanie połączeń
      */
-    public void stopListeningForConnections(){
+    public synchronized void stopListeningForConnections(){
         if(connectionsListener != null){
             connectionsListener.stopListening();
         }
@@ -96,7 +96,7 @@ public class TCPIPNetworkManager {
     /**
      * Rozłącza się ze wszystkimi klientami
      */
-    public void disconnectAllClients(){
+    public synchronized void disconnectAllClients(){
         for(ClientConnection clientConnection : clientConnections.values()){
             clientConnection.disconnect();
         }
@@ -109,7 +109,7 @@ public class TCPIPNetworkManager {
      * Tworzy połączenie z nowym klientem
      * @param socket socket
      */
-    public void newClientConnected(Socket socket){
+    public synchronized void newClientConnected(Socket socket){
         UserInfo userInfo = new UserInfo();
         userInfo.setIpAddress(socket.getInetAddress().getHostAddress());
         // fake UID - nie wiemy jak się nazywa, ale musimy go rozpoznawać...
@@ -125,7 +125,7 @@ public class TCPIPNetworkManager {
      * Tworzy połączenie z klientem
      * @param userInfo klient
      */
-    public void connectToClient(UserInfo userInfo){
+    public synchronized void connectToClient(UserInfo userInfo){
         if(clientConnections.containsKey(userInfo)){
             // już mamy to połączenie
             return;
@@ -159,7 +159,7 @@ public class TCPIPNetworkManager {
      * Rozłącza się z użytkownikiem
      * @param userInfo użytkownik
      */
-    public void disconnectClient(UserInfo userInfo){
+    public synchronized void disconnectClient(UserInfo userInfo){
         if(!clientConnections.containsKey(userInfo)){
             // nie ma takiego połączenia
             return;
@@ -176,7 +176,7 @@ public class TCPIPNetworkManager {
      * Wysyła wiadomość do wszystkich klientów
      * @param message wiadomość do wysłania
      */
-    public void sendMessageToAll(Message message){
+    public synchronized void sendMessageToAll(Message message){
 //        Log.d(Constants.DEBUG_TAG, "sending message to all: \n"
 //                + message.serialize());
         
@@ -197,14 +197,17 @@ public class TCPIPNetworkManager {
      * Wysyła wiadomość do klienta
      * @param message wiadomość
      */
-    public void sendMessage(Message message){
+    public synchronized void sendMessage(Message message){
         Log.d(Constants.DEBUG_TAG, "sending message: \n"
                 + message.serialize()
                 +"\n to client at: "+message.getRecipientInfo().getIpAddress()+" ("+message.getRecipientInfo().getUid()+")");
         
         ClientConnection clientConnection = clientConnections.get(message.getRecipientInfo());
         if(clientConnection != null){
+            Log.d(Constants.DEBUG_TAG, "znalazłem połączenie, naprawdę wysyłam wiadomość");
             clientConnection.sendMessage(message);
+        } else {
+            Log.d(Constants.DEBUG_TAG, "NIE ZNALAZŁEM połączenia!");
         }
     }
     
@@ -214,7 +217,7 @@ public class TCPIPNetworkManager {
      * @param oldUserInfo stare informacje
      * @param newUserInfo nowe informacje
      */
-    public void updateUserInfo(UserInfo oldUserInfo, UserInfo newUserInfo){
+    public synchronized void updateUserInfo(UserInfo oldUserInfo, UserInfo newUserInfo){
         Log.d(Constants.DEBUG_TAG, "TCPIPNetworkManager: update user info ("+oldUserInfo.getIpAddress()+") from: "+oldUserInfo.getUid()
                 +", to: "+newUserInfo.getUid());
         ClientConnection clientConnection = clientConnections.get(oldUserInfo);
@@ -229,7 +232,7 @@ public class TCPIPNetworkManager {
      * @param user klient
      * @return true jeżeli ma połączenie
      */
-    public boolean hasConnection(UserInfo user){
+    public synchronized boolean hasConnection(UserInfo user){
         return clientConnections.containsKey(user);
     }
     
