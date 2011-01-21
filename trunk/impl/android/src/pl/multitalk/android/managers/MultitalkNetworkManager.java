@@ -715,6 +715,9 @@ public class MultitalkNetworkManager {
      */
     public void handleGetMessage(GetMessage message){
         MsgMessage msgToSend = messageManager.getMessage(message.getUserInfo(), message.getMsgId());
+        if(msgToSend == null){
+            return;
+        }
         msgToSend.setSenderInfo(userInfo);
         msgToSend.setRecipientInfo(message.getSenderInfo());
         tcpipNetworkManager.sendMessage(msgToSend);

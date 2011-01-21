@@ -183,4 +183,29 @@ public class MsgMessage extends BaseMessage {
         return cloneMessage;
     }
 
+    
+    
+    @Override
+    public boolean equals(Object o) {
+        if(o==null)
+            return false;
+        if(o==this)
+            return true;
+        
+        if(!(o instanceof MsgMessage))
+            return false;
+        
+        MsgMessage oMsg = (MsgMessage) o;
+        if(oMsg.getSenderInfo().equals(this.getSenderInfo())
+                && oMsg.getMsgId() == this.getMsgId())
+            return true;
+        
+        return false;
+    }
+    
+    
+    @Override
+    public int hashCode() {
+        return getMsgId();
+    }
 }
