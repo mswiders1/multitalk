@@ -11,7 +11,7 @@ class TCPServer(TCPProtocol):
         self.isClient = False
         self.isReversed = True
         TCPProtocol.__init__(self)
-        
+
 def startTCPServer(reactor):
     factory = Factory()
     factory.protocol = TCPServer

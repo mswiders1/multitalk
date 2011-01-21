@@ -30,7 +30,7 @@ def main():
     qt4reactor.install(app)
     from twisted.internet import reactor
     # make sure stopping twisted event also shuts down QT
-    reactor.addSystemEventTrigger('after', 'shutdown', app.quit )
+    #reactor.addSystemEventTrigger('after', 'shutdown', app.quit )
     # shutdown twisted when window is closed
     #app.connect(app, QtCore.SIGNAL("lastWindowClosed()"), reactor.stop)
     qtWinSettings = QtCore.QSettings(aboutMe, appName);
@@ -44,6 +44,7 @@ def main():
     appVar.coreInstance.setTcpManager(appVar.tcpManager)
     appVar.guiInstance.setCore(appVar.coreInstance)
     if appVar.guiInstance.showGui():
+        print "Run reactor"
         reactor.run()
      
 if __name__ == "__main__":

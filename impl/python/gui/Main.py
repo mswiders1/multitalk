@@ -59,8 +59,8 @@ class Main(QtGui.QMainWindow):
         return True
         
     def on_sendButton_released(self):
-        msg = unicode(self.ui.newMessage.text())
-        self.ui.newMessage.setText(u"")
+        msg = str(self.ui.newMessage.text())
+        self.ui.newMessage.setText("")
         self.core.sendMessage(TO_ALL,  msg)
         
     def on_peersView_clicked(self):
