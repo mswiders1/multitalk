@@ -73,5 +73,8 @@ class TCPManager(Singleton):
     def getMappedConnections(self):
         return self.__mappedProtocols.values()
         
+    def getNodesWithConnections(self):
+        return self.__mappedProtocols.keys()
+        
     def logMsg(self,  msg):
         print "TCPM: %s" % msg

@@ -32,7 +32,7 @@ def main():
     # make sure stopping twisted event also shuts down QT
     reactor.addSystemEventTrigger('after', 'shutdown', app.quit )
     # shutdown twisted when window is closed
-    app.connect(app, QtCore.SIGNAL("lastWindowClosed()"), reactor.stop)
+    #app.connect(app, QtCore.SIGNAL("lastWindowClosed()"), reactor.stop)
     qtWinSettings = QtCore.QSettings(aboutMe, appName);
     appVar.modelInstance = Model()
     appVar.guiInstance = Main(qtWinSettings)

@@ -44,11 +44,14 @@ class TCPClientFactory(ClientFactory):
         print "TCP-CF: %s " % msg
 
 def startTCPConnection(reactor,  addr):
+    appVar.tcpManager.tryingToConnect(addr)
     factory = TCPClientFactory(TCPClient)
     factory.addr = addr
-    appVar.tcpManager.tryingToConnect(addr)
     reactor.connectTCP(addr,  3554,  factory)
     
 def startReversedTCPConnection(reactor,  addr):
-    reactor.connectTCP(addr,  3554,  TCPClientFactory(TCPReversedClient))
+    appVar.tcpManager.tryingToConnect(addr)
+    factory = TCPClientFactory(TCPReversedClient)
+    factory.addr = addr
+    reactor.connectTCP(addr,  3554,  factory)
     

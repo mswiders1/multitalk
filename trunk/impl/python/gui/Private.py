@@ -53,7 +53,7 @@ class Private(QtGui.QDialog):
         self.setWindowTitle(title + u"(rozłączony)")
         
     def closeEvent(self,  closeEvent):
-        print "Gui: zamykam okno rozmowy"
+        print "Gui: zamykam prywatne okno rozmowy"
         self.mainWndow.conversationWindowClosed(self.uidOfOtherSide)
     
     def setCore(self,  core):

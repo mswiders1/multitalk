@@ -3,7 +3,7 @@
 import hashlib
 import base64
 from network.Interface import getInetAddress
-from exceptions import AssertionError
+from exceptions import AssertionError,  ValueError
 import time
 from MessageCache import MessageCache,  DelayedMsgCache
 
@@ -15,8 +15,9 @@ class Node():
         self.__name = None
         self.__uid = uid
         self.__ip = None
-        self.__lastSeen = None
+        self.__lastSeen = time.time()
         self.__gui = None
+        self.__isAlive = None
         
     def getUid(self):
         return self.__uid
@@ -37,8 +38,15 @@ class Node():
         self.__lastSeen = time.time()
         
     def isAlive(self):
-        timeDiff = time.time() - self.__lastSeen #TODO: to nie jest bezpieczne (ten czas nie jest monotoniczny), ale nie chcę dodawać innych bibliotek
-        return timeDiff < IS_ALIVE_TIME
+        return self.__isAlive
+        
+    def updateIsAliveAndReturnIt(self):
+        timeDiff = time.time() - self.__lastSeen # to nie jest bezpieczne (ten czas nie jest monotoniczny), ale nie chcę dodawać innych bibliotek
+        self.__isAlive = timeDiff < IS_ALIVE_TIME
+        return self.__isAlive
+        
+    def __str__(self):
+        return "(%s,%s,%s)" %(self.__name,  self.__uid,  self.__lastSeen)
 
 class Model():
     """Model danych aplikacji: zalogowany uzytkownik, zegar logiczny etc"""
@@ -59,6 +67,12 @@ class Model():
         
     def getPreferredNodesAddr(self):
         return self.__preferredNodesAddr
+    
+    def lookForDeadNodes(self):
+        for node in self.__nodes.values():
+            wasAlive = node.isAlive()
+            if not node.updateIsAliveAndReturnIt():
+                self.logMsg("uzytkownik %s jest nieaktywny" % node)
         
     def setNick(self,  nick):
         print "MODEL: ustawiam nick na " + nick
@@ -88,6 +102,12 @@ class Model():
         
     def getMatrix(self):
         return self.__logicalTime; #TODO: zwracać kopię?
+        
+    def getMsgBySenderAndTime(self,  uid,  time):
+        try:
+            return self.__msgCache.getMsg(uid,  time)
+        except ValueError:
+            return None
         
     def getIncrementedTimeVector(self):
         uid = self.getMyId()
@@ -173,6 +193,7 @@ class Model():
         senderUid = msg['SENDER']
         receiverUid = msg['RECEIVER']
         content = msg['CONTENT']
+        msgId = msg['MSG_ID']
         
         if senderUid == self.getMyId():
             #to maja wiadomosc wiec ignoruje 
@@ -193,9 +214,12 @@ class Model():
         else:
             # sprawdzamy czy wiadomość nie była opóżniana
             self.__printMatrix(self.__logicalTime,  self.__nodesUid)
-            self.logMsg("odebralem wiadomosc od %s wiec inkrementuje jego zegar w moim wektorze" % (senderUid))
+            self.logMsg("odebralem wiadomosc od %s " % (senderUid))
             senderUidInMyMatrix = self.__nodesUid.index(senderUid)
             myIndexInMyMatrix = self.__nodesUid.index(self.getMyId())
+            if msgId < self.__logicalTime[myIndexInMyMatrix][senderUidInMyMatrix]: 
+                self.logMsg("mialem juz wiadomosc od %s" % (senderUid))
+                return False
             self.__logicalTime[myIndexInMyMatrix][senderUidInMyMatrix] +=1
             if self.__delayedMsgCache.isAlreadyDelayed(msg):
                 self.logMsg("otrzymana wiadomość była w kolekcji wiadomości opóźnionych")
@@ -210,12 +234,24 @@ class Model():
             
             
         needForward = not isKnownMsg
-        
+        #czyszcze cache z niepotrzebych wiadomosci 
+        self.__removeMsgFromCache()
         # sprawdzamy czy trzeba wyslac wiadomosc do GUI
         if receiverUid == "" or receiverUid == self.getMyId():
             self.__gui.messageReceived(senderUid, self.getNickByUID(senderUid),  receiverUid,  content)
             
         return needForward
+  
+    def __removeMsgFromCache(self):
+        for uid in self.__nodesUid:
+            idx = self.__nodesUid.index(uid)
+            minVal = 0
+            for row in range(0,  len(self.__nodesUid)):
+                if row == 0:
+                    minVal = self.__logicalTime[row][idx]
+                else:
+                    minVal = min(self.__logicalTime[row][idx],  minVal)
+            self.__msgCache.delMsgWithLowerOrEqTime(uid,  minVal)
   
     def addNode(self,  uid,  username,  ip):
         #TODO: dodanie do macierzy zegarow
@@ -247,10 +283,13 @@ class Model():
         assert nodesCount == nodesCountInMap,   "bledna ilosc elemntow w tablicy i mapie (%d != %d)" % (nodesCount,  nodesCountInMap)
         assert len(self.__logicalTime) == nodesCount,  "blena ilosc wierszy (%d != %d)" %(len(self.__logicalTime) ,  nodesCount)
         for row in self.__logicalTime:
-            assert len(row) == nodesCount,  "blena ilosc kolumn (%d != %d)" %(len(row) ,  nodesCount)
+            assert len(row) == nodesCount,  "bledna ilosc kolumn (%d != %d)" %(len(row) ,  nodesCount)
 
     def removeNode(self,  uid):
         print "Model: usuwam wskazanego wezla - %s" % uid
+        if not uid in self.__nodesUid:
+            print "Model: nie znam wezla - %s" % uid
+            return
         name = self.getNickByUID(uid)
         index = self.__nodesUid.index(uid)
         del self.__nodes[uid]
@@ -262,7 +301,10 @@ class Model():
         self.__gui.delNode(uid,  name)
         
     def markNodeIsAlive(self,  uid):
-        self.__nodes[uid].markIsAlive()
+        if uid in self.__nodes:
+            self.__nodes[uid].markIsAlive()
+        else:
+            self.logMsg("dostalem liv od nieznanego wezla %s" % uid)
 
     def setIamFirstNode(self):
         self.addNode(self.getMyId(),  self.getNick(),  getInetAddress())
