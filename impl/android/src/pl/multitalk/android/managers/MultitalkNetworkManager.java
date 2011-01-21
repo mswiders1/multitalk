@@ -397,6 +397,7 @@ public class MultitalkNetworkManager {
     /**
      * Rozpoczyna usuwanie martwych klientów
      */
+    @SuppressWarnings("unused")
     private void startRemoveingDeadClients(){
         removeDeadClientsTimer = new Timer();
         removeDeadClientsTimer.schedule(new RemoveDeadClientsTimerTask(), 10000, 10000);
@@ -502,7 +503,7 @@ public class MultitalkNetworkManager {
             P2PMessage p2pMessage = new P2PMessage();
             p2pMessage.setSenderInfo(userInfo);
             p2pMessage.setRecipientInfo(user);
-            tcpipNetworkManager.sendMessage(p2pMessage); // FIXME ?
+            tcpipNetworkManager.sendMessage(p2pMessage);
             
         }
     }
@@ -516,22 +517,24 @@ public class MultitalkNetworkManager {
         // sprawdzenie czy mamy już info o takim użytkowniku
         boolean userExists = containsUserWithIP(message.getSenderInfo().getIpAddress());
         
-        
-        if(!userExists){
+        if(userExists){
+            // rozłączamy
+            Log.d(Constants.DEBUG_TAG, "Użytkownik istniał, rozłączam stare połączenie");
+            tcpipNetworkManager.disconnectClient(message.getSenderInfo());
+            removeUserInfo(message.getSenderInfo());
+            messageManager.removeUser(message.getSenderInfo());
+            
+        } else{
             Log.d(Constants.DEBUG_TAG, "Pierwsza informacja o użytkowniku: "
                     +message.getSenderInfo().getIpAddress()+", nawiązuję połączenie...");
-            // dodajemy usera
-            MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
-            tcpipNetworkManager.connectToClient(message.getSenderInfo());
-            
-            // w odpowiedzi wysyłamy HiMessage
-            sendHiiMessage(message.getSenderInfo());
-            
-        } else {
-            Log.d(Constants.DEBUG_TAG, "Już jest informacja o użytkowniku: "
-                    +message.getSenderInfo().getIpAddress()+", nie nawiązuję połączenia...");
-            
         }
+        // dodajemy usera
+        MultitalkNetworkManager.this.addNotLoggedUserInfo(message.getSenderInfo());
+        tcpipNetworkManager.connectToClient(message.getSenderInfo());
+            
+        // w odpowiedzi wysyłamy HiMessage
+        sendHiiMessage(message.getSenderInfo());
+
     }
     
 
@@ -629,10 +632,18 @@ public class MultitalkNetworkManager {
      * @param message komunikat
      */
     public void handleOutMessage(OutMessage message){
+        boolean userExisted = containsUserInfo(message.getUserInfo());
+        
         messageManager.removeUser(message.getUserInfo());
         tcpipNetworkManager.disconnectClient(message.getUserInfo());
         removeUserInfo(message.getUserInfo());
         
+        if(userExisted){
+            SendMessageToAllMessage smtaMessage = new SendMessageToAllMessage();
+            smtaMessage.setMessageToSend(message);
+            smtaMessage.setSenderInfo(userInfo);
+            putMessage(smtaMessage);
+        }
     }
     
     
